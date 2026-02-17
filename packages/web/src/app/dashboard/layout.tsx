@@ -28,6 +28,7 @@ import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { NotificationCenter } from '@/components/ui/NotificationCenter';
 import { CommandPalette } from '@/components/ui/CommandPalette';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { useApi } from '@/lib/hooks/use-api';
 import { alertsApi } from '@/lib/services';
 
@@ -205,7 +206,9 @@ export default function DashboardLayout({
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3 }}
                     >
-                        {children}
+                        <ErrorBoundary>
+                            {children}
+                        </ErrorBoundary>
                     </motion.div>
                 </main>
             </div>

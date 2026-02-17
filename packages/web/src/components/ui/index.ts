@@ -13,3 +13,4 @@ export { EmptyState } from './EmptyState';
 export { DataTable } from './DataTable';
 export type { DataTableColumn, DataTableAction } from './DataTable';
 export { Sparkline } from './Sparkline';
+export { ErrorBoundary } from './ErrorBoundary';
