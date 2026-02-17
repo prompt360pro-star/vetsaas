@@ -28,6 +28,7 @@ import { useAuthStore } from '@/stores/auth-store';
 import { SearchBar } from '@/components/ui/SearchBar';
 import { UserMenu } from '@/components/ui/UserMenu';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { useApi } from '@/lib/hooks/use-api';
 import { alertsApi } from '@/lib/services';
 
@@ -52,26 +53,9 @@ export default function DashboardLayout({
     const pathname = usePathname();
     const { user } = useAuthStore();
     const [collapsed, setCollapsed] = useState(false);
-    const [isDark, setIsDark] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
     const { data: alerts } = useApi(() => alertsApi.fetchAlerts());
     const alertCount = alerts?.length ?? 0;
-
-    // Persistent dark mode
-    useEffect(() => {
-        const saved = localStorage.getItem('vetsaas-dark');
-        if (saved === 'true') {
-            setIsDark(true);
-            document.documentElement.classList.add('dark');
-        }
-    }, []);
-
-    const toggleTheme = () => {
-        const next = !isDark;
-        setIsDark(next);
-        document.documentElement.classList.toggle('dark');
-        localStorage.setItem('vetsaas-dark', String(next));
-    };
 
     return (
         <div className="flex h-screen bg-surface-100 dark:bg-surface-950">
@@ -203,12 +187,7 @@ export default function DashboardLayout({
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <button
-                            onClick={toggleTheme}
-                            className="w-9 h-9 rounded-xl bg-surface-50 dark:bg-surface-800 flex items-center justify-center text-surface-500 hover:text-primary-600 transition-colors"
-                        >
-                            {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-                        </button>
+                        <ThemeToggle />
 
                         <button aria-label="Notificações" className="relative w-9 h-9 rounded-xl bg-surface-50 dark:bg-surface-800 flex items-center justify-center text-surface-500 hover:text-primary-600 transition-colors">
                             <Bell className="w-4 h-4" />
@@ -278,8 +257,8 @@ export default function DashboardLayout({
                                             href={item.href}
                                             onClick={() => setMobileOpen(false)}
                                             className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive
-                                                    ? 'bg-primary-50 dark:bg-primary-950/30 text-primary-700 dark:text-primary-400'
-                                                    : 'text-surface-600 dark:text-surface-400 hover:bg-surface-50 dark:hover:bg-surface-800'
+                                                ? 'bg-primary-50 dark:bg-primary-950/30 text-primary-700 dark:text-primary-400'
+                                                : 'text-surface-600 dark:text-surface-400 hover:bg-surface-50 dark:hover:bg-surface-800'
                                                 }`}
                                         >
                                             <item.icon className="w-5 h-5" />
