@@ -14,3 +14,4 @@ export { DataTable } from './DataTable';
 export type { DataTableColumn, DataTableAction } from './DataTable';
 export { Sparkline } from './Sparkline';
 export { ErrorBoundary } from './ErrorBoundary';
+export { ShimmerSkeleton, ShimmerText, ShimmerCard, ShimmerAvatar } from './ShimmerSkeleton';

@@ -23,6 +23,7 @@ import { useApi } from '@/lib/hooks/use-api';
 import { dashboardApi, alertsApi } from '@/lib/services';
 import { Sparkline } from '@/components/ui';
 import { ActivityFeed } from '@/components/dashboard/ActivityFeed';
+import { useAnimatedCounter } from '@/lib/hooks/useAnimatedCounter';
 
 /* ─── Fallback Mock Data ────────────────────────────────────────── */
 const fallbackStats = {
@@ -83,6 +84,18 @@ function Skeleton({ className = '' }: { className?: string }) {
     );
 }
 
+/* ─── Animated Stat Value ───────────────────────────────────────── */
+function AnimatedStatValue({ value, isCurrency, delay }: { value: number; isCurrency?: boolean; delay?: number }) {
+    const display = useAnimatedCounter(value, {
+        duration: 1200,
+        delay: (delay ?? 0) * 1000,
+        formatter: isCurrency
+            ? (v) => `Kz ${Math.round(v).toLocaleString('pt-AO')}`
+            : undefined,
+    });
+    return <>{display}</>;
+}
+
 /* ─── Component ─────────────────────────────────────────────────── */
 export default function DashboardPage() {
     const { user } = useAuthStore();
@@ -97,6 +110,7 @@ export default function DashboardPage() {
         {
             label: 'Pacientes Activos',
             value: String(stats.totalAnimals),
+            numValue: stats.totalAnimals,
             change: `+${stats.animalsChange}%`,
             trend: stats.animalsChange >= 0 ? 'up' as const : 'down' as const,
             icon: Dog,
@@ -107,6 +121,7 @@ export default function DashboardPage() {
         {
             label: 'Consultas Hoje',
             value: String(stats.todayAppointments),
+            numValue: stats.todayAppointments,
             change: `+${stats.appointmentsChange}`,
             trend: stats.appointmentsChange >= 0 ? 'up' as const : 'down' as const,
             icon: Calendar,
@@ -117,6 +132,8 @@ export default function DashboardPage() {
         {
             label: 'Receita do Mês',
             value: formatKwanza(stats.monthlyRevenue),
+            numValue: stats.monthlyRevenue,
+            isCurrency: true,
             change: `+${stats.revenueChange.toFixed(1)}%`,
             trend: stats.revenueChange >= 0 ? 'up' as const : 'down' as const,
             icon: CreditCard,
@@ -127,6 +144,7 @@ export default function DashboardPage() {
         {
             label: 'Tutores',
             value: String(stats.totalTutors),
+            numValue: stats.totalTutors,
             change: `+${stats.tutorsChange}`,
             trend: stats.tutorsChange >= 0 ? 'up' as const : 'down' as const,
             icon: Users,
@@ -196,7 +214,7 @@ export default function DashboardPage() {
                             <Skeleton className="w-20 h-8 mb-2" />
                         ) : (
                             <p className="text-2xl font-bold text-surface-900 dark:text-surface-50">
-                                {stat.value}
+                                <AnimatedStatValue value={stat.numValue} isCurrency={stat.isCurrency} delay={0.2} />
                             </p>
                         )}
                         <p className="text-sm text-surface-500 dark:text-surface-400 mt-1">
