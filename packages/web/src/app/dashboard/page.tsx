@@ -21,6 +21,8 @@ import { formatKwanza } from '@vetsaas/shared';
 import { useAuthStore } from '@/stores/auth-store';
 import { useApi } from '@/lib/hooks/use-api';
 import { dashboardApi, alertsApi } from '@/lib/services';
+import { Sparkline } from '@/components/ui';
+import { ActivityFeed } from '@/components/dashboard/ActivityFeed';
 
 /* ─── Fallback Mock Data ────────────────────────────────────────── */
 const fallbackStats = {
@@ -99,6 +101,8 @@ export default function DashboardPage() {
             trend: stats.animalsChange >= 0 ? 'up' as const : 'down' as const,
             icon: Dog,
             color: 'from-primary-500 to-primary-600',
+            spark: [180, 195, 210, 205, 220, 230, 225, 240, 247],
+            sparkVariant: 'primary' as const,
         },
         {
             label: 'Consultas Hoje',
@@ -107,6 +111,8 @@ export default function DashboardPage() {
             trend: stats.appointmentsChange >= 0 ? 'up' as const : 'down' as const,
             icon: Calendar,
             color: 'from-accent-500 to-accent-600',
+            spark: [12, 15, 10, 18, 14, 20, 16, 18, 18],
+            sparkVariant: 'accent' as const,
         },
         {
             label: 'Receita do Mês',
@@ -115,6 +121,8 @@ export default function DashboardPage() {
             trend: stats.revenueChange >= 0 ? 'up' as const : 'down' as const,
             icon: CreditCard,
             color: 'from-emerald-500 to-emerald-600',
+            spark: [2100000, 2400000, 2800000, 2600000, 3100000, 2900000, 3200000, 3350000, 3450000],
+            sparkVariant: 'success' as const,
         },
         {
             label: 'Tutores',
@@ -123,6 +131,8 @@ export default function DashboardPage() {
             trend: stats.tutorsChange >= 0 ? 'up' as const : 'down' as const,
             icon: Users,
             color: 'from-purple-500 to-purple-600',
+            spark: [150, 155, 160, 165, 168, 175, 180, 185, 189],
+            sparkVariant: 'purple' as const,
         },
     ];
 
@@ -192,6 +202,9 @@ export default function DashboardPage() {
                         <p className="text-sm text-surface-500 dark:text-surface-400 mt-1">
                             {stat.label}
                         </p>
+                        <div className="mt-2 h-8">
+                            <Sparkline data={stat.spark} variant={stat.sparkVariant} height={32} />
+                        </div>
                     </motion.div>
                 ))}
             </motion.div>
@@ -251,44 +264,13 @@ export default function DashboardPage() {
                     </div>
                 </motion.div>
 
-                {/* Recent Activity */}
+                {/* Activity Feed */}
                 <motion.div
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
-                    className="glass-card"
                 >
-                    <div className="flex items-center gap-3 p-5 border-b border-surface-100 dark:border-surface-800">
-                        <Activity className="w-5 h-5 text-accent-600" />
-                        <h2 className="font-semibold text-surface-900 dark:text-surface-50">
-                            Actividade Recente
-                        </h2>
-                    </div>
-
-                    <div className="p-4 space-y-4">
-                        {fallbackActivity.map((activity, i) => (
-                            <motion.div
-                                key={i}
-                                initial={{ opacity: 0, x: 10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.5 + i * 0.08 }}
-                                className="flex items-start gap-3"
-                            >
-                                <div className="w-8 h-8 rounded-lg bg-surface-100 dark:bg-surface-800 flex items-center justify-center flex-shrink-0">
-                                    <activity.icon className="w-4 h-4 text-surface-500" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm text-surface-700 dark:text-surface-300">
-                                        {activity.text}
-                                    </p>
-                                    <p className="text-xs text-surface-400 dark:text-surface-500 mt-0.5 flex items-center gap-1">
-                                        <Clock className="w-3 h-3" />
-                                        {activity.time}
-                                    </p>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
+                    <ActivityFeed maxItems={6} />
                 </motion.div>
             </div>
 
