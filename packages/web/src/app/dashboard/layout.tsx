@@ -28,6 +28,7 @@ import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { NotificationCenter } from '@/components/ui/NotificationCenter';
 import { CommandPalette } from '@/components/ui/CommandPalette';
+import { KeyboardShortcutsHelp } from '@/components/ui/KeyboardShortcutsHelp';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { useApi } from '@/lib/hooks/use-api';
 import { alertsApi } from '@/lib/services';
@@ -60,6 +61,7 @@ export default function DashboardLayout({
     return (
         <div className="flex h-screen bg-surface-100 dark:bg-surface-950">
             <CommandPalette />
+            <KeyboardShortcutsHelp />
             {/* Sidebar */}
             <motion.aside
                 initial={false}
