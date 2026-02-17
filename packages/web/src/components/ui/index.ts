@@ -18,3 +18,6 @@ export { ShimmerSkeleton, ShimmerText, ShimmerCard, ShimmerAvatar } from './Shim
 export { ProgressRing } from './ProgressRing';
 export { DonutChart } from './DonutChart';
 export type { DonutSegment } from './DonutChart';
+export { Avatar, AvatarGroup } from './Avatar';
+export { Tabs, TabPanel } from './Tabs';
+export type { Tab } from './Tabs';

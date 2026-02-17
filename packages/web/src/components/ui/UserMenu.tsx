@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LogOut, Settings, UserCircle, ChevronDown } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth-store';
+import { Avatar } from './Avatar';
 
 export function UserMenu() {
     const { user, logout } = useAuthStore();
@@ -22,15 +23,15 @@ export function UserMenu() {
         return () => document.removeEventListener('mousedown', handler);
     }, []);
 
+    const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(' ');
+
     return (
         <div className="relative" ref={menuRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors"
             >
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-white font-semibold text-xs">
-                    {user?.firstName?.[0]}{user?.lastName?.[0]}
-                </div>
+                <Avatar name={fullName || undefined} size="sm" status="online" />
                 <span className="text-sm font-medium text-surface-700 dark:text-surface-300 hidden sm:block">
                     {user?.firstName}
                 </span>
