@@ -22,6 +22,8 @@ import { useAuthStore } from '@/stores/auth-store';
 import { useApi } from '@/lib/hooks/use-api';
 import { dashboardApi, alertsApi } from '@/lib/services';
 import { Sparkline } from '@/components/ui';
+import { ProgressRing } from '@/components/ui/ProgressRing';
+import { DonutChart } from '@/components/ui/DonutChart';
 import { ActivityFeed } from '@/components/dashboard/ActivityFeed';
 import { useAnimatedCounter } from '@/lib/hooks/useAnimatedCounter';
 
@@ -226,6 +228,108 @@ export default function DashboardPage() {
                     </motion.div>
                 ))}
             </motion.div>
+
+            {/* KPI Analytics Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Species Distribution */}
+                <motion.div
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.25 }}
+                    className="glass-card p-5"
+                >
+                    <h3 className="text-sm font-semibold text-surface-900 dark:text-surface-50 mb-4">
+                        Distribuição por Espécie
+                    </h3>
+                    <DonutChart
+                        segments={[
+                            { label: 'Cães', value: 142, color: '#6366f1' },
+                            { label: 'Gatos', value: 68, color: '#f59e0b' },
+                            { label: 'Aves', value: 22, color: '#10b981' },
+                            { label: 'Outros', value: 15, color: '#8b5cf6' },
+                        ]}
+                        centerLabel="247"
+                        centerSublabel="total"
+                        size={140}
+                    />
+                </motion.div>
+
+                {/* Satisfaction */}
+                <motion.div
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="glass-card p-5 flex flex-col items-center justify-center"
+                >
+                    <h3 className="text-sm font-semibold text-surface-900 dark:text-surface-50 mb-4">
+                        Satisfação dos Tutores
+                    </h3>
+                    <ProgressRing
+                        value={92}
+                        size={130}
+                        strokeWidth={12}
+                        color="#10b981"
+                        label="92%"
+                        sublabel="excelente"
+                    />
+                </motion.div>
+
+                {/* Monthly Goal */}
+                <motion.div
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.35 }}
+                    className="glass-card p-5"
+                >
+                    <h3 className="text-sm font-semibold text-surface-900 dark:text-surface-50 mb-4">
+                        Meta Mensal
+                    </h3>
+                    <div className="space-y-4">
+                        <div>
+                            <div className="flex justify-between text-xs mb-1">
+                                <span className="text-surface-500">Consultas</span>
+                                <span className="font-medium text-surface-700 dark:text-surface-300">156 / 200</span>
+                            </div>
+                            <div className="h-2 rounded-full bg-surface-100 dark:bg-surface-800 overflow-hidden">
+                                <motion.div
+                                    className="h-full rounded-full bg-primary-500"
+                                    initial={{ width: 0 }}
+                                    animate={{ width: '78%' }}
+                                    transition={{ duration: 1, delay: 0.4 }}
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <div className="flex justify-between text-xs mb-1">
+                                <span className="text-surface-500">Receita</span>
+                                <span className="font-medium text-surface-700 dark:text-surface-300">Kz 3.45M / Kz 4M</span>
+                            </div>
+                            <div className="h-2 rounded-full bg-surface-100 dark:bg-surface-800 overflow-hidden">
+                                <motion.div
+                                    className="h-full rounded-full bg-emerald-500"
+                                    initial={{ width: 0 }}
+                                    animate={{ width: '86%' }}
+                                    transition={{ duration: 1, delay: 0.5 }}
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <div className="flex justify-between text-xs mb-1">
+                                <span className="text-surface-500">Novos Pacientes</span>
+                                <span className="font-medium text-surface-700 dark:text-surface-300">12 / 20</span>
+                            </div>
+                            <div className="h-2 rounded-full bg-surface-100 dark:bg-surface-800 overflow-hidden">
+                                <motion.div
+                                    className="h-full rounded-full bg-accent-500"
+                                    initial={{ width: 0 }}
+                                    animate={{ width: '60%' }}
+                                    transition={{ duration: 1, delay: 0.6 }}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
+            </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Today's Appointments */}

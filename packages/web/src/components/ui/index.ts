@@ -15,3 +15,6 @@ export type { DataTableColumn, DataTableAction } from './DataTable';
 export { Sparkline } from './Sparkline';
 export { ErrorBoundary } from './ErrorBoundary';
 export { ShimmerSkeleton, ShimmerText, ShimmerCard, ShimmerAvatar } from './ShimmerSkeleton';
+export { ProgressRing } from './ProgressRing';
+export { DonutChart } from './DonutChart';
+export type { DonutSegment } from './DonutChart';
