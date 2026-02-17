@@ -3,12 +3,20 @@ import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { AllExceptionsFilter } from './common/all-exceptions.filter';
+import { TransformInterceptor } from './common/transform.interceptor';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
 
     // Security headers
     app.use(helmet());
+
+    // Global exception filter
+    app.useGlobalFilters(new AllExceptionsFilter());
+
+    // Global response transform
+    app.useGlobalInterceptors(new TransformInterceptor());
 
     // Global validation pipe
     app.useGlobalPipes(
