@@ -1,0 +1,33 @@
+# ── Stage 1: Install ──────────────────────────────
+FROM node:20-alpine AS deps
+RUN corepack enable && corepack prepare pnpm@latest --activate
+WORKDIR /app
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/shared/package.json packages/shared/
+COPY packages/api/package.json packages/api/
+RUN pnpm install --frozen-lockfile --filter @vetsaas/shared --filter @vetsaas/api
+
+# ── Stage 2: Build ────────────────────────────────
+FROM deps AS build
+COPY packages/shared packages/shared
+COPY packages/api packages/api
+COPY tsconfig.base.json ./
+RUN pnpm --filter @vetsaas/shared build && \
+    pnpm --filter @vetsaas/api build
+
+# ── Stage 3: Production ──────────────────────────
+FROM node:20-alpine AS runner
+RUN corepack enable && corepack prepare pnpm@latest --activate
+WORKDIR /app
+ENV NODE_ENV=production
+
+COPY --from=build /app/packages/shared/dist packages/shared/dist
+COPY --from=build /app/packages/shared/package.json packages/shared/
+COPY --from=build /app/packages/api/dist packages/api/dist
+COPY --from=build /app/packages/api/package.json packages/api/
+COPY --from=build /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
+
+RUN pnpm install --frozen-lockfile --prod --filter @vetsaas/api
+
+EXPOSE 3001
+CMD ["node", "packages/api/dist/main.js"]

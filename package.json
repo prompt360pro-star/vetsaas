@@ -1,0 +1,22 @@
+{
+  "name": "vetsaas-angola",
+  "version": "0.1.0",
+  "private": true,
+  "description": "VetSaaS Angola — Premium Veterinary SaaS Platform",
+  "scripts": {
+    "dev": "concurrently \"pnpm --filter @vetsaas/api dev\" \"pnpm --filter @vetsaas/web dev\"",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "type-check": "pnpm -r type-check",
+    "test": "pnpm -r test",
+    "clean": "pnpm -r clean"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}

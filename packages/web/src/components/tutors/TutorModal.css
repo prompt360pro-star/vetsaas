@@ -1,0 +1,339 @@
+/* ============================================================================
+   Shared Modal Styles — Reused across TutorModal, AnimalModal, etc.
+   ============================================================================ */
+
+/* --- Overlay --- */
+.tutor-modal-overlay,
+.animal-modal-overlay,
+.record-modal-overlay,
+.appointment-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.6);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    padding: 1rem;
+}
+
+/* --- Modal container --- */
+.tutor-modal,
+.animal-modal,
+.record-modal,
+.appointment-modal {
+    width: 100%;
+    max-width: 560px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--color-surface, #1a1a2e);
+    border: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+}
+
+.record-modal {
+    max-width: 640px;
+}
+
+/* --- Header --- */
+.tutor-modal-header,
+.animal-modal-header,
+.record-modal-header,
+.appointment-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
+}
+
+.tutor-modal-title,
+.animal-modal-title,
+.record-modal-title,
+.appointment-modal-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.tutor-modal-title h2,
+.animal-modal-title h2,
+.record-modal-title h2,
+.appointment-modal-title h2 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--color-text, #fff);
+    margin: 0;
+}
+
+.tutor-modal-title p,
+.animal-modal-title p,
+.record-modal-title p,
+.appointment-modal-title p {
+    font-size: 0.75rem;
+    color: var(--color-text-secondary, rgba(255, 255, 255, 0.5));
+    margin: 0;
+}
+
+.tutor-modal-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-radius: 10px;
+    color: white;
+}
+
+.animal-modal-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    border-radius: 10px;
+    color: white;
+}
+
+.record-modal-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    border-radius: 10px;
+    color: white;
+}
+
+.appointment-modal-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    border-radius: 10px;
+    color: white;
+}
+
+/* --- Close button --- */
+.tutor-modal-close,
+.animal-modal-close,
+.record-modal-close,
+.appointment-modal-close {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 8px;
+    background: none;
+    color: var(--color-text-secondary, rgba(255, 255, 255, 0.5));
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tutor-modal-close:hover,
+.animal-modal-close:hover,
+.record-modal-close:hover,
+.appointment-modal-close:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--color-text, #fff);
+}
+
+/* --- Body --- */
+.tutor-modal-body,
+.animal-modal-body,
+.record-modal-body,
+.appointment-modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* --- Footer --- */
+.tutor-modal-footer,
+.animal-modal-footer,
+.record-modal-footer,
+.appointment-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
+}
+
+/* --- Shared form fields --- */
+.modal-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+}
+
+.modal-label {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-text-secondary, rgba(255, 255, 255, 0.6));
+}
+
+.modal-row-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.modal-row-3col {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+}
+
+.modal-select,
+.modal-date,
+.modal-time {
+    width: 100%;
+    padding: 0.5rem 0.625rem;
+    font-size: 0.8125rem;
+    background: var(--color-input-bg, rgba(255, 255, 255, 0.05));
+    border: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
+    border-radius: 8px;
+    color: var(--color-text, #fff);
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.modal-select:focus,
+.modal-date:focus,
+.modal-time:focus {
+    border-color: #6366f1;
+}
+
+.modal-textarea {
+    width: 100%;
+    min-height: 80px;
+    padding: 0.625rem;
+    font-size: 0.8125rem;
+    font-family: inherit;
+    background: var(--color-input-bg, rgba(255, 255, 255, 0.05));
+    border: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
+    border-radius: 8px;
+    color: var(--color-text, #fff);
+    outline: none;
+    resize: vertical;
+    transition: border-color 0.2s;
+}
+
+.modal-textarea:focus {
+    border-color: #6366f1;
+}
+
+/* --- Toggle --- */
+.modal-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.modal-toggle input {
+    display: none;
+}
+
+.modal-toggle-slider {
+    width: 36px;
+    height: 20px;
+    border-radius: 10px;
+    background: var(--color-border, rgba(255, 255, 255, 0.15));
+    position: relative;
+    transition: background 0.2s;
+}
+
+.modal-toggle-slider::after {
+    content: '';
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: white;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.2s;
+}
+
+.modal-toggle input:checked+.modal-toggle-slider {
+    background: #6366f1;
+}
+
+.modal-toggle input:checked+.modal-toggle-slider::after {
+    transform: translateX(16px);
+}
+
+.modal-toggle-text {
+    font-size: 0.8125rem;
+    color: var(--color-text-secondary, rgba(255, 255, 255, 0.5));
+}
+
+/* --- Vitals grid --- */
+.vitals-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+}
+
+/* --- Section label --- */
+.modal-section-label {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-secondary, rgba(255, 255, 255, 0.4));
+    padding-bottom: 0.375rem;
+    border-bottom: 1px solid var(--color-border, rgba(255, 255, 255, 0.06));
+}
+
+/* --- Appointment type picker --- */
+.appointment-type-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.625rem 0.5rem;
+    border-radius: 10px;
+    border: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
+    background: var(--color-input-bg, rgba(255, 255, 255, 0.05));
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--color-text-secondary, rgba(255, 255, 255, 0.5));
+}
+
+.appointment-type-btn:hover {
+    border-color: var(--type-color, #6366f1);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.appointment-type-btn.active {
+    border-color: var(--type-color, #6366f1);
+    background: color-mix(in srgb, var(--type-color, #6366f1) 15%, transparent);
+    color: var(--color-text, #fff);
+}
+
+.appointment-type-icon {
+    font-size: 1.25rem;
+}
+
+.appointment-type-label {
+    font-size: 0.6875rem;
+    font-weight: 500;
+}

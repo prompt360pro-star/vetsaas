@@ -1,0 +1,35 @@
+# ── Stage 1: Install ──────────────────────────────
+FROM node:20-alpine AS deps
+RUN corepack enable && corepack prepare pnpm@latest --activate
+WORKDIR /app
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/shared/package.json packages/shared/
+COPY packages/web/package.json packages/web/
+RUN pnpm install --frozen-lockfile --filter @vetsaas/shared --filter @vetsaas/web
+
+# ── Stage 2: Build ────────────────────────────────
+FROM deps AS build
+COPY packages/shared packages/shared
+COPY packages/web packages/web
+COPY tsconfig.base.json ./
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN pnpm --filter @vetsaas/shared build && \
+    pnpm --filter @vetsaas/web build
+
+# ── Stage 3: Production ──────────────────────────
+FROM node:20-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
+
+COPY --from=build /app/packages/web/public packages/web/public
+COPY --from=build --chown=nextjs:nodejs /app/packages/web/.next/standalone ./
+COPY --from=build --chown=nextjs:nodejs /app/packages/web/.next/static packages/web/.next/static
+
+USER nextjs
+EXPOSE 3000
+ENV PORT=3000
+CMD ["node", "packages/web/server.js"]
