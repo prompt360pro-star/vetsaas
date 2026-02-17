@@ -1,27 +1,17 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LogOut, Settings, UserCircle, ChevronDown } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth-store';
 import { Avatar } from './Avatar';
+import { useClickOutside } from '@/lib/hooks/useClickOutside';
 
 export function UserMenu() {
     const { user, logout } = useAuthStore();
     const [isOpen, setIsOpen] = useState(false);
-    const menuRef = useRef<HTMLDivElement>(null);
-
-    // Close on outside click
-    useEffect(() => {
-        const handler = (e: MouseEvent) => {
-            if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handler);
-        return () => document.removeEventListener('mousedown', handler);
-    }, []);
+    const menuRef = useClickOutside<HTMLDivElement>(() => setIsOpen(false));
 
     const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(' ');
 

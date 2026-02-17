@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Bell,
@@ -11,6 +11,7 @@ import {
     CheckCircle2,
     X,
 } from 'lucide-react';
+import { useClickOutside } from '@/lib/hooks/useClickOutside';
 
 /* ── Types ───────────────────────────────────────── */
 
@@ -95,22 +96,10 @@ const mockNotifications: Notification[] = [
 export function NotificationCenter() {
     const [open, setOpen] = useState(false);
     const [notifications, setNotifications] = useState(mockNotifications);
-    const ref = useRef<HTMLDivElement>(null);
+    const ref = useClickOutside<HTMLDivElement>(() => setOpen(false));
 
     const unread = notifications.filter((n) => !n.read).length;
     const groups = groupNotifications(notifications);
-
-    // Close on outside click
-    useEffect(() => {
-        if (!open) return;
-        const handler = (e: MouseEvent) => {
-            if (ref.current && !ref.current.contains(e.target as Node)) {
-                setOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handler);
-        return () => document.removeEventListener('mousedown', handler);
-    }, [open]);
 
     const markRead = (id: string) => {
         setNotifications((prev) =>
