@@ -18,9 +18,6 @@ import {
     BarChart3,
     ChevronLeft,
     ChevronRight,
-    Moon,
-    Sun,
-    Bell,
     Menu,
     X,
 } from 'lucide-react';
@@ -29,6 +26,7 @@ import { SearchBar } from '@/components/ui/SearchBar';
 import { UserMenu } from '@/components/ui/UserMenu';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { NotificationCenter } from '@/components/ui/NotificationCenter';
 import { useApi } from '@/lib/hooks/use-api';
 import { alertsApi } from '@/lib/services';
 
@@ -189,14 +187,7 @@ export default function DashboardLayout({
                     <div className="flex items-center gap-3">
                         <ThemeToggle />
 
-                        <button aria-label="Notificações" className="relative w-9 h-9 rounded-xl bg-surface-50 dark:bg-surface-800 flex items-center justify-center text-surface-500 hover:text-primary-600 transition-colors">
-                            <Bell className="w-4 h-4" />
-                            {alertCount > 0 && (
-                                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-danger rounded-full flex items-center justify-center text-[10px] font-bold text-white">
-                                    {alertCount > 9 ? '9+' : alertCount}
-                                </span>
-                            )}
-                        </button>
+                        <NotificationCenter />
 
                         <UserMenu />
                     </div>
