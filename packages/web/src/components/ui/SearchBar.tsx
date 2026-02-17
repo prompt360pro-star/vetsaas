@@ -26,21 +26,6 @@ export function SearchBar() {
     const inputRef = useRef<HTMLInputElement>(null);
     const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
-    // CMD+K handler
-    useEffect(() => {
-        const handler = (e: KeyboardEvent) => {
-            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-                e.preventDefault();
-                setIsOpen((prev) => !prev);
-            }
-            if (e.key === 'Escape') {
-                setIsOpen(false);
-            }
-        };
-        window.addEventListener('keydown', handler);
-        return () => window.removeEventListener('keydown', handler);
-    }, []);
-
     // Focus input when opened
     useEffect(() => {
         if (isOpen) {

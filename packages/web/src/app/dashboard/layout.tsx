@@ -27,6 +27,7 @@ import { UserMenu } from '@/components/ui/UserMenu';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { NotificationCenter } from '@/components/ui/NotificationCenter';
+import { CommandPalette } from '@/components/ui/CommandPalette';
 import { useApi } from '@/lib/hooks/use-api';
 import { alertsApi } from '@/lib/services';
 
@@ -57,6 +58,7 @@ export default function DashboardLayout({
 
     return (
         <div className="flex h-screen bg-surface-100 dark:bg-surface-950">
+            <CommandPalette />
             {/* Sidebar */}
             <motion.aside
                 initial={false}
