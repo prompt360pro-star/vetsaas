@@ -10,18 +10,21 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { RegisterDto, LoginDto, RefreshTokenDto } from './auth.dto';
+import { RateLimitGuard } from '../common/rate-limit.guard';
 
 @Controller('auth')
 export class AuthController {
     constructor(private readonly authService: AuthService) { }
 
     @Post('register')
+    @UseGuards(RateLimitGuard)
     async register(@Body() dto: RegisterDto) {
         const tokens = await this.authService.register(dto);
         return { success: true, data: tokens };
     }
 
     @Post('login')
+    @UseGuards(RateLimitGuard)
     async login(@Body() dto: LoginDto) {
         const tokens = await this.authService.login(dto.email, dto.password);
         return { success: true, data: tokens };
