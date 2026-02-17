@@ -23,3 +23,6 @@ export { Tabs, TabPanel } from './Tabs';
 export type { Tab } from './Tabs';
 export { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
 export { Card, CardHeader, CardTitle, CardContent, CardFooter } from './Card';
+export { Switch } from './Switch';
+export { Checkbox } from './Checkbox';
+export { RadioGroup } from './RadioGroup';
