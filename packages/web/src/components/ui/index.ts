@@ -10,3 +10,5 @@ export { Tooltip } from './Tooltip';
 export { StatusBadge } from './StatusBadge';
 export { ConfirmDialog } from './ConfirmDialog';
 export { EmptyState } from './EmptyState';
+export { DataTable } from './DataTable';
+export type { DataTableColumn, DataTableAction } from './DataTable';
