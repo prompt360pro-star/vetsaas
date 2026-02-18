@@ -26,3 +26,6 @@ export { Card, CardHeader, CardTitle, CardContent, CardFooter } from './Card';
 export { Switch } from './Switch';
 export { Checkbox } from './Checkbox';
 export { RadioGroup } from './RadioGroup';
+export { Accordion } from './Accordion';
+export { Slider } from './Slider';
+export { Textarea } from './Textarea';
