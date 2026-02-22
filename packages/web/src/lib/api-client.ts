@@ -8,7 +8,7 @@ interface RequestOptions extends RequestInit {
     params?: Record<string, string>;
 }
 
-class ApiClient {
+export class ApiClient {
     private accessToken: string | null = null;
 
     setToken(token: string | null) {
@@ -27,13 +27,17 @@ class ApiClient {
             url += `?${searchParams.toString()}`;
         }
 
-        const headers: Record<string, string> = {
-            'Content-Type': 'application/json',
-            ...(options.headers as Record<string, string>),
-        };
+        const headers = new Headers();
+        headers.set('Content-Type', 'application/json');
+
+        if (options.headers) {
+            new Headers(options.headers).forEach((value, key) => {
+                headers.set(key, value);
+            });
+        }
 
         if (this.accessToken) {
-            headers['Authorization'] = `Bearer ${this.accessToken}`;
+            headers.set('Authorization', `Bearer ${this.accessToken}`);
         }
 
         const response = await fetch(url, {
