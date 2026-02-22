@@ -2,213 +2,221 @@
 // Payments Service — Unit Tests
 // ============================================================================
 
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { NotFoundException } from '@nestjs/common';
-import { PaymentsService } from './payments.service';
-import { PaymentEntity } from './payment.entity';
-import { MulticaixaGpoService } from './multicaixa-gpo.service';
+import { Test, TestingModule } from "@nestjs/testing";
+import { getRepositoryToken } from "@nestjs/typeorm";
+import { NotFoundException } from "@nestjs/common";
+import { PaymentsService } from "./payments.service";
+import { PaymentEntity } from "./payment.entity";
+import { MulticaixaGpoService } from "./multicaixa-gpo.service";
 
-describe('PaymentsService', () => {
-    let service: PaymentsService;
-    let repo: any;
-    let gpoService: any;
+describe("PaymentsService", () => {
+  let service: PaymentsService;
+  let repo: any;
+  let gpoService: any;
 
-    const tenantId = 'tenant-uuid-1';
-    const userId = 'user-uuid-1';
+  const tenantId = "tenant-uuid-1";
+  const userId = "user-uuid-1";
 
-    const mockPayment: Partial<PaymentEntity> = {
-        id: 'pay-uuid-1',
-        tenantId,
+  const mockPayment: Partial<PaymentEntity> = {
+    id: "pay-uuid-1",
+    tenantId,
+    amount: 15000,
+    currency: "AOA",
+    method: "MULTICAIXA_EXPRESS",
+    gateway: "MANUAL",
+    status: "PENDING",
+    referenceCode: "000001234567890",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        PaymentsService,
+        {
+          provide: getRepositoryToken(PaymentEntity),
+          useValue: {
+            create: jest.fn(),
+            save: jest.fn(),
+            findOne: jest.fn(),
+            findAndCount: jest.fn(),
+            createQueryBuilder: jest.fn().mockReturnValue({
+              select: jest.fn().mockReturnThis(),
+              where: jest.fn().mockReturnThis(),
+              getRawOne: jest.fn().mockResolvedValue({
+                count: "5",
+                totalRevenue: "75000",
+                totalCompleted: "45000",
+                totalPending: "30000",
+                totalFailed: "0",
+              }),
+            }),
+          },
+        },
+        {
+          provide: MulticaixaGpoService,
+          useValue: {
+            generateReference: jest.fn().mockResolvedValue("00000123456789"),
+          },
+        },
+      ],
+    }).compile();
+
+    service = module.get<PaymentsService>(PaymentsService);
+    repo = module.get(getRepositoryToken(PaymentEntity));
+    gpoService = module.get<MulticaixaGpoService>(MulticaixaGpoService);
+  });
+
+  it("should be defined", () => {
+    expect(service).toBeDefined();
+  });
+
+  describe("create", () => {
+    it("should create a pending payment with reference", async () => {
+      repo.create.mockReturnValue(mockPayment);
+      repo.save.mockResolvedValue(mockPayment);
+
+      const result = await service.create(tenantId, userId, {
         amount: 15000,
-        currency: 'AOA',
-        method: 'MULTICAIXA_EXPRESS',
-        gateway: 'MANUAL',
-        status: 'PENDING',
-        referenceCode: '000001234567890',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-    };
+        method: "MULTICAIXA_EXPRESS",
+      });
 
-    beforeEach(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            providers: [
-                PaymentsService,
-                {
-                    provide: getRepositoryToken(PaymentEntity),
-                    useValue: {
-                        create: jest.fn(),
-                        save: jest.fn(),
-                        findOne: jest.fn(),
-                        findAndCount: jest.fn(),
-                        createQueryBuilder: jest.fn().mockReturnValue({
-                            select: jest.fn().mockReturnThis(),
-                            where: jest.fn().mockReturnThis(),
-                            getRawOne: jest.fn().mockResolvedValue({
-                                count: '5',
-                                totalRevenue: '75000',
-                                totalCompleted: '45000',
-                                totalPending: '30000',
-                                totalFailed: '0',
-                            }),
-                        }),
-                    },
-                },
-                {
-                    provide: MulticaixaGpoService,
-                    useValue: {
-                        generateReference: jest.fn().mockResolvedValue('00000123456789'),
-                    },
-                },
-            ],
-        }).compile();
-
-        service = module.get<PaymentsService>(PaymentsService);
-        repo = module.get(getRepositoryToken(PaymentEntity));
-        gpoService = module.get<MulticaixaGpoService>(MulticaixaGpoService);
+      expect(repo.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tenantId,
+          amount: 15000,
+          method: "MULTICAIXA_EXPRESS",
+          status: "PENDING",
+          createdBy: userId,
+        }),
+      );
+      expect(result).toBeDefined();
     });
 
-    it('should be defined', () => {
-        expect(service).toBeDefined();
+    it("should auto-complete cash payments", async () => {
+      const cashPayment = {
+        ...mockPayment,
+        method: "CASH",
+        status: "COMPLETED",
+      };
+      repo.create.mockReturnValue(cashPayment);
+      repo.save.mockResolvedValue(cashPayment);
+
+      await service.create(tenantId, userId, {
+        amount: 5000,
+        method: "CASH",
+      });
+
+      expect(repo.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: "COMPLETED",
+          paidAt: expect.any(Date),
+        }),
+      );
     });
 
-    describe('create', () => {
-        it('should create a pending payment with reference', async () => {
-            repo.create.mockReturnValue(mockPayment);
-            repo.save.mockResolvedValue(mockPayment);
+    it("should generate Multicaixa reference for reference payments", async () => {
+      repo.create.mockReturnValue(mockPayment);
+      repo.save.mockResolvedValue(mockPayment);
 
-            const result = await service.create(tenantId, userId, {
-                amount: 15000,
-                method: 'MULTICAIXA_EXPRESS',
-            });
+      await service.create(tenantId, userId, {
+        amount: 25000,
+        method: "MULTICAIXA_REFERENCE",
+      });
 
-            expect(repo.create).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    tenantId,
-                    amount: 15000,
-                    method: 'MULTICAIXA_EXPRESS',
-                    status: 'PENDING',
-                    createdBy: userId,
-                }),
-            );
-            expect(result).toBeDefined();
-        });
+      expect(gpoService.generateReference).toHaveBeenCalledWith(25000);
+      expect(repo.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          referenceCode: "00000123456789",
+        }),
+      );
+    });
+  });
 
-        it('should auto-complete cash payments', async () => {
-            const cashPayment = { ...mockPayment, method: 'CASH', status: 'COMPLETED' };
-            repo.create.mockReturnValue(cashPayment);
-            repo.save.mockResolvedValue(cashPayment);
+  describe("findAll", () => {
+    it("should return paginated payments for tenant", async () => {
+      repo.findAndCount.mockResolvedValue([[mockPayment], 1]);
 
-            await service.create(tenantId, userId, {
-                amount: 5000,
-                method: 'CASH',
-            });
+      const result = await service.findAll(tenantId, { page: 1, limit: 10 });
 
-            expect(repo.create).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    status: 'COMPLETED',
-                    paidAt: expect.any(Date),
-                }),
-            );
-        });
-
-        it('should generate Multicaixa reference for reference payments', async () => {
-            repo.create.mockReturnValue(mockPayment);
-            repo.save.mockResolvedValue(mockPayment);
-
-            await service.create(tenantId, userId, {
-                amount: 25000,
-                method: 'MULTICAIXA_REFERENCE',
-            });
-
-            expect(gpoService.generateReference).toHaveBeenCalledWith(25000);
-            expect(repo.create).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    referenceCode: '00000123456789',
-                }),
-            );
-        });
+      expect(result.data).toHaveLength(1);
+      expect(result.total).toBe(1);
+      expect(repo.findAndCount).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ tenantId }),
+        }),
+      );
     });
 
-    describe('findAll', () => {
-        it('should return paginated payments for tenant', async () => {
-            repo.findAndCount.mockResolvedValue([[mockPayment], 1]);
+    it("should filter by status", async () => {
+      repo.findAndCount.mockResolvedValue([[], 0]);
 
-            const result = await service.findAll(tenantId, { page: 1, limit: 10 });
+      await service.findAll(tenantId, {
+        page: 1,
+        limit: 10,
+        status: "COMPLETED",
+      });
 
-            expect(result.data).toHaveLength(1);
-            expect(result.total).toBe(1);
-            expect(repo.findAndCount).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    where: expect.objectContaining({ tenantId }),
-                }),
-            );
-        });
+      expect(repo.findAndCount).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ tenantId, status: "COMPLETED" }),
+        }),
+      );
+    });
+  });
 
-        it('should filter by status', async () => {
-            repo.findAndCount.mockResolvedValue([[], 0]);
+  describe("findById", () => {
+    it("should return payment by id", async () => {
+      repo.findOne.mockResolvedValue(mockPayment);
 
-            await service.findAll(tenantId, { page: 1, limit: 10, status: 'COMPLETED' });
-
-            expect(repo.findAndCount).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    where: expect.objectContaining({ tenantId, status: 'COMPLETED' }),
-                }),
-            );
-        });
+      const result = await service.findById(tenantId, "pay-uuid-1");
+      expect(result).toEqual(mockPayment);
     });
 
-    describe('findById', () => {
-        it('should return payment by id', async () => {
-            repo.findOne.mockResolvedValue(mockPayment);
+    it("should throw NotFoundException", async () => {
+      repo.findOne.mockResolvedValue(null);
 
-            const result = await service.findById(tenantId, 'pay-uuid-1');
-            expect(result).toEqual(mockPayment);
-        });
+      await expect(service.findById(tenantId, "nonexistent")).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
 
-        it('should throw NotFoundException', async () => {
-            repo.findOne.mockResolvedValue(null);
+  describe("getSummary", () => {
+    it("should return aggregated financial summary", async () => {
+      const result = await service.getSummary(tenantId);
 
-            await expect(
-                service.findById(tenantId, 'nonexistent'),
-            ).rejects.toThrow(NotFoundException);
-        });
+      expect(result.totalRevenue).toBe(75000);
+      expect(result.totalCompleted).toBe(45000);
+      expect(result.totalPending).toBe(30000);
+      expect(result.averageTicket).toBe(15000); // 75000 / 5
+      expect(result.count).toBe(5);
+    });
+  });
+
+  describe("processWebhook", () => {
+    it("should mark payment as completed on webhook", async () => {
+      repo.findOne.mockResolvedValue({ ...mockPayment, status: "PENDING" });
+      repo.save.mockResolvedValue({ ...mockPayment, status: "COMPLETED" });
+
+      await service.processWebhook("MULTICAIXA_GPO", {
+        referenceCode: "000001234567890",
+        transactionId: "txn_abc123",
+      });
+
+      expect(repo.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: "COMPLETED",
+          paidAt: expect.any(Date),
+        }),
+      );
     });
 
-    describe('getSummary', () => {
-        it('should return aggregated financial summary', async () => {
-            const result = await service.getSummary(tenantId);
-
-            expect(result.totalRevenue).toBe(75000);
-            expect(result.totalCompleted).toBe(45000);
-            expect(result.totalPending).toBe(30000);
-            expect(result.averageTicket).toBe(15000); // 75000 / 5
-            expect(result.count).toBe(5);
-        });
+    it("should handle missing reference gracefully", async () => {
+      await expect(
+        service.processWebhook("MULTICAIXA_GPO", {}),
+      ).resolves.not.toThrow();
     });
-
-    describe('processWebhook', () => {
-        it('should mark payment as completed on webhook', async () => {
-            repo.findOne.mockResolvedValue({ ...mockPayment, status: 'PENDING' });
-            repo.save.mockResolvedValue({ ...mockPayment, status: 'COMPLETED' });
-
-            await service.processWebhook('MULTICAIXA_GPO', {
-                referenceCode: '000001234567890',
-                transactionId: 'txn_abc123',
-            });
-
-            expect(repo.save).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    status: 'COMPLETED',
-                    paidAt: expect.any(Date),
-                }),
-            );
-        });
-
-        it('should handle missing reference gracefully', async () => {
-            await expect(
-                service.processWebhook('MULTICAIXA_GPO', {}),
-            ).resolves.not.toThrow();
-        });
-    });
+  });
 });
