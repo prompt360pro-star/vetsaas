@@ -133,24 +133,78 @@ export class PaymentsService {
     }
 
     async processWebhook(gateway: string, payload: Record<string, unknown>): Promise<void> {
-        // TODO: Integrate with Multicaixa GPO / Unitel Money webhook
-        this.logger.log(`[WEBHOOK STUB] Gateway: ${gateway} | Payload: ${JSON.stringify(payload)}`);
+        this.logger.log(`[WEBHOOK] Gateway: ${gateway} | Payload: ${JSON.stringify(payload)}`);
 
-        const referenceCode = payload.referenceCode as string;
-        if (!referenceCode) return;
+        const payment = await this.findPaymentFromPayload(payload);
 
-        const payment = await this.repo.findOne({ where: { referenceCode } });
         if (!payment) {
-            this.logger.warn(`[WEBHOOK] Payment not found for reference: ${referenceCode}`);
+            this.logger.warn(`[WEBHOOK] No matching payment found for payload: ${JSON.stringify(payload)}`);
+            return;
+        }
+
+        if (payment.status === 'COMPLETED') {
+            this.logger.log(`[WEBHOOK] Payment ${payment.id} already completed`);
+            return;
+        }
+
+        // Logic for extracting status could go here if we had definitive docs.
+        // For now, we assume if we found the payment and the webhook was fired, it's a success
+        // unless status explicitly says otherwise (which we can check loosely).
+        // Common failure indicators:
+        const statusValues = Object.values(payload).map(v => String(v).toUpperCase());
+        const isFailure = statusValues.some(v => ['FAILED', 'ERROR', 'CANCELLED', 'REJECTED'].includes(v));
+
+        if (isFailure) {
+            payment.status = 'FAILED';
+            payment.failedAt = new Date();
+            payment.failureReason = JSON.stringify(payload); // Store payload as reason for debugging
+            await this.repo.save(payment);
+            this.logger.warn(`[WEBHOOK] Payment ${payment.id} marked as FAILED based on payload indicators`);
             return;
         }
 
         payment.status = 'COMPLETED';
         payment.paidAt = new Date();
-        payment.transactionId = (payload.transactionId as string) || `txn_${Date.now()}`;
+
+        // Try to find a transaction ID
+        const possibleTxIds = Object.entries(payload)
+            .filter(([k, v]) => (k.toLowerCase().includes('transaction') || k.toLowerCase().includes('id')) && typeof v === 'string')
+            .map(([_, v]) => v as string);
+
+        payment.transactionId = possibleTxIds[0] || `txn_${Date.now()}`;
+        payment.gateway = gateway; // Update gateway source
+
         await this.repo.save(payment);
 
         this.logger.log(`[WEBHOOK] Payment ${payment.id} marked as COMPLETED`);
+    }
+
+    private async findPaymentFromPayload(payload: Record<string, unknown>): Promise<PaymentEntity | null> {
+        // 1. Check explicit referenceCode field (legacy/stub behavior)
+        if (payload.referenceCode && typeof payload.referenceCode === 'string') {
+            const payment = await this.repo.findOne({ where: { referenceCode: payload.referenceCode } });
+            if (payment) return payment;
+        }
+
+        // 2. Scan all string values for Multicaixa format (Entity + 9 digits = 14 digits approx, or just 9 digits if we strip entity)
+        // Based on generateReference: entity='00000' + 9 digits. Length = 14.
+        const stringValues = Object.values(payload).filter(v => typeof v === 'string') as string[];
+
+        for (const value of stringValues) {
+            // Check for Multicaixa (14 digits starting with 00000, or generic 9+ digits)
+            if (/^\d{9,14}$/.test(value)) {
+                const payment = await this.repo.findOne({ where: { referenceCode: value } });
+                if (payment) return payment;
+            }
+
+            // Check for Unitel Money (starts with UM)
+            if (value.startsWith('UM')) {
+                const payment = await this.repo.findOne({ where: { referenceCode: value } });
+                if (payment) return payment;
+            }
+        }
+
+        return null;
     }
 
     // ── Helpers ─────────────────────────────────────────

@@ -23,7 +23,7 @@ describe('PaymentsService', () => {
         method: 'MULTICAIXA_EXPRESS',
         gateway: 'MANUAL',
         status: 'PENDING',
-        referenceCode: '000001234567890',
+        referenceCode: '00000123456789', // 14 digits
         createdAt: new Date(),
         updatedAt: new Date(),
     };
@@ -178,12 +178,12 @@ describe('PaymentsService', () => {
     });
 
     describe('processWebhook', () => {
-        it('should mark payment as completed on webhook', async () => {
+        it('should mark payment as completed on webhook with explicit referenceCode', async () => {
             repo.findOne.mockResolvedValue({ ...mockPayment, status: 'PENDING' });
             repo.save.mockResolvedValue({ ...mockPayment, status: 'COMPLETED' });
 
             await service.processWebhook('MULTICAIXA_GPO', {
-                referenceCode: '000001234567890',
+                referenceCode: '00000123456789',
                 transactionId: 'txn_abc123',
             });
 
@@ -195,9 +195,64 @@ describe('PaymentsService', () => {
             );
         });
 
+        it('should mark payment as completed by finding reference in payload values (Multicaixa)', async () => {
+            repo.findOne.mockResolvedValue({ ...mockPayment, status: 'PENDING' });
+            repo.save.mockResolvedValue({ ...mockPayment, status: 'COMPLETED' });
+
+            // Payload where reference is in a field named 'ref' but value matches pattern
+            await service.processWebhook('MULTICAIXA_GPO', {
+                ref: '00000123456789',
+                txn: 'txn_abc123',
+            });
+
+            expect(repo.findOne).toHaveBeenCalledWith(expect.objectContaining({ where: { referenceCode: '00000123456789' } }));
+            expect(repo.save).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    status: 'COMPLETED',
+                    paidAt: expect.any(Date),
+                }),
+            );
+        });
+
+        it('should mark payment as completed by finding reference in payload values (Unitel Money)', async () => {
+            const umPayment = { ...mockPayment, referenceCode: 'UM123456789' };
+            repo.findOne.mockResolvedValue({ ...umPayment, status: 'PENDING' });
+            repo.save.mockResolvedValue({ ...umPayment, status: 'COMPLETED' });
+
+            await service.processWebhook('UNITEL_MONEY', {
+                referenceId: 'UM123456789',
+                status: 'PAID',
+            });
+
+            expect(repo.findOne).toHaveBeenCalledWith(expect.objectContaining({ where: { referenceCode: 'UM123456789' } }));
+            expect(repo.save).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    status: 'COMPLETED',
+                    paidAt: expect.any(Date),
+                }),
+            );
+        });
+
+        it('should fail payment if payload indicates failure', async () => {
+            repo.findOne.mockResolvedValue({ ...mockPayment, status: 'PENDING' });
+            repo.save.mockResolvedValue({ ...mockPayment, status: 'FAILED' });
+
+            await service.processWebhook('MULTICAIXA_GPO', {
+                referenceCode: '00000123456789',
+                status: 'FAILED',
+            });
+
+            expect(repo.save).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    status: 'FAILED',
+                    failedAt: expect.any(Date),
+                }),
+            );
+        });
+
         it('should handle missing reference gracefully', async () => {
             await expect(
-                service.processWebhook('MULTICAIXA_GPO', {}),
+                service.processWebhook('MULTICAIXA_GPO', { someKey: 'someValue' }),
             ).resolves.not.toThrow();
         });
     });
