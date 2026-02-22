@@ -12,6 +12,6 @@ module.exports = {
         '^@/(.*)$': '<rootDir>/src/$1',
         '\\.(css|less|scss)$': '<rootDir>/src/__mocks__/styleMock.ts',
     },
-    setupFilesAfterSetup: ['@testing-library/jest-dom'],
+    setupFilesAfterEnv: ['@testing-library/jest-dom'],
     testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/.next/'],
 };
