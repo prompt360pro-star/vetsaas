@@ -18,6 +18,12 @@ import type { PaginationQuery } from '@vetsaas/shared';
 export class RecordsController {
     constructor(private readonly recordsService: RecordsService) { }
 
+    @Get()
+    async findAll(@Request() req: any, @Query() query: PaginationQuery) {
+        const data = await this.recordsService.findAll(req.user.tenantId, query);
+        return { success: true, data };
+    }
+
     @Get('animal/:animalId')
     async findByAnimal(
         @Request() req: any,

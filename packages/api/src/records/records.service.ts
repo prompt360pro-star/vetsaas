@@ -2,6 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ClinicalRecordEntity } from './clinical-record.entity';
+import { AnimalEntity } from '../animals/animal.entity';
+import { UserEntity } from '../auth/user.entity';
 import type { PaginatedResponse, PaginationQuery } from '@vetsaas/shared';
 
 @Injectable()
@@ -10,6 +12,39 @@ export class RecordsService {
         @InjectRepository(ClinicalRecordEntity)
         private readonly repo: Repository<ClinicalRecordEntity>,
     ) { }
+
+    async findAll(
+        tenantId: string,
+        query: PaginationQuery,
+    ): Promise<PaginatedResponse<any>> {
+        const page = query.page || 1;
+        const limit = query.limit || 20;
+        const skip = (page - 1) * limit;
+
+        const [records, total] = await this.repo.createQueryBuilder('record')
+            .leftJoinAndMapOne('record.animal', AnimalEntity, 'animal', 'animal.id = record.animalId')
+            .leftJoinAndMapOne('record.veterinarian', UserEntity, 'veterinarian', 'veterinarian.id = record.veterinarianId')
+            .where('record.tenantId = :tenantId', { tenantId })
+            .select([
+                'record',
+                'animal.name',
+                'animal.species',
+                'veterinarian.firstName',
+                'veterinarian.lastName',
+            ])
+            .orderBy('record.createdAt', 'DESC')
+            .skip(skip)
+            .take(limit)
+            .getManyAndCount();
+
+        return {
+            data: records,
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
+        };
+    }
 
     async findByAnimal(
         tenantId: string,
