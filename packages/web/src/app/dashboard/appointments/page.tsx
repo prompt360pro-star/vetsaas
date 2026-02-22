@@ -60,9 +60,8 @@ export default function AppointmentsPage() {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const today = new Date();
 
-    const handleCreateAppointment = (data: AppointmentFormData) => {
+    const handleCreateAppointment = (_data: AppointmentFormData) => {
         // TODO: POST to /appointments API
-        console.log('[CREATE APPOINTMENT]', data);
     };
 
     return (

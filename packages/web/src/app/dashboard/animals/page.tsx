@@ -85,9 +85,8 @@ export default function AnimalsPage() {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [selectedAnimal, setSelectedAnimal] = useState<string | null>(null);
 
-    const handleCreateAnimal = (data: AnimalFormData) => {
+    const handleCreateAnimal = (_data: AnimalFormData) => {
         // TODO: POST to /animals API
-        console.log('[CREATE ANIMAL]', data);
     };
 
     const filtered = mockAnimals.filter((a) => {

@@ -23,9 +23,8 @@ const mockInventory = [
 export default function InventoryPage() {
     const [isProductModalOpen, setIsProductModalOpen] = useState(false);
 
-    const handleCreateProduct = (data: ProductFormData) => {
+    const handleCreateProduct = (_data: ProductFormData) => {
         // TODO: POST to /inventory API
-        console.log('[CREATE PRODUCT]', data);
     };
 
     return (

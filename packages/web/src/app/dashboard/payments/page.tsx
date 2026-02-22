@@ -61,9 +61,8 @@ export default function PaymentsPage() {
     const [statusFilter, setStatusFilter] = useState('');
     const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
 
-    const handleCreateInvoice = (data: InvoiceFormData) => {
+    const handleCreateInvoice = (_data: InvoiceFormData) => {
         // TODO: POST to /invoices API + optional POST to /payments
-        console.log('[CREATE INVOICE]', data);
     };
 
     const filtered = mockPayments.filter((p) => {
