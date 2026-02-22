@@ -85,3 +85,17 @@ export interface ClinicalAlertDto {
     entityName?: string;
     createdAt: Date;
 }
+
+export interface SearchResult {
+    type: 'animal' | 'tutor' | 'record';
+    id: string;
+    title: string;
+    subtitle: string;
+    icon: string;
+}
+
+export interface SearchResponse {
+    query: string;
+    total: number;
+    results: SearchResult[];
+}

@@ -8,20 +8,7 @@ import { Repository } from 'typeorm';
 import { AnimalEntity } from '../animals/animal.entity';
 import { TutorEntity } from '../tutors/tutor.entity';
 import { ClinicalRecordEntity } from '../records/clinical-record.entity';
-
-export interface SearchResult {
-    type: 'animal' | 'tutor' | 'record';
-    id: string;
-    title: string;
-    subtitle: string;
-    icon: string;
-}
-
-export interface SearchResponse {
-    query: string;
-    total: number;
-    results: SearchResult[];
-}
+import { SearchResult, SearchResponse } from '@vetsaas/shared';
 
 @Injectable()
 export class SearchService {
