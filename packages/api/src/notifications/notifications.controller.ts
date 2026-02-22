@@ -1,10 +1,13 @@
+// ============================================================================
+// Notifications Controller
+// ============================================================================
+
 import {
     Controller,
     Post,
     Body,
     UseGuards,
     Request,
-    Inject,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { NotificationsService } from './notifications.service';
