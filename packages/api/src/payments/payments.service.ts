@@ -6,7 +6,7 @@ import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
 import { PaymentEntity } from './payment.entity';
-import type { PaginatedResponse, PaginationQuery, PaymentStatus } from '@vetsaas/shared';
+import type { PaginatedResponse, PaginationQuery } from '@vetsaas/shared';
 
 export interface CreatePaymentInput {
     invoiceId?: string;

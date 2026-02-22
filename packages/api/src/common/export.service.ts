@@ -29,21 +29,20 @@ export class ExportService {
             order: { name: 'ASC' },
         });
 
-        const header = 'Nome,Espécie,Raça,Sexo,Peso,Microchip,Castrado,Criado em';
-        const rows = animals.map((a) =>
-            [
-                this.esc(a.name),
-                this.esc(a.species),
-                this.esc(a.breed || ''),
-                this.esc(a.sex),
+        return this.generateCsv(
+            animals,
+            ['Nome', 'Espécie', 'Raça', 'Sexo', 'Peso', 'Microchip', 'Castrado', 'Criado em'],
+            (a) => [
+                a.name,
+                a.species,
+                a.breed || '',
+                a.sex,
                 a.weight ? `${a.weight} ${a.weightUnit}` : '',
-                this.esc(a.microchipId || ''),
+                a.microchipId || '',
                 a.isNeutered ? 'Sim' : 'Não',
                 this.fmtDate(a.createdAt),
-            ].join(','),
+            ]
         );
-
-        return [header, ...rows].join('\n');
     }
 
     /**
@@ -60,20 +59,19 @@ export class ExportService {
             order: { createdAt: 'DESC' },
         });
 
-        const header = 'Data,Valor,Moeda,Método,Estado,Referência,Descrição';
-        const rows = payments.map((p) =>
-            [
+        return this.generateCsv(
+            payments,
+            ['Data', 'Valor', 'Moeda', 'Método', 'Estado', 'Referência', 'Descrição'],
+            (p) => [
                 this.fmtDate(p.createdAt),
                 p.amount.toString(),
-                this.esc(p.currency),
-                this.esc(p.method),
-                this.esc(p.status),
-                this.esc(p.referenceCode || ''),
-                this.esc(p.description || ''),
-            ].join(','),
+                p.currency,
+                p.method,
+                p.status,
+                p.referenceCode || '',
+                p.description || '',
+            ]
         );
-
-        return [header, ...rows].join('\n');
     }
 
     /**
@@ -86,18 +84,28 @@ export class ExportService {
             take: Math.min(limit, 1000),
         });
 
-        const header = 'Timestamp,Utilizador,Acção,Entidade,ID Entidade';
-        const rows = logs.map((l) =>
-            [
+        return this.generateCsv(
+            logs,
+            ['Timestamp', 'Utilizador', 'Acção', 'Entidade', 'ID Entidade'],
+            (l) => [
                 this.fmtDate(l.createdAt),
-                this.esc(l.userId),
-                this.esc(l.action),
-                this.esc(l.entityType),
-                this.esc(l.entityId || ''),
-            ].join(','),
+                l.userId,
+                l.action,
+                l.entityType,
+                l.entityId || '',
+            ]
         );
+    }
 
-        return [header, ...rows].join('\n');
+    /** Generic CSV generator. */
+    private generateCsv<T>(data: T[], headers: string[], rowMapper: (item: T) => string[]): string {
+        const headerRow = headers.join(',');
+        const rows = data.map((item) =>
+            rowMapper(item)
+                .map((field) => this.esc(field))
+                .join(',')
+        );
+        return [headerRow, ...rows].join('\n');
     }
 
     /** Escape CSV field (wrap in quotes if contains comma/quote/newline). */
