@@ -178,27 +178,109 @@ describe('PaymentsService', () => {
     });
 
     describe('processWebhook', () => {
-        it('should mark payment as completed on webhook', async () => {
-            repo.findOne.mockResolvedValue({ ...mockPayment, status: 'PENDING' });
-            repo.save.mockResolvedValue({ ...mockPayment, status: 'COMPLETED' });
+        describe('MULTICAIXA_GPO', () => {
+            it('should mark payment as completed on success webhook', async () => {
+                repo.findOne.mockResolvedValue({ ...mockPayment, status: 'PENDING' });
+                repo.save.mockResolvedValue({ ...mockPayment, status: 'COMPLETED' });
 
-            await service.processWebhook('MULTICAIXA_GPO', {
-                referenceCode: '000001234567890',
-                transactionId: 'txn_abc123',
+                await service.processWebhook('MULTICAIXA_GPO', {
+                    reference: '000001234567890',
+                    transactionId: 'txn_mc_123',
+                    status: '00',
+                });
+
+                expect(repo.save).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        status: 'COMPLETED',
+                        gateway: 'MULTICAIXA_GPO',
+                        paidAt: expect.any(Date),
+                    }),
+                );
             });
 
-            expect(repo.save).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    status: 'COMPLETED',
-                    paidAt: expect.any(Date),
-                }),
-            );
+            it('should mark payment as failed on failure webhook', async () => {
+                repo.findOne.mockResolvedValue({ ...mockPayment, status: 'PENDING' });
+                repo.save.mockResolvedValue({ ...mockPayment, status: 'FAILED' });
+
+                await service.processWebhook('MULTICAIXA_GPO', {
+                    reference: '000001234567890',
+                    transactionId: 'txn_mc_123',
+                    status: '99',
+                });
+
+                expect(repo.save).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        status: 'FAILED',
+                        failureReason: 'Gateway status: 99',
+                        failedAt: expect.any(Date),
+                    }),
+                );
+            });
+
+            it('should handle missing reference gracefully', async () => {
+                await expect(
+                    service.processWebhook('MULTICAIXA_GPO', {}),
+                ).resolves.not.toThrow();
+            });
         });
 
-        it('should handle missing reference gracefully', async () => {
-            await expect(
-                service.processWebhook('MULTICAIXA_GPO', {}),
-            ).resolves.not.toThrow();
+        describe('UNITEL_MONEY', () => {
+            it('should mark payment as completed on PAID status', async () => {
+                repo.findOne.mockResolvedValue({ ...mockPayment, status: 'PENDING' });
+                repo.save.mockResolvedValue({ ...mockPayment, status: 'COMPLETED' });
+
+                await service.processWebhook('UNITEL_MONEY', {
+                    reference_id: '000001234567890',
+                    transaction_id: 'txn_um_123',
+                    status: 'PAID',
+                });
+
+                expect(repo.save).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        status: 'COMPLETED',
+                        gateway: 'UNITEL_MONEY',
+                        paidAt: expect.any(Date),
+                    }),
+                );
+            });
+
+            it('should mark payment as failed on FAILED status', async () => {
+                repo.findOne.mockResolvedValue({ ...mockPayment, status: 'PENDING' });
+                repo.save.mockResolvedValue({ ...mockPayment, status: 'FAILED' });
+
+                await service.processWebhook('UNITEL_MONEY', {
+                    reference_id: '000001234567890',
+                    transaction_id: 'txn_um_123',
+                    status: 'FAILED',
+                });
+
+                expect(repo.save).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        status: 'FAILED',
+                        gateway: 'UNITEL_MONEY',
+                        failedAt: expect.any(Date),
+                    }),
+                );
+            });
+        });
+
+        describe('Generic/Fallback', () => {
+            it('should handle unknown gateway with generic handler', async () => {
+                repo.findOne.mockResolvedValue({ ...mockPayment, status: 'PENDING' });
+                repo.save.mockResolvedValue({ ...mockPayment, status: 'COMPLETED' });
+
+                await service.processWebhook('UNKNOWN_GATEWAY', {
+                    referenceCode: '000001234567890',
+                    transactionId: 'txn_generic_123',
+                });
+
+                expect(repo.save).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        status: 'COMPLETED',
+                        paidAt: expect.any(Date),
+                    }),
+                );
+            });
         });
     });
 });

@@ -133,9 +133,112 @@ export class PaymentsService {
     }
 
     async processWebhook(gateway: string, payload: Record<string, unknown>): Promise<void> {
-        // TODO: Integrate with Multicaixa GPO / Unitel Money webhook
-        this.logger.log(`[WEBHOOK STUB] Gateway: ${gateway} | Payload: ${JSON.stringify(payload)}`);
+        this.logger.log(`[WEBHOOK] Gateway: ${gateway} | Payload: ${JSON.stringify(payload)}`);
 
+        if (gateway === 'MULTICAIXA_GPO') {
+            await this.handleMulticaixaWebhook(payload);
+        } else if (gateway === 'UNITEL_MONEY') {
+            await this.handleUnitelMoneyWebhook(payload);
+        } else {
+            this.logger.warn(
+                `[WEBHOOK] Unknown gateway: ${gateway} - Falling back to generic handler`,
+            );
+            await this.handleGenericWebhook(gateway, payload);
+        }
+    }
+
+    private async handleMulticaixaWebhook(payload: Record<string, unknown>): Promise<void> {
+        // Assumed Payload: { reference: string, transactionId: string, amount: number, status: string }
+        const referenceCode = payload.reference as string;
+        const transactionId = payload.transactionId as string;
+        const status = payload.status as string; // '00' for success
+
+        if (!referenceCode) {
+            this.logger.error('[WEBHOOK] Multicaixa GPO: Missing reference code');
+            return;
+        }
+
+        const payment = await this.repo.findOne({ where: { referenceCode } });
+        if (!payment) {
+            this.logger.warn(
+                `[WEBHOOK] Multicaixa GPO: Payment not found for reference ${referenceCode}`,
+            );
+            return;
+        }
+
+        if (status && status !== '00' && status !== 'SUCCESS') {
+            payment.status = 'FAILED';
+            payment.failedAt = new Date();
+            payment.failureReason = `Gateway status: ${status}`;
+            await this.repo.save(payment);
+            this.logger.warn(
+                `[WEBHOOK] Payment ${payment.id} failed via Multicaixa GPO (Status: ${status})`,
+            );
+            return;
+        }
+
+        if (payment.status === 'COMPLETED') {
+            this.logger.log(`[WEBHOOK] Payment ${payment.id} already completed`);
+            return;
+        }
+
+        payment.status = 'COMPLETED';
+        payment.paidAt = new Date();
+        payment.transactionId = transactionId || `mc_${Date.now()}`;
+        payment.gateway = 'MULTICAIXA_GPO';
+
+        await this.repo.save(payment);
+        this.logger.log(`[WEBHOOK] Payment ${payment.id} completed via Multicaixa GPO`);
+    }
+
+    private async handleUnitelMoneyWebhook(payload: Record<string, unknown>): Promise<void> {
+        // Assumed Payload: { reference_id: string, transaction_id: string, status: 'PAID' | 'FAILED' }
+        const referenceCode = payload.reference_id as string;
+        const status = payload.status as string;
+        const transactionId = payload.transaction_id as string;
+
+        if (!referenceCode) {
+            this.logger.error('[WEBHOOK] Unitel Money: Missing reference_id');
+            return;
+        }
+
+        const payment = await this.repo.findOne({ where: { referenceCode } });
+        if (!payment) {
+            this.logger.warn(
+                `[WEBHOOK] Unitel Money: Payment not found for reference ${referenceCode}`,
+            );
+            return;
+        }
+
+        if (status === 'PAID') {
+            if (payment.status === 'COMPLETED') {
+                this.logger.log(`[WEBHOOK] Payment ${payment.id} already completed`);
+                return;
+            }
+            payment.status = 'COMPLETED';
+            payment.paidAt = new Date();
+            payment.transactionId = transactionId || `um_${Date.now()}`;
+            payment.gateway = 'UNITEL_MONEY';
+
+            await this.repo.save(payment);
+            this.logger.log(`[WEBHOOK] Payment ${payment.id} completed via Unitel Money`);
+        } else if (status === 'FAILED') {
+            payment.status = 'FAILED';
+            payment.failedAt = new Date();
+            payment.gateway = 'UNITEL_MONEY';
+            await this.repo.save(payment);
+            this.logger.log(`[WEBHOOK] Payment ${payment.id} failed via Unitel Money`);
+        } else {
+            this.logger.warn(
+                `[WEBHOOK] Unitel Money: Unknown status ${status} for reference ${referenceCode}`,
+            );
+        }
+    }
+
+    private async handleGenericWebhook(
+        gateway: string,
+        payload: Record<string, unknown>,
+    ): Promise<void> {
         const referenceCode = payload.referenceCode as string;
         if (!referenceCode) return;
 
@@ -145,12 +248,20 @@ export class PaymentsService {
             return;
         }
 
+        if (payment.status === 'COMPLETED') {
+            this.logger.log(`[WEBHOOK] Payment ${payment.id} already completed`);
+            return;
+        }
+
         payment.status = 'COMPLETED';
         payment.paidAt = new Date();
         payment.transactionId = (payload.transactionId as string) || `txn_${Date.now()}`;
+        if (payment.gateway === 'MANUAL') {
+            payment.gateway = gateway;
+        }
         await this.repo.save(payment);
 
-        this.logger.log(`[WEBHOOK] Payment ${payment.id} marked as COMPLETED`);
+        this.logger.log(`[WEBHOOK] Payment ${payment.id} marked as COMPLETED (Generic)`);
     }
 
     // ── Helpers ─────────────────────────────────────────
