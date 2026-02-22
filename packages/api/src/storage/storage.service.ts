@@ -47,13 +47,19 @@ export class StorageService {
         this.endpoint = this.configService.get<string>('S3_ENDPOINT', 'http://localhost:9000');
         this.region = this.configService.get<string>('S3_REGION', 'us-east-1');
 
+        const accessKeyId = this.configService.get<string>('S3_ACCESS_KEY', 'minioadmin');
+        const secretAccessKey = this.configService.get<string>('S3_SECRET_KEY', 'minioadmin');
+
+        // Only provide credentials explicitly if they are set (or default to minioadmin for dev)
+        // In production with IAM roles, these should be left undefined to use the default provider chain
+        const credentials = (accessKeyId && secretAccessKey)
+            ? { accessKeyId, secretAccessKey }
+            : undefined;
+
         this.s3Client = new S3Client({
             endpoint: this.endpoint,
             region: this.region,
-            credentials: {
-                accessKeyId: this.configService.get<string>('S3_ACCESS_KEY', 'minioadmin'),
-                secretAccessKey: this.configService.get<string>('S3_SECRET_KEY', 'minioadmin'),
-            },
+            credentials,
             forcePathStyle: true, // Required for MinIO
         });
     }
