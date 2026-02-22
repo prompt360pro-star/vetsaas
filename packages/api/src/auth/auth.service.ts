@@ -165,6 +165,20 @@ export class AuthService {
     }
 
     /**
+     * Find users by tenant and optional role.
+     */
+    async findAll(tenantId: string, role?: string): Promise<UserEntity[]> {
+        const where: any = { tenantId };
+        if (role) {
+            where.role = role;
+        }
+        return this.usersRepo.find({
+            where,
+            select: ['id', 'firstName', 'lastName', 'email', 'role', 'avatarUrl', 'phone'],
+        });
+    }
+
+    /**
      * Generate JWT access + refresh tokens.
      */
     private async generateTokens(user: UserEntity): Promise<AuthTokens> {

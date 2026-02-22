@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { api } from '@/lib/api-client';
 import { motion } from 'framer-motion';
 import {
     Calendar,
@@ -43,26 +44,77 @@ const statusConfig: Record<string, { label: string; badge: string }> = {
     NO_SHOW: { label: 'Não compareceu', badge: 'badge-danger' },
 };
 
-const mockAppointments = [
-    { id: '1', time: '08:00', endTime: '08:30', animal: 'Rex', tutor: 'João Silva', type: 'CONSULTATION', status: 'COMPLETED', vet: 'Dr. António' },
-    { id: '2', time: '08:30', endTime: '09:00', animal: 'Mimi', tutor: 'Ana Santos', type: 'VACCINATION', status: 'CHECKED_IN', vet: 'Dra. Sofia' },
-    { id: '3', time: '09:00', endTime: '09:30', animal: 'Thor', tutor: 'Pedro Lopes', type: 'FOLLOW_UP', status: 'CONFIRMED', vet: 'Dr. António' },
-    { id: '4', time: '09:30', endTime: '10:30', animal: 'Luna', tutor: 'Maria Fernandes', type: 'EMERGENCY', status: 'SCHEDULED', vet: 'Dra. Sofia' },
-    { id: '5', time: '10:00', endTime: '12:00', animal: 'Bolt', tutor: 'Carlos Neto', type: 'SURGERY', status: 'SCHEDULED', vet: 'Dr. António' },
-    { id: '6', time: '14:00', endTime: '14:30', animal: 'Princesa', tutor: 'Luísa Mendes', type: 'CONSULTATION', status: 'SCHEDULED', vet: 'Dra. Sofia' },
-    { id: '7', time: '15:00', endTime: '15:30', animal: 'Max', tutor: 'Roberto Dias', type: 'TELECONSULT', status: 'SCHEDULED', vet: 'Dr. António' },
-];
-
 const weekDays = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 
 export default function AppointmentsPage() {
     const [view, setView] = useState<'day' | 'week'>('day');
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const today = new Date();
+    const [appointments, setAppointments] = useState<any[]>([]);
 
-    const handleCreateAppointment = (data: AppointmentFormData) => {
-        // TODO: POST to /appointments API
-        console.log('[CREATE APPOINTMENT]', data);
+    const fetchAppointments = async () => {
+        try {
+            const [animalsRes, tutorsRes, vetsRes, appointmentsRes] = await Promise.all([
+                api.get<{ data: any[] }>('/animals'),
+                api.get<{ data: any[] }>('/tutors'),
+                api.get<{ data: any[] }>('/users', { role: 'VETERINARIAN' }),
+                api.get<{ data: any[] }>('/appointments'),
+            ]);
+
+            const aMap: Record<string, string> = {};
+            animalsRes.data.forEach((a: any) => (aMap[a.id] = a.name));
+
+            const tMap: Record<string, string> = {};
+            tutorsRes.data.forEach((t: any) => (tMap[t.id] = `${t.firstName} ${t.lastName}`));
+
+            const vMap: Record<string, string> = {};
+            vetsRes.data.forEach((v: any) => (vMap[v.id] = `Dr. ${v.firstName} ${v.lastName}`));
+
+            const mapped = appointmentsRes.data.map((apt: any) => {
+                const start = new Date(apt.scheduledAt);
+                const end = new Date(start.getTime() + apt.duration * 60000);
+                return {
+                    id: apt.id,
+                    time: start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    endTime: end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    animal: aMap[apt.animalId] || 'Desconhecido',
+                    tutor: tMap[apt.tutorId] || 'Desconhecido',
+                    type: apt.appointmentType,
+                    status: apt.status,
+                    vet: vMap[apt.veterinarianId] || 'Desconhecido',
+                };
+            });
+            setAppointments(mapped);
+        } catch (error) {
+            console.error('Failed to fetch data', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchAppointments();
+    }, []);
+
+    const handleCreateAppointment = async (data: AppointmentFormData) => {
+        try {
+            const start = new Date(`${data.date}T${data.time}`);
+            const end = new Date(`${data.date}T${data.endTime}`);
+            const duration = (end.getTime() - start.getTime()) / 60000; // minutes
+
+            await api.post('/appointments', {
+                scheduledAt: start,
+                duration,
+                appointmentType: data.type,
+                notes: data.notes,
+                animalId: data.animalId,
+                tutorId: data.tutorId,
+                veterinarianId: data.veterinarianId,
+            });
+
+            await fetchAppointments();
+            setIsCreateOpen(false);
+        } catch (error) {
+            console.error('Failed to create appointment', error);
+        }
     };
 
     return (
@@ -77,7 +129,7 @@ export default function AppointmentsPage() {
                         Agenda
                     </h1>
                     <p className="text-surface-500 dark:text-surface-400 mt-1">
-                        {mockAppointments.length} consultas hoje
+                        {appointments.length} consultas hoje
                     </p>
                 </div>
 
@@ -133,7 +185,7 @@ export default function AppointmentsPage() {
 
                 {/* Appointments list */}
                 <div className="divide-y divide-surface-50 dark:divide-surface-800/50">
-                    {mockAppointments.map((apt, i) => {
+                    {appointments.map((apt, i) => {
                         const config = typeConfig[apt.type];
                         const status = statusConfig[apt.status];
                         const Icon = config?.icon || Stethoscope;
