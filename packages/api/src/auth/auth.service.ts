@@ -1,8 +1,4 @@
-import {
-    Injectable,
-    UnauthorizedException,
-    ConflictException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
@@ -20,7 +16,7 @@ export class AuthService {
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
         private readonly tenantsService: TenantsService,
-    ) { }
+    ) {}
 
     /**
      * Register a new clinic (tenant) with its admin user.
@@ -132,11 +128,14 @@ export class AuthService {
     /**
      * Update user profile fields.
      */
-    async updateProfile(userId: string, data: {
-        firstName?: string;
-        lastName?: string;
-        phone?: string;
-    }): Promise<UserProfile> {
+    async updateProfile(
+        userId: string,
+        data: {
+            firstName?: string;
+            lastName?: string;
+            phone?: string;
+        },
+    ): Promise<UserProfile> {
         const user = await this.usersRepo.findOne({ where: { id: userId } });
         if (!user) {
             throw new UnauthorizedException('User not found');

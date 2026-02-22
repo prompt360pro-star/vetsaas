@@ -32,7 +32,7 @@ export class AuditService {
     constructor(
         @InjectRepository(AuditLogEntity)
         private readonly repo: Repository<AuditLogEntity>,
-    ) { }
+    ) {}
 
     /**
      * Append an immutable audit log entry.
@@ -93,11 +93,7 @@ export class AuditService {
     /**
      * Get change history for a specific entity.
      */
-    async findByEntity(
-        tenantId: string,
-        entityType: string,
-        entityId: string,
-    ): Promise<AuditLogEntity[]> {
+    async findByEntity(tenantId: string, entityType: string, entityId: string): Promise<AuditLogEntity[]> {
         return this.repo.find({
             where: { tenantId, entityType, entityId },
             order: { createdAt: 'DESC' },

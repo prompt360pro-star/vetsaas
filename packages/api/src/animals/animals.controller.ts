@@ -1,15 +1,4 @@
-import {
-    Controller,
-    Get,
-    Post,
-    Put,
-    Delete,
-    Body,
-    Param,
-    Query,
-    UseGuards,
-    Request,
-} from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AnimalsService } from './animals.service';
 import type { PaginationQuery } from '@vetsaas/shared';
@@ -17,7 +6,7 @@ import type { PaginationQuery } from '@vetsaas/shared';
 @Controller('animals')
 @UseGuards(AuthGuard('jwt'))
 export class AnimalsController {
-    constructor(private readonly animalsService: AnimalsService) { }
+    constructor(private readonly animalsService: AnimalsService) {}
 
     @Get()
     async findAll(@Request() req: any, @Query() query: PaginationQuery) {
@@ -33,25 +22,13 @@ export class AnimalsController {
 
     @Post()
     async create(@Request() req: any, @Body() body: any) {
-        const data = await this.animalsService.create(
-            req.user.tenantId,
-            req.user.sub,
-            body,
-        );
+        const data = await this.animalsService.create(req.user.tenantId, req.user.sub, body);
         return { success: true, data };
     }
 
     @Put(':id')
-    async update(
-        @Request() req: any,
-        @Param('id') id: string,
-        @Body() body: any,
-    ) {
-        const data = await this.animalsService.update(
-            req.user.tenantId,
-            id,
-            body,
-        );
+    async update(@Request() req: any, @Param('id') id: string, @Body() body: any) {
+        const data = await this.animalsService.update(req.user.tenantId, id, body);
         return { success: true, data };
     }
 

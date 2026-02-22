@@ -42,10 +42,7 @@ async function bootstrap() {
         .setTitle('VetSaaS Angola API')
         .setDescription('API para plataforma veterinária SaaS — Angola')
         .setVersion('0.1.0')
-        .addBearerAuth(
-            { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
-            'JWT',
-        )
+        .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'JWT')
         .addTag('Auth', 'Autenticação e perfil')
         .addTag('Animals', 'Gestão de pacientes')
         .addTag('Tutors', 'Gestão de tutores')

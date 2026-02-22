@@ -32,7 +32,7 @@ export class SearchService {
         private readonly tutorsRepo: Repository<TutorEntity>,
         @InjectRepository(ClinicalRecordEntity)
         private readonly recordsRepo: Repository<ClinicalRecordEntity>,
-    ) { }
+    ) {}
 
     async search(tenantId: string, query: string, limit: number = 20): Promise<SearchResponse> {
         if (!query || query.trim().length < 2) {
@@ -56,7 +56,10 @@ export class SearchService {
         const animals = await this.animalsRepo
             .createQueryBuilder('a')
             .where('a.tenantId = :tenantId', { tenantId })
-            .andWhere('(LOWER(a.name) LIKE :q OR LOWER(a.species) LIKE :q OR LOWER(a.breed) LIKE :q OR a.microchipId LIKE :q)', { q })
+            .andWhere(
+                '(LOWER(a.name) LIKE :q OR LOWER(a.species) LIKE :q OR LOWER(a.breed) LIKE :q OR a.microchipId LIKE :q)',
+                { q },
+            )
             .orderBy('a.name', 'ASC')
             .take(limit)
             .getMany();
@@ -74,7 +77,10 @@ export class SearchService {
         const tutors = await this.tutorsRepo
             .createQueryBuilder('t')
             .where('t.tenantId = :tenantId', { tenantId })
-            .andWhere('(LOWER(t.firstName) LIKE :q OR LOWER(t.lastName) LIKE :q OR LOWER(t.email) LIKE :q OR t.phone LIKE :q)', { q })
+            .andWhere(
+                '(LOWER(t.firstName) LIKE :q OR LOWER(t.lastName) LIKE :q OR LOWER(t.email) LIKE :q OR t.phone LIKE :q)',
+                { q },
+            )
             .orderBy('t.firstName', 'ASC')
             .take(limit)
             .getMany();

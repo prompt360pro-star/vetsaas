@@ -102,9 +102,7 @@ describe('AnimalsService', () => {
         it('should throw NotFoundException for missing animal', async () => {
             repo.findOne.mockResolvedValue(null);
 
-            await expect(
-                service.findById(tenantId, 'nonexistent'),
-            ).rejects.toThrow(NotFoundException);
+            await expect(service.findById(tenantId, 'nonexistent')).rejects.toThrow(NotFoundException);
         });
     });
 
@@ -123,9 +121,7 @@ describe('AnimalsService', () => {
 
             const result = await service.create(tenantId, userId, dto);
 
-            expect(repo.create).toHaveBeenCalledWith(
-                expect.objectContaining({ tenantId, createdBy: userId }),
-            );
+            expect(repo.create).toHaveBeenCalledWith(expect.objectContaining({ tenantId, createdBy: userId }));
             expect(result.tenantId).toBe(tenantId);
         });
     });

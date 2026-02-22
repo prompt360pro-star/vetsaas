@@ -1,11 +1,4 @@
-import {
-    Controller,
-    Get,
-    Query,
-    UseGuards,
-    Request,
-    Res,
-} from '@nestjs/common';
+import { Controller, Get, Query, UseGuards, Request, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { Roles } from '../auth/roles.decorator';
@@ -16,7 +9,7 @@ import { ExportService } from './export.service';
 @UseGuards(AuthGuard('jwt'), RolesGuard)
 @Roles('CLINIC_ADMIN')
 export class ExportController {
-    constructor(private readonly exportService: ExportService) { }
+    constructor(private readonly exportService: ExportService) {}
 
     @Get('animals')
     async exportAnimals(@Request() req: any, @Res() res: Response) {
@@ -40,15 +33,8 @@ export class ExportController {
     }
 
     @Get('audit')
-    async exportAudit(
-        @Request() req: any,
-        @Res() res: Response,
-        @Query('limit') limit?: string,
-    ) {
-        const csv = await this.exportService.exportAudit(
-            req.user.tenantId,
-            limit ? parseInt(limit, 10) : 500,
-        );
+    async exportAudit(@Request() req: any, @Res() res: Response, @Query('limit') limit?: string) {
+        const csv = await this.exportService.exportAudit(req.user.tenantId, limit ? parseInt(limit, 10) : 500);
         this.sendCsv(res, csv, 'auditoria');
     }
 

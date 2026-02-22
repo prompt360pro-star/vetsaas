@@ -1,9 +1,4 @@
-import {
-    Injectable,
-    CanActivate,
-    ExecutionContext,
-    ForbiddenException,
-} from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from './roles.decorator';
 import { ROLE_HIERARCHY } from '@vetsaas/shared';
@@ -11,7 +6,7 @@ import type { UserRole } from '@vetsaas/shared';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-    constructor(private readonly reflector: Reflector) { }
+    constructor(private readonly reflector: Reflector) {}
 
     canActivate(context: ExecutionContext): boolean {
         const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(ROLES_KEY, [
@@ -40,9 +35,7 @@ export class RolesGuard implements CanActivate {
 
         // Check hierarchy — does the user's role inherit any of the required roles?
         const inheritedRoles = ROLE_HIERARCHY[userRole] || [];
-        const hasAccess = requiredRoles.some((required) =>
-            inheritedRoles.includes(required),
-        );
+        const hasAccess = requiredRoles.some((required) => inheritedRoles.includes(required));
 
         if (!hasAccess) {
             throw new ForbiddenException(

@@ -10,4 +10,4 @@ import { TutorsController } from './tutors.controller';
     providers: [TutorsService],
     exports: [TutorsService],
 })
-export class TutorsModule { }
+export class TutorsModule {}

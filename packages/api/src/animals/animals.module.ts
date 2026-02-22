@@ -10,4 +10,4 @@ import { AnimalsController } from './animals.controller';
     providers: [AnimalsService],
     exports: [AnimalsService],
 })
-export class AnimalsModule { }
+export class AnimalsModule {}

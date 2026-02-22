@@ -2,14 +2,7 @@
 // Lab Result Entity — Linked to clinical records
 // ============================================================================
 
-import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    CreateDateColumn,
-    UpdateDateColumn,
-    Index,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm';
 
 @Entity('lab_results')
 @Index(['tenantId', 'animalId'])

@@ -23,7 +23,7 @@ import { StorageService, UploadResult } from './storage.service';
 @Controller('uploads')
 @UseGuards(AuthGuard('jwt'))
 export class UploadController {
-    constructor(private readonly storageService: StorageService) { }
+    constructor(private readonly storageService: StorageService) {}
 
     /**
      * POST /api/uploads/:category
@@ -72,12 +72,7 @@ export class UploadController {
             throw new BadRequestException('Tenant context required');
         }
 
-        const result = await this.storageService.getPresignedUploadUrl(
-            tenantId,
-            category,
-            fileName,
-            mimeType,
-        );
+        const result = await this.storageService.getPresignedUploadUrl(tenantId, category, fileName, mimeType);
 
         return { data: result };
     }

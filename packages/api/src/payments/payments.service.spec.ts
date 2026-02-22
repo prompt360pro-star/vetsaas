@@ -159,9 +159,7 @@ describe('PaymentsService', () => {
         it('should throw NotFoundException', async () => {
             repo.findOne.mockResolvedValue(null);
 
-            await expect(
-                service.findById(tenantId, 'nonexistent'),
-            ).rejects.toThrow(NotFoundException);
+            await expect(service.findById(tenantId, 'nonexistent')).rejects.toThrow(NotFoundException);
         });
     });
 
@@ -196,9 +194,7 @@ describe('PaymentsService', () => {
         });
 
         it('should handle missing reference gracefully', async () => {
-            await expect(
-                service.processWebhook('MULTICAIXA_GPO', {}),
-            ).resolves.not.toThrow();
+            await expect(service.processWebhook('MULTICAIXA_GPO', {})).resolves.not.toThrow();
         });
     });
 });

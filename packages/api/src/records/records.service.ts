@@ -9,7 +9,7 @@ export class RecordsService {
     constructor(
         @InjectRepository(ClinicalRecordEntity)
         private readonly repo: Repository<ClinicalRecordEntity>,
-    ) { }
+    ) {}
 
     async findByAnimal(
         tenantId: string,
@@ -60,11 +60,7 @@ export class RecordsService {
     /**
      * Update creates a new version (append-only for audit trail).
      */
-    async update(
-        tenantId: string,
-        id: string,
-        data: Partial<ClinicalRecordEntity>,
-    ): Promise<ClinicalRecordEntity> {
+    async update(tenantId: string, id: string, data: Partial<ClinicalRecordEntity>): Promise<ClinicalRecordEntity> {
         const existing = await this.findById(tenantId, id);
         // Increment version on each update
         existing.version += 1;
@@ -72,11 +68,7 @@ export class RecordsService {
         return this.repo.save(existing);
     }
 
-    async sign(
-        tenantId: string,
-        id: string,
-        userId: string,
-    ): Promise<ClinicalRecordEntity> {
+    async sign(tenantId: string, id: string, userId: string): Promise<ClinicalRecordEntity> {
         const record = await this.findById(tenantId, id);
         record.signedAt = new Date();
         record.signedBy = userId;

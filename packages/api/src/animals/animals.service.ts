@@ -9,12 +9,9 @@ export class AnimalsService {
     constructor(
         @InjectRepository(AnimalEntity)
         private readonly repo: Repository<AnimalEntity>,
-    ) { }
+    ) {}
 
-    async findAll(
-        tenantId: string,
-        query: PaginationQuery,
-    ): Promise<PaginatedResponse<AnimalEntity>> {
+    async findAll(tenantId: string, query: PaginationQuery): Promise<PaginatedResponse<AnimalEntity>> {
         const page = query.page || 1;
         const limit = query.limit || 20;
         const skip = (page - 1) * limit;
@@ -48,11 +45,7 @@ export class AnimalsService {
         return animal;
     }
 
-    async create(
-        tenantId: string,
-        userId: string,
-        data: Partial<AnimalEntity>,
-    ): Promise<AnimalEntity> {
+    async create(tenantId: string, userId: string, data: Partial<AnimalEntity>): Promise<AnimalEntity> {
         const animal = this.repo.create({
             ...data,
             tenantId,
@@ -61,11 +54,7 @@ export class AnimalsService {
         return this.repo.save(animal);
     }
 
-    async update(
-        tenantId: string,
-        id: string,
-        data: Partial<AnimalEntity>,
-    ): Promise<AnimalEntity> {
+    async update(tenantId: string, id: string, data: Partial<AnimalEntity>): Promise<AnimalEntity> {
         const animal = await this.findById(tenantId, id);
         Object.assign(animal, data);
         return this.repo.save(animal);

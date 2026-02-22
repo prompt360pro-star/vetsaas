@@ -2,12 +2,7 @@
 // Inventory Service — Stock management with movement tracking
 // ============================================================================
 
-import {
-    Injectable,
-    NotFoundException,
-    BadRequestException,
-    Logger,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThan, MoreThan, Raw } from 'typeorm';
 import { InventoryItemEntity } from './inventory-item.entity';
@@ -44,7 +39,7 @@ export class InventoryService {
         private readonly itemRepo: Repository<InventoryItemEntity>,
         @InjectRepository(StockMovementEntity)
         private readonly movementRepo: Repository<StockMovementEntity>,
-    ) { }
+    ) {}
 
     // ── Create Item ────────────────────────────────────────────────────
     async create(tenantId: string, userId: string, input: CreateItemInput) {
@@ -83,7 +78,9 @@ export class InventoryService {
             });
         }
 
-        this.logger.log(`[CREATE] Item "${(saved as InventoryItemEntity).name}" (${(saved as InventoryItemEntity).id}) | Tenant: ${tenantId}`);
+        this.logger.log(
+            `[CREATE] Item "${(saved as InventoryItemEntity).name}" (${(saved as InventoryItemEntity).id}) | Tenant: ${tenantId}`,
+        );
         return saved;
     }
 
@@ -98,7 +95,8 @@ export class InventoryService {
         const where: any = { tenantId, isActive: true };
         if (query.category) where.category = query.category;
 
-        const qb = this.itemRepo.createQueryBuilder('item')
+        const qb = this.itemRepo
+            .createQueryBuilder('item')
             .where('item.tenantId = :tenantId', { tenantId })
             .andWhere('item.isActive = :active', { active: true });
 
@@ -147,7 +145,8 @@ export class InventoryService {
         if (input.price !== undefined) item.price = input.price;
         if (input.cost !== undefined) item.cost = input.cost;
         if (input.supplier !== undefined) item.supplier = input.supplier;
-        if (input.expiryDate !== undefined) item.expiryDate = input.expiryDate ? new Date(input.expiryDate) : undefined as any;
+        if (input.expiryDate !== undefined)
+            item.expiryDate = input.expiryDate ? new Date(input.expiryDate) : (undefined as any);
         if (input.batchNumber !== undefined) item.batchNumber = input.batchNumber;
         if (input.isControlled !== undefined) item.isControlled = input.isControlled;
 
@@ -167,9 +166,7 @@ export class InventoryService {
             case 'OUT':
                 newStock = previousStock - Math.abs(input.quantity);
                 if (newStock < 0) {
-                    throw new BadRequestException(
-                        `Estoque insuficiente. Disponível: ${previousStock} ${item.unit}`,
-                    );
+                    throw new BadRequestException(`Estoque insuficiente. Disponível: ${previousStock} ${item.unit}`);
                 }
                 break;
             case 'ADJUSTMENT':

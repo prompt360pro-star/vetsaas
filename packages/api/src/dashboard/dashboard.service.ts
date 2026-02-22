@@ -12,7 +12,7 @@ export interface DashboardStats {
     totalTutors: number;
     todayAppointments: number;
     monthlyRevenue: number;
-    animalsChange: number;    // vs last month
+    animalsChange: number; // vs last month
     tutorsChange: number;
     appointmentsChange: number;
     revenueChange: number;
@@ -30,7 +30,7 @@ export class DashboardService {
         @InjectRepository(PaymentEntity)
         private readonly paymentsRepo: Repository<PaymentEntity>,
         private readonly auditService: AuditService,
-    ) { }
+    ) {}
 
     /**
      * Get dashboard statistics for a tenant.
@@ -104,9 +104,8 @@ export class DashboardService {
             animalsChange: totalAnimals - lastMonthAnimals,
             tutorsChange: totalTutors - lastMonthTutors,
             appointmentsChange: todayAppointments - lastMonthAppointments,
-            revenueChange: lastMonthRevenue > 0
-                ? Math.round(((monthlyRevenue - lastMonthRevenue) / lastMonthRevenue) * 100)
-                : 0,
+            revenueChange:
+                lastMonthRevenue > 0 ? Math.round(((monthlyRevenue - lastMonthRevenue) / lastMonthRevenue) * 100) : 0,
         };
     }
 

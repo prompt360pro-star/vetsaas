@@ -18,10 +18,7 @@ describe('AuditService', () => {
 
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
-            providers: [
-                AuditService,
-                { provide: getRepositoryToken(AuditLogEntity), useValue: mockRepo },
-            ],
+            providers: [AuditService, { provide: getRepositoryToken(AuditLogEntity), useValue: mockRepo }],
         }).compile();
 
         service = module.get<AuditService>(AuditService);
@@ -159,9 +156,7 @@ describe('AuditService', () => {
 
             await service.getRecentActivity(tenantId, 5);
 
-            expect(mockRepo.find).toHaveBeenCalledWith(
-                expect.objectContaining({ take: 5 }),
-            );
+            expect(mockRepo.find).toHaveBeenCalledWith(expect.objectContaining({ take: 5 }));
         });
     });
 });

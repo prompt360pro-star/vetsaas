@@ -1,12 +1,4 @@
-import {
-    Controller,
-    Post,
-    Get,
-    Patch,
-    Body,
-    UseGuards,
-    Request,
-} from '@nestjs/common';
+import { Controller, Post, Get, Patch, Body, UseGuards, Request } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { RegisterDto, LoginDto, RefreshTokenDto } from './auth.dto';
@@ -14,7 +6,7 @@ import { RateLimitGuard } from '../common/rate-limit.guard';
 
 @Controller('auth')
 export class AuthController {
-    constructor(private readonly authService: AuthService) { }
+    constructor(private readonly authService: AuthService) {}
 
     @Post('register')
     @UseGuards(RateLimitGuard)

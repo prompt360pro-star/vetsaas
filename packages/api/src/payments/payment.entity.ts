@@ -2,14 +2,7 @@
 // Payment Entity — Multi-tenant, Angola-focused
 // ============================================================================
 
-import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    CreateDateColumn,
-    UpdateDateColumn,
-    Index,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm';
 
 @Entity('payments')
 @Index(['tenantId'])

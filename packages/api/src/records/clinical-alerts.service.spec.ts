@@ -59,9 +59,11 @@ describe('ClinicalAlertsService', () => {
             const qb = {
                 where: jest.fn().mockReturnThis(),
                 andWhere: jest.fn().mockReturnThis(),
-                getMany: jest.fn().mockResolvedValue([
-                    { id: 'inv-1', name: 'Amoxicilina', stock: 0, minStock: 10, unit: 'un', isActive: true },
-                ]),
+                getMany: jest
+                    .fn()
+                    .mockResolvedValue([
+                        { id: 'inv-1', name: 'Amoxicilina', stock: 0, minStock: 10, unit: 'un', isActive: true },
+                    ]),
             };
             mockInventoryRepo.createQueryBuilder.mockReturnValue(qb);
 
@@ -76,9 +78,11 @@ describe('ClinicalAlertsService', () => {
             const qb = {
                 where: jest.fn().mockReturnThis(),
                 andWhere: jest.fn().mockReturnThis(),
-                getMany: jest.fn().mockResolvedValue([
-                    { id: 'inv-2', name: 'Seringa', stock: 3, minStock: 10, unit: 'un', isActive: true },
-                ]),
+                getMany: jest
+                    .fn()
+                    .mockResolvedValue([
+                        { id: 'inv-2', name: 'Seringa', stock: 3, minStock: 10, unit: 'un', isActive: true },
+                    ]),
             };
             mockInventoryRepo.createQueryBuilder.mockReturnValue(qb);
 

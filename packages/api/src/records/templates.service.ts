@@ -24,7 +24,8 @@ const TEMPLATES: ClinicalTemplate[] = [
         icon: '🩺',
         color: '#3B82F6',
         subjective: 'Motivo da consulta: \nHistórico recente: \nAlimentação: \nComportamento: ',
-        objective: 'Estado geral: \nMucosas: \nTRC: \nLinfonodos: \nAuscultação cardíaca: \nAuscultação pulmonar: \nPalpação abdominal: \nPele e pelagem: ',
+        objective:
+            'Estado geral: \nMucosas: \nTRC: \nLinfonodos: \nAuscultação cardíaca: \nAuscultação pulmonar: \nPalpação abdominal: \nPele e pelagem: ',
         assessment: 'Diagnóstico presuntivo: \nDiagnósticos diferenciais: ',
         plan: 'Tratamento: \nMedicação prescrita: \nRetorno: \nExames solicitados: ',
         defaultVitals: ['temperature', 'heartRate', 'respiratoryRate', 'weight'],
@@ -80,7 +81,8 @@ const TEMPLATES: ClinicalTemplate[] = [
         icon: '🚨',
         color: '#EF4444',
         subjective: 'Queixa principal: \nInício dos sinais: \nToxinas/trauma: \nÚltima refeição: ',
-        objective: 'Triagem (ABCDE):\nA - Via aérea: \nB - Respiração: \nC - Circulação: \nD - Neurológico: \nE - Exposição: ',
+        objective:
+            'Triagem (ABCDE):\nA - Via aérea: \nB - Respiração: \nC - Circulação: \nD - Neurológico: \nE - Exposição: ',
         assessment: 'Gravidade: Crítico / Grave / Moderado / Leve\nDiagnóstico de trabalho: ',
         plan: 'Acesso venoso: \nFluidoterapia: \nMedicação de emergência: \nMonitorização: \nExames urgentes: ',
         defaultVitals: ['temperature', 'heartRate', 'respiratoryRate', 'weight', 'bodyConditionScore'],
@@ -93,7 +95,8 @@ const TEMPLATES: ClinicalTemplate[] = [
         category: 'SPECIALTY',
         icon: '🔍',
         color: '#EC4899',
-        subjective: 'Queixa principal: \nDuração: \nPrurido (escala 0-10): \nTratamentos anteriores: \nControlo de ectoparasitas: ',
+        subjective:
+            'Queixa principal: \nDuração: \nPrurido (escala 0-10): \nTratamentos anteriores: \nControlo de ectoparasitas: ',
         objective: 'Distribuição das lesões: \nTipo de lesão: \nRaspagem cutânea: \nLâmpada de Wood: \nCitologia: ',
         assessment: 'Diagnóstico presuntivo: \nDiagnósticos diferenciais: ',
         plan: 'Tratamento tópico: \nTratamento sistémico: \nDieta: \nControlo ambiental: \nRetorno: ',
@@ -108,7 +111,8 @@ const TEMPLATES: ClinicalTemplate[] = [
         icon: '🦷',
         color: '#06B6D4',
         subjective: 'Queixa principal: \nHalitose: \nDificuldade de mastigação: \nHistórico de profilaxia: ',
-        objective: 'Exame oral:\nGrau de doença periodontal: I / II / III / IV\nCálculo: \nGengivite: \nMobilidade dentária: \nFracturas: \nMassa oral: ',
+        objective:
+            'Exame oral:\nGrau de doença periodontal: I / II / III / IV\nCálculo: \nGengivite: \nMobilidade dentária: \nFracturas: \nMassa oral: ',
         assessment: 'Diagnóstico: \nDentes a extrair: ',
         plan: 'Profilaxia dentária: \nExtracções: \nAntibiótico: \nAnalgésico: \nDieta: \nCuidados em casa: ',
         defaultVitals: ['temperature', 'weight'],

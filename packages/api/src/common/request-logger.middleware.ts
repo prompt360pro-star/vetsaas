@@ -22,14 +22,12 @@ export class RequestLoggerMiddleware implements NestMiddleware {
                 statusCode >= 500
                     ? '\x1b[31m' // red
                     : statusCode >= 400
-                        ? '\x1b[33m' // yellow
-                        : statusCode >= 300
-                            ? '\x1b[36m' // cyan
-                            : '\x1b[32m'; // green
+                      ? '\x1b[33m' // yellow
+                      : statusCode >= 300
+                        ? '\x1b[36m' // cyan
+                        : '\x1b[32m'; // green
 
-            this.logger.log(
-                `${color}${method} ${originalUrl} ${statusCode}\x1b[0m — ${duration}ms`,
-            );
+            this.logger.log(`${color}${method} ${originalUrl} ${statusCode}\x1b[0m — ${duration}ms`);
         });
 
         next();

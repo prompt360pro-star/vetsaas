@@ -18,7 +18,7 @@ export class ExportService {
         private readonly paymentsRepo: Repository<PaymentEntity>,
         @InjectRepository(AuditLogEntity)
         private readonly auditRepo: Repository<AuditLogEntity>,
-    ) { }
+    ) {}
 
     /**
      * Export animals as CSV.
