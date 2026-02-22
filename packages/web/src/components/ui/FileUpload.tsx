@@ -168,6 +168,7 @@ export function FileUpload({
                     >
                         {/* Preview */}
                         {file.mimeType.startsWith('image/') && file.url ? (
+                            // eslint-disable-next-line @next/next/no-img-element
                             <img
                                 src={file.url}
                                 alt={file.name}

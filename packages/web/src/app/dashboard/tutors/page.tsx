@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
     Users,
@@ -11,53 +11,15 @@ import {
     MapPin,
     FileCheck,
     MoreVertical,
-    Eye,
-    Edit,
     Dog,
 } from 'lucide-react';
 import { Button, Input } from '@/components/ui';
-import { ANGOLA_PROVINCES } from '@vetsaas/shared';
 import TutorModal from '@/components/tutors/TutorModal';
 import type { TutorFormData } from '@/components/tutors/TutorModal';
 import '@/components/tutors/TutorModal.css';
-
-const mockTutors = [
-    {
-        id: '1', firstName: 'João', lastName: 'Silva', email: 'joao.silva@email.ao',
-        phone: '+244 923 456 789', province: 'Luanda', city: 'Luanda',
-        documentType: 'BI', documentNumber: '123456789LA001',
-        animalCount: 2, animals: ['Rex', 'Bolt'], consentsGranted: 3,
-        isActive: true, createdAt: '2024-03-15',
-    },
-    {
-        id: '2', firstName: 'Ana', lastName: 'Santos', email: 'ana.santos@gmail.com',
-        phone: '+244 912 345 678', province: 'Luanda', city: 'Viana',
-        documentType: 'BI', documentNumber: '987654321LA002',
-        animalCount: 1, animals: ['Mimi'], consentsGranted: 2,
-        isActive: true, createdAt: '2024-05-20',
-    },
-    {
-        id: '3', firstName: 'Pedro', lastName: 'Lopes', email: null,
-        phone: '+244 933 678 901', province: 'Benguela', city: 'Benguela',
-        documentType: 'BI', documentNumber: '456789123BG001',
-        animalCount: 1, animals: ['Thor'], consentsGranted: 3,
-        isActive: true, createdAt: '2024-06-10',
-    },
-    {
-        id: '4', firstName: 'Maria', lastName: 'Fernandes', email: 'maria.f@email.ao',
-        phone: '+244 944 321 654', province: 'Luanda', city: 'Talatona',
-        documentType: 'PASSPORT', documentNumber: 'N123456',
-        animalCount: 1, animals: ['Luna'], consentsGranted: 1,
-        isActive: true, createdAt: '2024-08-02',
-    },
-    {
-        id: '5', firstName: 'Carlos', lastName: 'Neto', email: 'cneto@empresa.ao',
-        phone: '+244 955 432 765', province: 'Huambo', city: 'Huambo',
-        documentType: 'BI', documentNumber: '789012345HB001',
-        animalCount: 1, animals: ['Bolt'], consentsGranted: 3,
-        isActive: true, createdAt: '2024-09-15',
-    },
-];
+import { tutorsApi } from '@/lib/services';
+import type { TutorDto, CreateTutorDto, DocumentType } from '@vetsaas/shared';
+import { toast } from '@/components/ui/Toast';
 
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -72,13 +34,50 @@ const cardVariants = {
 export default function TutorsPage() {
     const [search, setSearch] = useState('');
     const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [tutors, setTutors] = useState<TutorDto[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const handleCreateTutor = (data: TutorFormData) => {
-        // TODO: POST to /tutors API
-        console.log('[CREATE TUTOR]', data);
+    const loadTutors = async () => {
+        try {
+            setIsLoading(true);
+            const response = await tutorsApi.getAll();
+            setTutors(response.data);
+        } catch (error) {
+            console.error('Failed to load tutors:', error);
+            toast('Erro ao carregar tutores', 'error');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    const filtered = mockTutors.filter(
+    useEffect(() => {
+        loadTutors();
+    }, []);
+
+    const handleCreateTutor = async (data: TutorFormData) => {
+        try {
+            const dto: CreateTutorDto = {
+                firstName: data.firstName,
+                lastName: data.lastName,
+                email: data.email || undefined,
+                phone: data.phone,
+                province: data.province,
+                city: data.city,
+                documentType: data.documentType as DocumentType,
+                documentNumber: data.documentNumber,
+            };
+
+            await tutorsApi.create(dto);
+            toast('Tutor registado com sucesso!', 'success');
+            await loadTutors();
+            setIsCreateOpen(false);
+        } catch (error) {
+            console.error('Failed to create tutor:', error);
+            toast('Erro ao registar tutor', 'error');
+        }
+    };
+
+    const filtered = tutors.filter(
         (t) =>
             `${t.firstName} ${t.lastName}`.toLowerCase().includes(search.toLowerCase()) ||
             t.phone.includes(search) ||
@@ -97,7 +96,7 @@ export default function TutorsPage() {
                         Tutores
                     </h1>
                     <p className="text-surface-500 dark:text-surface-400 mt-1">
-                        {filtered.length} tutores registados
+                        {isLoading ? 'Carregando...' : `${filtered.length} tutores registados`}
                     </p>
                 </div>
                 <Button
@@ -142,7 +141,7 @@ export default function TutorsPage() {
                                     </p>
                                     <div className="flex items-center gap-1 text-xs text-surface-500">
                                         <MapPin className="w-3 h-3" />
-                                        {tutor.city}, {tutor.province}
+                                        {tutor.city || '-'}, {tutor.province || '-'}
                                     </div>
                                 </div>
                             </div>
@@ -162,21 +161,23 @@ export default function TutorsPage() {
                                     <span className="truncate text-xs">{tutor.email}</span>
                                 </div>
                             )}
-                            <div className="flex items-center gap-2.5 text-sm text-surface-600 dark:text-surface-400">
-                                <FileCheck className="w-4 h-4 text-surface-400" />
-                                <span className="text-xs">{tutor.documentType}: {tutor.documentNumber}</span>
-                            </div>
+                            {(tutor.documentType && tutor.documentNumber) && (
+                                <div className="flex items-center gap-2.5 text-sm text-surface-600 dark:text-surface-400">
+                                    <FileCheck className="w-4 h-4 text-surface-400" />
+                                    <span className="text-xs">{tutor.documentType}: {tutor.documentNumber}</span>
+                                </div>
+                            )}
                         </div>
 
                         <div className="flex items-center justify-between pt-3 border-t border-surface-100 dark:border-surface-800">
                             <div className="flex items-center gap-2">
                                 <div className="flex items-center gap-1 text-xs font-medium text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-950/50 px-2 py-1 rounded-lg">
                                     <Dog className="w-3.5 h-3.5" />
-                                    {tutor.animalCount} {tutor.animalCount === 1 ? 'animal' : 'animais'}
+                                    {tutor.animals?.length || 0} {(tutor.animals?.length || 0) === 1 ? 'animal' : 'animais'}
                                 </div>
                             </div>
                             <div className="flex items-center gap-1">
-                                {tutor.consentsGranted >= 3 ? (
+                                {(tutor.consents?.length || 0) >= 3 ? (
                                     <span className="badge badge-success text-2xs">Consentimentos OK</span>
                                 ) : (
                                     <span className="badge badge-warning text-2xs">Consentimentos pendentes</span>

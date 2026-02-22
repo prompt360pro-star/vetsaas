@@ -1,2 +1,2 @@
-// CSS module mock for Jest
-export default {};
+const styleMock = {};
+export default styleMock;

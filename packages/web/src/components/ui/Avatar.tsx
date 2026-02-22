@@ -72,6 +72,7 @@ export function Avatar({ src, name, size = 'md', status, className = '' }: Avata
     return (
         <div className={`relative inline-flex flex-shrink-0 ${className}`}>
             {src ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                     src={src}
                     alt={name ?? 'Avatar'}
