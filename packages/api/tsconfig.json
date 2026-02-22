@@ -4,7 +4,7 @@
         "module": "commonjs",
         "moduleResolution": "node",
         "outDir": "./dist",
-        "rootDir": "./src",
+        "rootDir": ".",
         "target": "ES2021",
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
@@ -12,6 +12,7 @@
         "incremental": true,
         "declaration": false,
         "declarationMap": false,
+        "strictPropertyInitialization": false,
         "paths": {
             "@/*": [
                 "./src/*"
@@ -19,11 +20,11 @@
         }
     },
     "include": [
-        "src"
+        "src",
+        "test"
     ],
     "exclude": [
         "node_modules",
-        "dist",
-        "test"
+        "dist"
     ]
 }
