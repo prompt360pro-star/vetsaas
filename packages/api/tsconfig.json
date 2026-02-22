@@ -4,7 +4,7 @@
         "module": "commonjs",
         "moduleResolution": "node",
         "outDir": "./dist",
-        "rootDir": "./src",
+        "rootDir": ".",
         "target": "ES2021",
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
@@ -19,11 +19,11 @@
         }
     },
     "include": [
-        "src"
+        "src",
+        "test"
     ],
     "exclude": [
         "node_modules",
-        "dist",
-        "test"
+        "dist"
     ]
 }
