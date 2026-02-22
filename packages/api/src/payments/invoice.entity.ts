@@ -1,7 +1,3 @@
-// ============================================================================
-// Invoice Entity — Multi-tenant, Angola fiscal
-// ============================================================================
-
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -11,6 +7,16 @@ import {
   DeleteDateColumn,
   Index,
 } from "typeorm";
+
+export enum InvoiceStatus {
+  DRAFT = "DRAFT",
+  SENT = "SENT",
+  PAID = "PAID",
+  PARTIAL = "PARTIALLY_PAID",
+  OVERDUE = "OVERDUE",
+  CANCELLED = "CANCELLED",
+  PENDING = "PENDING"
+}
 
 export interface InvoiceLineItem {
   description: string;
@@ -52,11 +58,18 @@ export class InvoiceEntity {
   @Column({ type: "decimal", precision: 12, scale: 2, default: 0 })
   total: number;
 
+  @Column({ type: "decimal", precision: 12, scale: 2, default: 0 })
+  paidAmount: number;
+
   @Column({ length: 3, default: "AOA" })
   currency: string;
 
-  @Column({ length: 20, default: "DRAFT" })
-  status: string; // DRAFT | SENT | PAID | PARTIALLY_PAID | OVERDUE | CANCELLED
+  @Column({
+    type: "enum",
+    enum: InvoiceStatus,
+    default: InvoiceStatus.DRAFT
+  })
+  status: InvoiceStatus;
 
   @Column({ type: "date", nullable: true })
   dueDate: Date;
@@ -75,6 +88,9 @@ export class InvoiceEntity {
 
   @Column({ type: "uuid", nullable: true })
   createdBy: string;
+
+  @Column({ type: "jsonb", nullable: true })
+  customer: Record<string, any>;
 
   @CreateDateColumn()
   createdAt: Date;

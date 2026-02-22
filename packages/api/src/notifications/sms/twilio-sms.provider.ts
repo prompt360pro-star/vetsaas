@@ -66,7 +66,7 @@ export class TwilioSmsProvider implements ISmsProvider {
         };
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
       this.logger.log(
         `SMS sent via Twilio to ${phone} (Tenant: ${tenantId}, SID: ${data.sid})`,
       );

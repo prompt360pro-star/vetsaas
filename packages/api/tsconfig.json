@@ -12,6 +12,8 @@
         "incremental": true,
         "declaration": false,
         "declarationMap": false,
+        "strictPropertyInitialization": false,
+        "skipLibCheck": true,
         "paths": {
             "@/*": [
                 "./src/*"

@@ -9,7 +9,6 @@ import {
   Patch,
   Body,
   Param,
-  Query,
   Request,
 } from "@nestjs/common";
 import { InvoicesService, CreateInvoiceInput } from "./invoices.service";
@@ -25,20 +24,6 @@ export class InvoicesController {
     return this.invoicesService.create(tenantId, userId, body);
   }
 
-  @Get()
-  async findAll(
-    @Request() req: any,
-    @Query("page") page?: string,
-    @Query("limit") limit?: string,
-    @Query("status") status?: string,
-  ) {
-    return this.invoicesService.findAll(req.user?.tenantId, {
-      page: page ? parseInt(page, 10) : 1,
-      limit: limit ? parseInt(limit, 10) : 20,
-      status,
-    });
-  }
-
   @Get(":id")
   async findById(@Request() req: any, @Param("id") id: string) {
     return this.invoicesService.findById(req.user?.tenantId, id);
@@ -46,24 +31,23 @@ export class InvoicesController {
 
   @Patch(":id/send")
   async send(@Request() req: any, @Param("id") id: string) {
-    return this.invoicesService.send(req.user?.tenantId, id);
+    return this.invoicesService.markAsSent(req.user?.tenantId, id);
   }
 
   @Patch(":id/pay")
   async markAsPaid(
     @Request() req: any,
     @Param("id") id: string,
-    @Body("paymentId") paymentId: string,
   ) {
-    return this.invoicesService.markAsPaid(req.user?.tenantId, id, paymentId);
+    return this.invoicesService.markAsPaid(req.user?.tenantId, id);
   }
 
   @Patch(":id/cancel")
   async cancel(
     @Request() req: any,
     @Param("id") id: string,
-    @Body("reason") reason?: string,
+    @Body("reason") reason: string,
   ) {
-    return this.invoicesService.cancel(req.user?.tenantId, id, reason);
+    return this.invoicesService.cancel(req.user?.tenantId, id, reason || "Cancelled by user");
   }
 }

@@ -5,11 +5,10 @@
 import { Injectable, NotFoundException, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, Between } from "typeorm";
-import { PaymentEntity } from "./payment.entity";
+import { PaymentEntity, PaymentMethod, PaymentStatus } from "./payment.entity";
 import type {
   PaginatedResponse,
   PaginationQuery,
-  // PaymentStatus,
 } from "@vetsaas/shared";
 
 export interface CreatePaymentInput {
@@ -52,9 +51,9 @@ export class PaymentsService {
       invoiceId: input.invoiceId,
       amount: input.amount,
       currency: "AOA",
-      method: input.method,
+      method: input.method as PaymentMethod,
       gateway: input.gateway || "MANUAL",
-      status: input.method === "CASH" ? "COMPLETED" : "PENDING",
+      status: (input.method === "CASH" ? PaymentStatus.COMPLETED : PaymentStatus.PENDING),
       referenceCode,
       description: input.description,
       tutorName: input.tutorName,
@@ -161,7 +160,7 @@ export class PaymentsService {
       return;
     }
 
-    payment.status = "COMPLETED";
+    payment.status = PaymentStatus.COMPLETED;
     payment.paidAt = new Date();
     payment.transactionId =
       (payload.transactionId as string) || `txn_${Date.now()}`;

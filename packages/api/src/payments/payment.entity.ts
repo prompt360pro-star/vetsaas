@@ -1,7 +1,3 @@
-// ============================================================================
-// Payment Entity — Multi-tenant, Angola-focused
-// ============================================================================
-
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -10,6 +6,26 @@ import {
   UpdateDateColumn,
   Index,
 } from "typeorm";
+
+export enum PaymentMethod {
+  MULTICAIXA = "MULTICAIXA_REFERENCE",
+  MULTICAIXA_EXPRESS = "MULTICAIXA_EXPRESS",
+  UNITEL_MONEY = "UNITEL_MONEY",
+  BANK_TRANSFER = "BANK_TRANSFER",
+  CASH = "CASH",
+  POS = "POS",
+  OTHER = "OTHER"
+}
+
+export enum PaymentStatus {
+  PENDING = "PENDING",
+  PROCESSING = "PROCESSING",
+  COMPLETED = "COMPLETED",
+  FAILED = "FAILED",
+  REFUNDED = "REFUNDED",
+  CANCELLED = "CANCELLED",
+  EXPIRED = "EXPIRED"
+}
 
 @Entity("payments")
 @Index(["tenantId"])
@@ -34,20 +50,28 @@ export class PaymentEntity {
   @Column({ length: 3, default: "AOA" })
   currency: string;
 
-  @Column({ length: 30 })
-  method: string; // MULTICAIXA_REFERENCE | MULTICAIXA_EXPRESS | UNITEL_MONEY | BANK_TRANSFER | CASH | POS | OTHER
+  @Column({
+    type: "enum",
+    enum: PaymentMethod,
+    default: PaymentMethod.CASH
+  })
+  method: PaymentMethod;
 
   @Column({ length: 30, default: "MANUAL" })
-  gateway: string; // MULTICAIXA_GPO | UNITEL_MONEY | MANUAL | MOCK
+  gateway: string;
 
-  @Column({ length: 20, default: "PENDING" })
-  status: string; // PENDING | PROCESSING | COMPLETED | FAILED | REFUNDED | CANCELLED | EXPIRED
+  @Column({
+    type: "enum",
+    enum: PaymentStatus,
+    default: PaymentStatus.PENDING
+  })
+  status: PaymentStatus;
 
   @Column({ length: 50, nullable: true })
-  referenceCode: string; // Multicaixa reference
+  referenceCode: string;
 
   @Column({ length: 100, nullable: true })
-  transactionId: string; // Gateway transaction ID
+  transactionId: string;
 
   @Column({ type: "timestamp", nullable: true })
   paidAt: Date;

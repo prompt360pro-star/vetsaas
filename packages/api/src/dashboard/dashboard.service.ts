@@ -4,7 +4,7 @@ import { Repository, Between } from "typeorm";
 import { AnimalEntity } from "../animals/animal.entity";
 import { TutorEntity } from "../tutors/tutor.entity";
 import { AppointmentEntity } from "../appointments/appointment.entity";
-import { PaymentEntity } from "../payments/payment.entity";
+import { PaymentEntity, PaymentStatus } from "../payments/payment.entity";
 import { AuditService } from "../common/audit.service";
 
 export interface DashboardStats {
@@ -70,7 +70,7 @@ export class DashboardService {
     const paymentsThisMonth = await this.paymentsRepo.find({
       where: {
         tenantId,
-        status: "COMPLETED",
+        status: PaymentStatus.COMPLETED,
         paidAt: Between(startOfMonth, now),
       },
     });
@@ -105,7 +105,7 @@ export class DashboardService {
     const paymentsLastMonth = await this.paymentsRepo.find({
       where: {
         tenantId,
-        status: "COMPLETED",
+        status: PaymentStatus.COMPLETED,
         paidAt: Between(startOfLastMonth, endOfLastMonth),
       },
     });
