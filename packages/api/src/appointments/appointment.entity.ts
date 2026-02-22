@@ -38,34 +38,34 @@ export class AppointmentEntity {
     status: string;
 
     @Column({ type: 'text', nullable: true })
-    reason: string;
+    reason: string | null;
 
     @Column({ type: 'text', nullable: true })
-    notes: string;
+    notes: string | null;
 
     @Column({ default: false })
     isTeleconsult: boolean;
 
     @Column({ type: 'text', nullable: true })
-    teleconsultUrl: string;
+    teleconsultUrl: string | null;
 
     @Column({ type: 'timestamp', nullable: true })
-    checkedInAt: Date;
+    checkedInAt: Date | null;
 
     @Column({ type: 'timestamp', nullable: true })
-    startedAt: Date;
+    startedAt: Date | null;
 
     @Column({ type: 'timestamp', nullable: true })
-    completedAt: Date;
+    completedAt: Date | null;
 
     @Column({ type: 'timestamp', nullable: true })
-    cancelledAt: Date;
+    cancelledAt: Date | null;
 
     @Column({ type: 'text', nullable: true })
-    cancellationReason: string;
+    cancellationReason: string | null;
 
     @Column({ type: 'uuid', nullable: true })
-    createdBy: string;
+    createdBy: string | null;
 
     @CreateDateColumn()
     createdAt: Date;
