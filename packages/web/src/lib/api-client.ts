@@ -4,15 +4,41 @@
 
 const API_BASE = '/api';
 
+interface ApiClientConfig {
+    baseUrl?: string;
+    accessToken?: string | null;
+}
+
 interface RequestOptions extends RequestInit {
     params?: Record<string, string>;
 }
 
-class ApiClient {
+export class ApiClient {
     private accessToken: string | null = null;
+    private baseUrl: string;
 
+    constructor(config?: ApiClientConfig) {
+        this.baseUrl = config?.baseUrl ?? API_BASE;
+        this.accessToken = config?.accessToken ?? null;
+    }
+
+    /**
+     * Set the access token for this client instance.
+     * @deprecated Use `withToken` for server-side requests to avoid shared state.
+     */
     setToken(token: string | null) {
         this.accessToken = token;
+    }
+
+    /**
+     * Create a new ApiClient instance with the specified token.
+     * Useful for SSR to avoid shared state.
+     */
+    withToken(token: string): ApiClient {
+        return new ApiClient({
+            baseUrl: this.baseUrl,
+            accessToken: token,
+        });
     }
 
     private async request<T>(
@@ -21,7 +47,7 @@ class ApiClient {
     ): Promise<T> {
         const { params, ...fetchOptions } = options;
 
-        let url = `${API_BASE}${endpoint}`;
+        let url = `${this.baseUrl}${endpoint}`;
         if (params) {
             const searchParams = new URLSearchParams(params);
             url += `?${searchParams.toString()}`;
@@ -94,4 +120,9 @@ export class ApiError extends Error {
     }
 }
 
+/**
+ * Global API client instance.
+ * Warning: This is a singleton. Avoid using `setToken` in SSR contexts.
+ * For server-side requests, create a new instance using `new ApiClient()` or `api.withToken()`.
+ */
 export const api = new ApiClient();
