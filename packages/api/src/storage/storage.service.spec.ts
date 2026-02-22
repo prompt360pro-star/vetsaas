@@ -1,40 +1,17 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
 import { StorageService } from "./storage.service";
-import {
-  S3Client,
-  PutObjectCommand,
-  GetObjectCommand,
-} from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-
-// Mock AWS SDK
-jest.mock("@aws-sdk/client-s3", () => {
-  return {
-    S3Client: jest.fn().mockImplementation(() => ({
-      send: jest.fn(),
-    })),
-    PutObjectCommand: jest.fn(),
-    GetObjectCommand: jest.fn(),
-  };
-});
-
-jest.mock("@aws-sdk/s3-request-presigner", () => ({
-  getSignedUrl: jest.fn(),
-}));
+import { BadRequestException } from "@nestjs/common";
 
 describe("StorageService", () => {
   let service: StorageService;
-  let s3ClientMock: any;
 
   const mockConfigService = {
-    get: jest.fn((key: string) => {
+    get: jest.fn((key: string, defaultValue?: any) => {
       if (key === "S3_BUCKET") return "test-bucket";
       if (key === "S3_REGION") return "us-east-1";
       if (key === "S3_ENDPOINT") return "http://localhost:9000";
-      if (key === "S3_ACCESS_KEY") return "minio";
-      if (key === "S3_SECRET_KEY") return "minio123";
-      return null;
+      return defaultValue || null;
     }),
   };
 
@@ -47,63 +24,69 @@ describe("StorageService", () => {
     }).compile();
 
     service = module.get<StorageService>(StorageService);
-    // Access private s3Client for mocking
-    s3ClientMock = (service as any).s3Client;
   });
 
   it("should be defined", () => {
     expect(service).toBeDefined();
   });
 
-  describe("uploadFile", () => {
-    it("should upload file to S3", async () => {
-      const buffer = Buffer.from("test");
-      const result = await service.uploadFile(
+  describe("upload", () => {
+    it("should upload valid file (stub)", async () => {
+      const buffer = Buffer.from("test pdf content");
+      const result = await service.upload(
         "tenant-1",
-        "test.txt",
+        "documents",
         buffer,
-        "text/plain",
+        "test.pdf",
+        "application/pdf",
       );
 
-      expect(PutObjectCommand).toHaveBeenCalledWith({
-        Bucket: "test-bucket",
-        Key: expect.stringMatching(/^tenant-1\/.*\/test.txt$/),
-        Body: buffer,
-        ContentType: "text/plain",
-      });
-      expect(result).toEqual(expect.stringMatching(/^tenant-1\/.*\/test.txt$/));
+      expect(result.key).toContain("tenant-1/documents/");
+      expect(result.key).toContain(".pdf");
+      expect(result.url).toContain("http://localhost:9000/test-bucket/");
+      expect(result.bucket).toBe("test-bucket");
+      expect(result.mimeType).toBe("application/pdf");
+    });
+
+    it("should throw error for invalid mime type", async () => {
+      const buffer = Buffer.from("test");
+      await expect(
+        service.upload(
+          "tenant-1",
+          "documents",
+          buffer,
+          "test.txt",
+          "text/plain",
+        ),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
-  describe("getPresignedUrl", () => {
-    it("should generate presigned URL", async () => {
-      (getSignedUrl as jest.Mock).mockResolvedValue("http://signed-url");
+  describe("getPresignedUploadUrl", () => {
+    it("should generate presigned upload URL (stub)", async () => {
+      const result = await service.getPresignedUploadUrl(
+        "tenant-1",
+        "photos",
+        "image.jpg",
+        "image/jpeg",
+      );
 
-      const url = await service.getPresignedUrl("tenant-1/file.txt");
-
-      expect(GetObjectCommand).toHaveBeenCalledWith({
-        Bucket: "test-bucket",
-        Key: "tenant-1/file.txt",
-      });
-      expect(url).toBe("http://signed-url");
+      expect(result.uploadUrl).toContain(
+        "http://localhost:9000/test-bucket/tenant-1/photos/",
+      );
+      expect(result.key).toContain("tenant-1/photos/");
+      expect(result.expiresIn).toBe(3600);
     });
   });
 
   describe("getPresignedDownloadUrl", () => {
-    it("should generate download URL with attachment disposition", async () => {
-      (getSignedUrl as jest.Mock).mockResolvedValue("http://download-url");
+    it("should generate download URL (stub)", async () => {
+      const url = await service.getPresignedDownloadUrl("tenant-1/file.pdf");
 
-      const url = await service.getPresignedDownloadUrl(
-        "tenant-1/file.txt",
-        "mydoc.txt",
+      expect(url).toContain(
+        "http://localhost:9000/test-bucket/tenant-1/file.pdf",
       );
-
-      expect(GetObjectCommand).toHaveBeenCalledWith({
-        Bucket: "test-bucket",
-        Key: "tenant-1/file.txt",
-        ResponseContentDisposition: 'attachment; filename="mydoc.txt"',
-      });
-      expect(url).toBe("http://download-url");
+      expect(url).toContain("download=true");
     });
   });
 });
