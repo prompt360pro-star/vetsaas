@@ -2,13 +2,35 @@
 // Notifications Service — Unit Tests
 // ============================================================================
 
+import { Test, TestingModule } from '@nestjs/testing';
+import { ConfigService } from '@nestjs/config';
 import { NotificationsService, NotificationChannel, NotificationTemplate } from './notifications.service';
 
 describe('NotificationsService', () => {
     let service: NotificationsService;
+    let configService: ConfigService;
 
-    beforeEach(() => {
-        service = new NotificationsService();
+    // Mock ConfigService
+    const mockConfigService = {
+        get: jest.fn((key: string, defaultValue: any) => {
+            if (key === 'SMS_PROVIDER') return 'stub';
+            return defaultValue;
+        }),
+    };
+
+    beforeEach(async () => {
+        const module: TestingModule = await Test.createTestingModule({
+            providers: [
+                NotificationsService,
+                {
+                    provide: ConfigService,
+                    useValue: mockConfigService,
+                },
+            ],
+        }).compile();
+
+        service = module.get<NotificationsService>(NotificationsService);
+        configService = module.get<ConfigService>(ConfigService);
     });
 
     it('should be defined', () => {
@@ -16,7 +38,7 @@ describe('NotificationsService', () => {
     });
 
     describe('send', () => {
-        it('should send SMS notification successfully', async () => {
+        it('should send SMS notification successfully using stub', async () => {
             const result = await service.send({
                 channel: NotificationChannel.SMS,
                 template: NotificationTemplate.APPOINTMENT_REMINDER,

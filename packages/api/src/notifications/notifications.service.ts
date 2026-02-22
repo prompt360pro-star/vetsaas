@@ -3,6 +3,10 @@
 // ============================================================================
 
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { ISmsProvider, NotificationResult } from './sms/sms-provider.interface';
+import { TwilioSmsProvider } from './sms/twilio-sms.provider';
+import { GenericSmsProvider } from './sms/generic-sms.provider';
 
 export enum NotificationChannel {
     SMS = 'SMS',
@@ -32,13 +36,6 @@ export interface NotificationPayload {
     data: Record<string, string>;
     tenantId: string;
     scheduledFor?: Date;
-}
-
-interface NotificationResult {
-    success: boolean;
-    messageId?: string;
-    provider?: string;
-    error?: string;
 }
 
 // Portuguese notification templates for Angola
@@ -80,6 +77,34 @@ const TEMPLATES: Record<NotificationTemplate, { subject: string; body: string }>
 @Injectable()
 export class NotificationsService {
     private readonly logger = new Logger(NotificationsService.name);
+    private readonly smsProvider: ISmsProvider;
+
+    constructor(private readonly configService: ConfigService) {
+        const providerType = this.configService.get<string>('SMS_PROVIDER', 'stub');
+        this.logger.log(`Initializing SMS provider: ${providerType}`);
+
+        switch (providerType) {
+            case 'twilio':
+                this.smsProvider = new TwilioSmsProvider(this.configService);
+                break;
+            case 'generic':
+                this.smsProvider = new GenericSmsProvider(this.configService);
+                break;
+            default:
+                this.smsProvider = {
+                    send: async (phone: string, body: string, tenantId: string) => {
+                        this.logger.log(`[SMS STUB] To: ${phone} | Tenant: ${tenantId}`);
+                        this.logger.debug(`[SMS STUB] Body: ${body}`);
+                        await this.delay(100);
+                        return {
+                            success: true,
+                            messageId: `sms_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                            provider: 'stub',
+                        };
+                    },
+                };
+        }
+    }
 
     /**
      * Send a notification via the appropriate channel.
@@ -164,18 +189,7 @@ export class NotificationsService {
     // ── Provider Stubs ─────────────────────────────────
 
     private async sendSms(phone: string, body: string, tenantId: string): Promise<NotificationResult> {
-        // TODO: Integrate with Angola SMS provider (e.g., Unitel SMS API, Africell)
-        this.logger.log(`[SMS STUB] To: ${phone} | Tenant: ${tenantId}`);
-        this.logger.debug(`[SMS STUB] Body: ${body}`);
-
-        // Simulate network latency
-        await this.delay(100);
-
-        return {
-            success: true,
-            messageId: `sms_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-            provider: 'stub',
-        };
+        return this.smsProvider.send(phone, body, tenantId);
     }
 
     private async sendEmail(email: string, subject: string, body: string, tenantId: string): Promise<NotificationResult> {
