@@ -36,7 +36,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       - name: Type-check shared
         run: pnpm --filter @vetsaas/shared type-check
@@ -112,7 +112,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       - name: Run API tests
         run: pnpm --filter @vetsaas/api test
@@ -147,7 +147,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       - name: Build ${{ matrix.package }}
         run: pnpm --filter @vetsaas/${{ matrix.package }} build

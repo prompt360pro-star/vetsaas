@@ -3,6 +3,7 @@
 // ============================================================================
 
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 export enum NotificationChannel {
     SMS = 'SMS',
@@ -80,6 +81,8 @@ const TEMPLATES: Record<NotificationTemplate, { subject: string; body: string }>
 @Injectable()
 export class NotificationsService {
     private readonly logger = new Logger(NotificationsService.name);
+
+    constructor(private readonly configService: ConfigService) {}
 
     /**
      * Send a notification via the appropriate channel.
@@ -192,16 +195,66 @@ export class NotificationsService {
     }
 
     private async sendWhatsApp(phone: string, body: string, tenantId: string): Promise<NotificationResult> {
-        // TODO: Integrate with WhatsApp Business API
-        this.logger.log(`[WHATSAPP STUB] To: ${phone} | Tenant: ${tenantId}`);
+        const token = this.configService.get<string>('WHATSAPP_API_TOKEN');
+        const phoneNumberId = this.configService.get<string>('WHATSAPP_PHONE_NUMBER_ID');
 
-        await this.delay(100);
+        if (!token || !phoneNumberId) {
+            this.logger.error('WhatsApp API credentials missing');
+            return {
+                success: false,
+                error: 'WhatsApp configuration missing',
+            };
+        }
 
-        return {
-            success: true,
-            messageId: `wa_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-            provider: 'stub',
-        };
+        try {
+            // Note: Sending free-form text messages via WhatsApp Business API is only allowed
+            // if the user has messaged the business within the last 24 hours.
+            // For initiating conversations, use Message Templates.
+            const url = `https://graph.facebook.com/v19.0/${phoneNumberId}/messages`;
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    messaging_product: 'whatsapp',
+                    recipient_type: 'individual',
+                    to: phone.replace(/\s+/g, ''), // Basic cleanup
+                    type: 'text',
+                    text: {
+                        preview_url: false,
+                        body: body,
+                    },
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                this.logger.error(`WhatsApp API error: ${response.statusText}`, errorData);
+                return {
+                    success: false,
+                    provider: 'whatsapp',
+                    error: JSON.stringify(errorData),
+                };
+            }
+
+            const data = await response.json();
+            return {
+                success: true,
+                messageId: data.messages?.[0]?.id,
+                provider: 'whatsapp',
+            };
+
+        } catch (error) {
+            this.logger.error('Failed to send WhatsApp message', error);
+            return {
+                success: false,
+                provider: 'whatsapp',
+                error: error instanceof Error ? error.message : 'Unknown error',
+            };
+        }
     }
 
     private async sendPush(userId: string, title: string, body: string, tenantId: string): Promise<NotificationResult> {
