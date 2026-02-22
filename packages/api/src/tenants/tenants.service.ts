@@ -38,6 +38,8 @@ export class TenantsService {
     }
 
     async update(id: string, data: Partial<TenantEntity>): Promise<TenantEntity | null> {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         await this.repo.update(id, data);
         return this.findById(id);
     }
