@@ -73,9 +73,8 @@ export default function TutorsPage() {
     const [search, setSearch] = useState('');
     const [isCreateOpen, setIsCreateOpen] = useState(false);
 
-    const handleCreateTutor = (data: TutorFormData) => {
+    const handleCreateTutor = (_data: TutorFormData) => {
         // TODO: POST to /tutors API
-        console.log('[CREATE TUTOR]', data);
     };
 
     const filtered = mockTutors.filter(

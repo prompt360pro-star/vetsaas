@@ -83,9 +83,8 @@ export default function RecordsPage() {
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
 
-    const handleCreateRecord = (data: RecordFormData) => {
+    const handleCreateRecord = (_data: RecordFormData) => {
         // TODO: POST to /records API
-        console.log('[CREATE RECORD]', data);
     };
 
     const filtered = mockRecords.filter(
