@@ -6,8 +6,6 @@ import {
   Controller,
   Post,
   UseGuards,
-  UseInterceptors,
-  UploadedFile,
   Param,
   Req,
   BadRequestException,

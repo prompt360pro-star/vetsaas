@@ -153,7 +153,7 @@ describe("InventoryService", () => {
       itemRepo.findOne.mockResolvedValue({ ...mockItem });
       itemRepo.save.mockResolvedValue({ ...mockItem, price: 4000 });
 
-      const result = await service.update(tenantId, "item-uuid-1", {
+      await service.update(tenantId, "item-uuid-1", {
         price: 4000,
       });
       expect(itemRepo.save).toHaveBeenCalledWith(
@@ -168,16 +168,11 @@ describe("InventoryService", () => {
       itemRepo.findOne.mockResolvedValue(item);
       itemRepo.save.mockResolvedValue({ ...item, stock: 30 });
 
-      const result = await service.adjustStock(
-        tenantId,
-        userId,
-        "item-uuid-1",
-        {
-          quantity: 10,
-          type: "IN",
-          reason: "Reposição mensal",
-        },
-      );
+      await service.adjustStock(tenantId, userId, "item-uuid-1", {
+        quantity: 10,
+        type: "IN",
+        reason: "Reposição mensal",
+      });
 
       expect(item.stock).toBe(30);
       expect(movementRepo.create).toHaveBeenCalledWith(
