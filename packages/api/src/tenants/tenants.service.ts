@@ -25,8 +25,8 @@ export class TenantsService {
         allowTeleconsult: false,
         ...(data.settings || {}),
       },
-    });
-    return this.repo.save(tenant);
+    } as any);
+    return this.repo.save(tenant as any);
   }
 
   async findById(id: string): Promise<TenantEntity | null> {
@@ -41,7 +41,7 @@ export class TenantsService {
     id: string,
     data: Partial<TenantEntity>,
   ): Promise<TenantEntity | null> {
-    await this.repo.update(id, data);
+    await this.repo.update(id, data as any);
     return this.findById(id);
   }
 

@@ -123,7 +123,7 @@ export class NotificationsService implements OnModuleInit {
         });
       }
       this.logger.log("Firebase Admin initialized");
-    } catch (error) {
+        } catch (error: any) {
       this.logger.warn(`Failed to initialize Firebase Admin: ${error.message}`);
     }
   }
@@ -374,7 +374,7 @@ export class NotificationsService implements OnModuleInit {
         messageId: `push_batch_${Date.now()}`,
         provider: "firebase",
       };
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Error sending push notification: ${error.message}`,
         error.stack,

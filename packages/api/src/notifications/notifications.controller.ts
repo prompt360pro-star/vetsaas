@@ -9,7 +9,7 @@ export class NotificationsController {
 
   @Post("device")
   @UseGuards(AuthGuard("jwt"))
-  async registerDevice(@Request() req, @Body() dto: RegisterDeviceDto) {
+  async registerDevice(@Request() req: any, @Body() dto: RegisterDeviceDto) {
     await this.notificationsService.registerDevice(
       req.user.sub,
       dto.token,
