@@ -28,6 +28,7 @@
         "@nestjs/platform-express": "^10.4.0",
         "@nestjs/swagger": "^11.2.6",
         "@nestjs/typeorm": "^10.0.0",
+        "@sendgrid/mail": "^8.1.6",
         "@vetsaas/shared": "workspace:*",
         "bcryptjs": "^2.4.3",
         "class-transformer": "^0.5.1",

@@ -2,13 +2,47 @@
 // Notifications Service — Unit Tests
 // ============================================================================
 
+import { Test, TestingModule } from '@nestjs/testing';
+import { ConfigService } from '@nestjs/config';
 import { NotificationsService, NotificationChannel, NotificationTemplate } from './notifications.service';
+import * as sgMail from '@sendgrid/mail';
+
+jest.mock('@sendgrid/mail', () => ({
+    setApiKey: jest.fn(),
+    send: jest.fn().mockResolvedValue([{ headers: { 'x-message-id': 'mock_msg_id' } }]),
+}));
 
 describe('NotificationsService', () => {
     let service: NotificationsService;
+    let configService: ConfigService;
 
-    beforeEach(() => {
-        service = new NotificationsService();
+    // Helper to setup module with specific config
+    const createService = async (configValues: Record<string, any> = {}) => {
+        const mockConfigService = {
+            get: jest.fn((key: string, defaultValue?: any) => configValues[key] ?? defaultValue),
+        };
+
+        const module: TestingModule = await Test.createTestingModule({
+            providers: [
+                NotificationsService,
+                {
+                    provide: ConfigService,
+                    useValue: mockConfigService,
+                },
+            ],
+        }).compile();
+
+        service = module.get<NotificationsService>(NotificationsService);
+        configService = module.get<ConfigService>(ConfigService);
+    };
+
+    beforeEach(async () => {
+        // Default to no API key (stub behavior)
+        await createService({});
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
     });
 
     it('should be defined', () => {
@@ -37,7 +71,7 @@ describe('NotificationsService', () => {
             expect(result.provider).toBe('stub');
         });
 
-        it('should send email notification successfully', async () => {
+        it('should send email notification successfully (fallback stub)', async () => {
             const result = await service.send({
                 channel: NotificationChannel.EMAIL,
                 template: NotificationTemplate.WELCOME,
@@ -50,6 +84,51 @@ describe('NotificationsService', () => {
 
             expect(result.success).toBe(true);
             expect(result.messageId).toMatch(/^email_/);
+            expect(result.provider).toBe('stub');
+        });
+
+        it('should send email via SendGrid when configured', async () => {
+            await createService({ SENDGRID_API_KEY: 'SG.test_key', SENDGRID_SENDER_EMAIL: 'test@vetangola.ao' });
+
+            const result = await service.send({
+                channel: NotificationChannel.EMAIL,
+                template: NotificationTemplate.WELCOME,
+                recipientEmail: 'joao@email.ao',
+                recipientName: 'João Silva',
+                locale: 'pt-AO',
+                tenantId: 'tenant-1',
+                data: { clinicName: 'VetAngola', loginUrl: 'https://app.vetangola.ao' },
+            });
+
+            expect(sgMail.setApiKey).toHaveBeenCalledWith('SG.test_key');
+            expect(sgMail.send).toHaveBeenCalledWith(expect.objectContaining({
+                to: 'joao@email.ao',
+                from: 'test@vetangola.ao',
+                subject: 'Bem-vindo ao VetAngola!',
+                customArgs: { tenant_id: 'tenant-1' }
+            }));
+            expect(result.success).toBe(true);
+            expect(result.provider).toBe('sendgrid');
+            expect(result.messageId).toBe('mock_msg_id');
+        });
+
+        it('should return error when SendGrid fails', async () => {
+            await createService({ SENDGRID_API_KEY: 'SG.test_key' });
+            (sgMail.send as jest.Mock).mockRejectedValueOnce(new Error('SendGrid Error'));
+
+            const result = await service.send({
+                channel: NotificationChannel.EMAIL,
+                template: NotificationTemplate.WELCOME,
+                recipientEmail: 'joao@email.ao',
+                recipientName: 'João Silva',
+                locale: 'pt-AO',
+                tenantId: 'tenant-1',
+                data: { clinicName: 'VetAngola', loginUrl: 'https://app.vetangola.ao' },
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.provider).toBe('sendgrid');
+            expect(result.error).toBe('SendGrid Error');
         });
 
         it('should send WhatsApp notification successfully', async () => {
