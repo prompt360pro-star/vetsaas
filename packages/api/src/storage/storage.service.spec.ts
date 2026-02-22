@@ -7,6 +7,26 @@ import { ConfigService } from '@nestjs/config';
 import { BadRequestException } from '@nestjs/common';
 import { StorageService } from './storage.service';
 
+// Custom matcher
+expect.extend({
+    toEndWith(received: string, suffix: string) {
+        const pass = received.endsWith(suffix);
+        return {
+            pass,
+            message: () => `expected "${received}" to end with "${suffix}"`,
+        };
+    },
+});
+
+declare global {
+    // eslint-disable-next-line @typescript-eslint/no-namespace
+    namespace jest {
+        interface Matchers<R> {
+            toEndWith(suffix: string): R;
+        }
+    }
+}
+
 describe('StorageService', () => {
     let service: StorageService;
 
@@ -147,22 +167,3 @@ describe('StorageService', () => {
         });
     });
 });
-
-// Custom matcher
-expect.extend({
-    toEndWith(received: string, suffix: string) {
-        const pass = received.endsWith(suffix);
-        return {
-            pass,
-            message: () => `expected "${received}" to end with "${suffix}"`,
-        };
-    },
-});
-
-declare global {
-    namespace jest {
-        interface Matchers<R> {
-            toEndWith(suffix: string): R;
-        }
-    }
-}

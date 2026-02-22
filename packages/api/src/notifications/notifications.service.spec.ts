@@ -15,7 +15,6 @@ jest.mock('@sendgrid/mail', () => ({
 
 describe('NotificationsService', () => {
     let service: NotificationsService;
-    let configService: ConfigService;
 
     // Helper to setup service with specific config
     const setupService = async (configValues: Record<string, string | undefined>) => {
