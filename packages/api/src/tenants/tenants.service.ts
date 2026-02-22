@@ -11,8 +11,9 @@ export class TenantsService {
     ) {}
 
     async create(data: Partial<TenantEntity>): Promise<TenantEntity> {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const tenant = this.repo.create({
-            ...data,
+            ...(data as any),
             settings: {
                 currency: 'AOA',
                 timezone: 'Africa/Luanda',
@@ -23,10 +24,12 @@ export class TenantsService {
                 workingDays: [1, 2, 3, 4, 5],
                 allowOnlineBooking: false,
                 allowTeleconsult: false,
-                ...(data.settings || {}),
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                ...((data.settings as any) || {}),
             },
         });
-        return this.repo.save(tenant);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return this.repo.save(tenant as any);
     }
 
     async findById(id: string): Promise<TenantEntity | null> {
@@ -41,7 +44,8 @@ export class TenantsService {
         id: string,
         data: Partial<TenantEntity>,
     ): Promise<TenantEntity | null> {
-        await this.repo.update(id, data);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await this.repo.update(id, data as any);
         return this.findById(id);
     }
 

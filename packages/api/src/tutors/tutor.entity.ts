@@ -12,59 +12,59 @@ import {
 @Index(['tenantId'])
 export class TutorEntity {
     @PrimaryGeneratedColumn('uuid')
-    id: string;
+    id!: string;
 
     @Column('uuid')
-    tenantId: string;
+    tenantId!: string;
 
     @Column({ length: 100 })
-    firstName: string;
+    firstName!: string;
 
     @Column({ length: 100 })
-    lastName: string;
+    lastName!: string;
 
     @Column({ length: 255, nullable: true })
-    email: string;
+    email!: string;
 
     @Column({ length: 50 })
-    phone: string;
+    phone!: string;
 
     @Column({ length: 50, nullable: true })
-    phoneSecondary: string;
+    phoneSecondary!: string;
 
     @Column({ length: 20, nullable: true })
-    documentType: string;
+    documentType!: string;
 
     @Column({ length: 50, nullable: true })
-    documentNumber: string;
+    documentNumber!: string;
 
     @Column({ type: 'text', nullable: true })
-    address: string;
+    address!: string;
 
     @Column({ length: 100, nullable: true })
-    city: string;
+    city!: string;
 
     @Column({ length: 100, nullable: true })
-    province: string;
+    province!: string;
 
     @Column({ type: 'text', nullable: true })
-    notes: string;
+    notes!: string;
 
     @Column({ type: 'jsonb', default: () => "'[]'::jsonb" })
-    animalIds: string[];
+    animalIds!: string[];
 
     @Column({ default: true })
-    isActive: boolean;
+    isActive!: boolean;
 
     @Column({ type: 'uuid', nullable: true })
-    createdBy: string;
+    createdBy!: string;
 
     @CreateDateColumn()
-    createdAt: Date;
+    createdAt!: Date;
 
     @UpdateDateColumn()
-    updatedAt: Date;
+    updatedAt!: Date;
 
     @DeleteDateColumn()
-    deletedAt: Date;
+    deletedAt!: Date;
 }
