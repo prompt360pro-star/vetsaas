@@ -25,13 +25,9 @@ export class InvoicesService {
     constructor(
         @InjectRepository(InvoiceEntity)
         private readonly repo: Repository<InvoiceEntity>,
-    ) { }
+    ) {}
 
-    async create(
-        tenantId: string,
-        userId: string,
-        input: CreateInvoiceInput,
-    ): Promise<InvoiceEntity> {
+    async create(tenantId: string, userId: string, input: CreateInvoiceInput): Promise<InvoiceEntity> {
         if (!input.items || input.items.length === 0) {
             throw new BadRequestException('A fatura deve conter pelo menos um item');
         }
@@ -43,7 +39,7 @@ export class InvoicesService {
         const total = subtotal + tax;
 
         // Compute items with totals
-        const items: InvoiceLineItem[] = input.items.map(item => ({
+        const items: InvoiceLineItem[] = input.items.map((item) => ({
             ...item,
             total: item.quantity * item.unitPrice,
         }));

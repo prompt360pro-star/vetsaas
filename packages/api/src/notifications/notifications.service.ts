@@ -178,7 +178,12 @@ export class NotificationsService {
         };
     }
 
-    private async sendEmail(email: string, subject: string, body: string, tenantId: string): Promise<NotificationResult> {
+    private async sendEmail(
+        email: string,
+        subject: string,
+        body: string,
+        tenantId: string,
+    ): Promise<NotificationResult> {
         // TODO: Integrate with email provider (SendGrid, AWS SES, etc.)
         this.logger.log(`[EMAIL STUB] To: ${email} | Subject: ${subject} | Tenant: ${tenantId}`);
 

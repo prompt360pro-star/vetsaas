@@ -39,7 +39,7 @@ export class ClinicalAlertsService {
         private readonly recordsRepo: Repository<ClinicalRecordEntity>,
         @InjectRepository(InventoryItemEntity)
         private readonly inventoryRepo: Repository<InventoryItemEntity>,
-    ) { }
+    ) {}
 
     /**
      * Evaluate all clinical rules and return active alerts for a tenant.
@@ -118,10 +118,7 @@ export class ClinicalAlertsService {
      * Check vitals against normal ranges for a species.
      * This is a utility — called per-record, not batch.
      */
-    checkVitals(
-        species: string,
-        vitals: Record<string, number>,
-    ): ClinicalAlert[] {
+    checkVitals(species: string, vitals: Record<string, number>): ClinicalAlert[] {
         const ranges = VITAL_RANGES[species];
         if (!ranges) return [];
 

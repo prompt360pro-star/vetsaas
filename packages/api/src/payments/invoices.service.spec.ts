@@ -105,9 +105,7 @@ describe('InvoicesService', () => {
             await service.create(tenantId, userId, {
                 tutorId: 'tutor-uuid-1',
                 tutorName: 'Ana Santos',
-                items: [
-                    { description: 'Cirurgia', quantity: 1, unitPrice: 100000, total: 0 },
-                ],
+                items: [{ description: 'Cirurgia', quantity: 1, unitPrice: 100000, total: 0 }],
                 taxRate: 0, // Tax exempt
             });
 
@@ -155,9 +153,7 @@ describe('InvoicesService', () => {
         it('should throw NotFoundException', async () => {
             repo.findOne.mockResolvedValue(null);
 
-            await expect(
-                service.findById(tenantId, 'nonexistent'),
-            ).rejects.toThrow(NotFoundException);
+            await expect(service.findById(tenantId, 'nonexistent')).rejects.toThrow(NotFoundException);
         });
     });
 
@@ -180,9 +176,7 @@ describe('InvoicesService', () => {
         it('should reject paying a cancelled invoice', async () => {
             repo.findOne.mockResolvedValue({ ...mockInvoice, status: 'CANCELLED' });
 
-            await expect(
-                service.markAsPaid(tenantId, 'inv-uuid-1', 'pay-uuid-1'),
-            ).rejects.toThrow(BadRequestException);
+            await expect(service.markAsPaid(tenantId, 'inv-uuid-1', 'pay-uuid-1')).rejects.toThrow(BadRequestException);
         });
     });
 
@@ -204,9 +198,7 @@ describe('InvoicesService', () => {
         it('should reject cancelling a paid invoice', async () => {
             repo.findOne.mockResolvedValue({ ...mockInvoice, status: 'PAID' });
 
-            await expect(
-                service.cancel(tenantId, 'inv-uuid-1'),
-            ).rejects.toThrow(BadRequestException);
+            await expect(service.cancel(tenantId, 'inv-uuid-1')).rejects.toThrow(BadRequestException);
         });
     });
 
@@ -217,17 +209,13 @@ describe('InvoicesService', () => {
 
             const result = await service.send(tenantId, 'inv-uuid-1');
 
-            expect(repo.save).toHaveBeenCalledWith(
-                expect.objectContaining({ status: 'SENT' }),
-            );
+            expect(repo.save).toHaveBeenCalledWith(expect.objectContaining({ status: 'SENT' }));
         });
 
         it('should reject sending a non-draft invoice', async () => {
             repo.findOne.mockResolvedValue({ ...mockInvoice, status: 'SENT' });
 
-            await expect(
-                service.send(tenantId, 'inv-uuid-1'),
-            ).rejects.toThrow(BadRequestException);
+            await expect(service.send(tenantId, 'inv-uuid-1')).rejects.toThrow(BadRequestException);
         });
     });
 });

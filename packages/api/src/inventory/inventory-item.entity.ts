@@ -2,14 +2,7 @@
 // Inventory Item Entity — Multi-tenant, veterinary pharmacy
 // ============================================================================
 
-import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    CreateDateColumn,
-    UpdateDateColumn,
-    Index,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm';
 
 @Entity('inventory_items')
 @Index(['tenantId'])

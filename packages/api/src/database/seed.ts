@@ -79,11 +79,41 @@ async function seed() {
 
     // ── Tutors ───────────────────────────────────────
     const tutorData = [
-        { firstName: 'Maria', lastName: 'dos Santos', email: 'maria.santos@email.ao', phone: '+244 923 111 222', address: 'Bairro Miramar, Luanda' },
-        { firstName: 'João', lastName: 'Fernandes', email: 'joao.fernandes@email.ao', phone: '+244 912 333 444', address: 'Talatona, Luanda' },
-        { firstName: 'Ana', lastName: 'Miguel', email: 'ana.miguel@email.ao', phone: '+244 945 555 666', address: 'Maianga, Luanda' },
-        { firstName: 'Pedro', lastName: 'Sebastião', email: 'pedro.sebastiao@email.ao', phone: '+244 926 777 888', address: 'Viana, Luanda' },
-        { firstName: 'Luísa', lastName: 'Tavares', email: 'luisa.tavares@email.ao', phone: '+244 931 999 000', address: 'Cacuaco, Luanda' },
+        {
+            firstName: 'Maria',
+            lastName: 'dos Santos',
+            email: 'maria.santos@email.ao',
+            phone: '+244 923 111 222',
+            address: 'Bairro Miramar, Luanda',
+        },
+        {
+            firstName: 'João',
+            lastName: 'Fernandes',
+            email: 'joao.fernandes@email.ao',
+            phone: '+244 912 333 444',
+            address: 'Talatona, Luanda',
+        },
+        {
+            firstName: 'Ana',
+            lastName: 'Miguel',
+            email: 'ana.miguel@email.ao',
+            phone: '+244 945 555 666',
+            address: 'Maianga, Luanda',
+        },
+        {
+            firstName: 'Pedro',
+            lastName: 'Sebastião',
+            email: 'pedro.sebastiao@email.ao',
+            phone: '+244 926 777 888',
+            address: 'Viana, Luanda',
+        },
+        {
+            firstName: 'Luísa',
+            lastName: 'Tavares',
+            email: 'luisa.tavares@email.ao',
+            phone: '+244 931 999 000',
+            address: 'Cacuaco, Luanda',
+        },
     ];
 
     const tutors: TutorEntity[] = [];
@@ -99,12 +129,28 @@ async function seed() {
 
     // ── Animals ──────────────────────────────────────
     const animalData = [
-        { name: 'Rex', species: 'DOG', breed: 'Pastor Alemão', sex: 'M', color: 'Preto e castanho', weight: 32, tutorIdx: 0 },
+        {
+            name: 'Rex',
+            species: 'DOG',
+            breed: 'Pastor Alemão',
+            sex: 'M',
+            color: 'Preto e castanho',
+            weight: 32,
+            tutorIdx: 0,
+        },
         { name: 'Mimi', species: 'CAT', breed: 'Siamês', sex: 'F', color: 'Creme', weight: 4, tutorIdx: 0 },
         { name: 'Bobby', species: 'DOG', breed: 'Labrador', sex: 'M', color: 'Dourado', weight: 28, tutorIdx: 1 },
         { name: 'Luna', species: 'CAT', breed: 'Persa', sex: 'F', color: 'Branco', weight: 5, tutorIdx: 2 },
         { name: 'Thor', species: 'DOG', breed: 'Rottweiler', sex: 'M', color: 'Preto', weight: 42, tutorIdx: 3 },
-        { name: 'Nina', species: 'DOG', breed: 'Golden Retriever', sex: 'F', color: 'Dourado', weight: 26, tutorIdx: 4 },
+        {
+            name: 'Nina',
+            species: 'DOG',
+            breed: 'Golden Retriever',
+            sex: 'F',
+            color: 'Dourado',
+            weight: 26,
+            tutorIdx: 4,
+        },
         { name: 'Simba', species: 'CAT', breed: 'Maine Coon', sex: 'M', color: 'Tabby', weight: 8, tutorIdx: 1 },
         { name: 'Pipoca', species: 'DOG', breed: 'Poodle', sex: 'F', color: 'Branco', weight: 6, tutorIdx: 3 },
     ];
@@ -123,7 +169,11 @@ async function seed() {
                 sex: a.sex,
                 color: a.color,
                 weight: a.weight,
-                dateOfBirth: new Date(2020 + Math.floor(Math.random() * 4), Math.floor(Math.random() * 12), 1 + Math.floor(Math.random() * 28)),
+                dateOfBirth: new Date(
+                    2020 + Math.floor(Math.random() * 4),
+                    Math.floor(Math.random() * 12),
+                    1 + Math.floor(Math.random() * 28),
+                ),
             });
             animals.push(await animalRepo.save(animal));
         } else {
@@ -136,7 +186,14 @@ async function seed() {
     const now = new Date();
     const apptCount = await apptRepo.count({ where: { tenantId: tenant.id } });
     if (apptCount === 0) {
-        const reasons = ['Consulta de rotina', 'Vacinação', 'Desparasitação', 'Cirurgia', 'Check-up geral', 'Emergência'];
+        const reasons = [
+            'Consulta de rotina',
+            'Vacinação',
+            'Desparasitação',
+            'Cirurgia',
+            'Check-up geral',
+            'Emergência',
+        ];
         for (let i = 0; i < 6; i++) {
             const date = new Date(now);
             date.setDate(date.getDate() + i);

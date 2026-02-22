@@ -32,9 +32,14 @@ describe('ExportService', () => {
         it('should generate CSV with header and rows', async () => {
             mockAnimalsRepo.find.mockResolvedValue([
                 {
-                    name: 'Rex', species: 'Cão', breed: 'Pastor Alemão',
-                    sex: 'MALE', weight: 30, weightUnit: 'kg',
-                    microchipId: '123456789012345', isNeutered: true,
+                    name: 'Rex',
+                    species: 'Cão',
+                    breed: 'Pastor Alemão',
+                    sex: 'MALE',
+                    weight: 30,
+                    weightUnit: 'kg',
+                    microchipId: '123456789012345',
+                    isNeutered: true,
                     createdAt: new Date('2025-01-15T10:00:00Z'),
                 },
             ]);
@@ -58,9 +63,14 @@ describe('ExportService', () => {
         it('should escape commas in fields', async () => {
             mockAnimalsRepo.find.mockResolvedValue([
                 {
-                    name: 'Rex, Jr.', species: 'Cão', breed: '',
-                    sex: 'MALE', weight: null, weightUnit: 'kg',
-                    microchipId: null, isNeutered: false,
+                    name: 'Rex, Jr.',
+                    species: 'Cão',
+                    breed: '',
+                    sex: 'MALE',
+                    weight: null,
+                    weightUnit: 'kg',
+                    microchipId: null,
+                    isNeutered: false,
                     createdAt: new Date('2025-01-15'),
                 },
             ]);
@@ -74,8 +84,11 @@ describe('ExportService', () => {
             mockPaymentsRepo.find.mockResolvedValue([
                 {
                     createdAt: new Date('2025-02-10'),
-                    amount: 15000, currency: 'AOA', method: 'CASH',
-                    status: 'COMPLETED', referenceCode: 'PAY-001',
+                    amount: 15000,
+                    currency: 'AOA',
+                    method: 'CASH',
+                    status: 'COMPLETED',
+                    referenceCode: 'PAY-001',
                     description: 'Consulta',
                 },
             ]);
@@ -90,8 +103,10 @@ describe('ExportService', () => {
             mockAuditRepo.find.mockResolvedValue([
                 {
                     createdAt: new Date('2025-02-10'),
-                    userId: 'user-1', action: 'CREATE',
-                    entityType: 'animal', entityId: 'a-1',
+                    userId: 'user-1',
+                    action: 'CREATE',
+                    entityType: 'animal',
+                    entityId: 'a-1',
                 },
             ]);
             const csv = await service.exportAudit(tenantId, 10);

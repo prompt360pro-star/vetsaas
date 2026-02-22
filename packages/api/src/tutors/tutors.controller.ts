@@ -1,15 +1,4 @@
-import {
-    Controller,
-    Get,
-    Post,
-    Put,
-    Delete,
-    Body,
-    Param,
-    Query,
-    UseGuards,
-    Request,
-} from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { TutorsService } from './tutors.service';
 import type { PaginationQuery } from '@vetsaas/shared';
@@ -17,7 +6,7 @@ import type { PaginationQuery } from '@vetsaas/shared';
 @Controller('tutors')
 @UseGuards(AuthGuard('jwt'))
 export class TutorsController {
-    constructor(private readonly tutorsService: TutorsService) { }
+    constructor(private readonly tutorsService: TutorsService) {}
 
     @Get()
     async findAll(@Request() req: any, @Query() query: PaginationQuery) {
@@ -33,20 +22,12 @@ export class TutorsController {
 
     @Post()
     async create(@Request() req: any, @Body() body: any) {
-        const data = await this.tutorsService.create(
-            req.user.tenantId,
-            req.user.sub,
-            body,
-        );
+        const data = await this.tutorsService.create(req.user.tenantId, req.user.sub, body);
         return { success: true, data };
     }
 
     @Put(':id')
-    async update(
-        @Request() req: any,
-        @Param('id') id: string,
-        @Body() body: any,
-    ) {
+    async update(@Request() req: any, @Param('id') id: string, @Body() body: any) {
         const data = await this.tutorsService.update(req.user.tenantId, id, body);
         return { success: true, data };
     }

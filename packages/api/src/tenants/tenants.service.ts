@@ -8,7 +8,7 @@ export class TenantsService {
     constructor(
         @InjectRepository(TenantEntity)
         private readonly repo: Repository<TenantEntity>,
-    ) { }
+    ) {}
 
     async create(data: Partial<TenantEntity>): Promise<TenantEntity> {
         const tenant = this.repo.create({

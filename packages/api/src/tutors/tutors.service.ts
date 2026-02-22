@@ -9,12 +9,9 @@ export class TutorsService {
     constructor(
         @InjectRepository(TutorEntity)
         private readonly repo: Repository<TutorEntity>,
-    ) { }
+    ) {}
 
-    async findAll(
-        tenantId: string,
-        query: PaginationQuery,
-    ): Promise<PaginatedResponse<TutorEntity>> {
+    async findAll(tenantId: string, query: PaginationQuery): Promise<PaginatedResponse<TutorEntity>> {
         const page = query.page || 1;
         const limit = query.limit || 20;
         const skip = (page - 1) * limit;
@@ -48,11 +45,7 @@ export class TutorsService {
         return tutor;
     }
 
-    async create(
-        tenantId: string,
-        userId: string,
-        data: Partial<TutorEntity>,
-    ): Promise<TutorEntity> {
+    async create(tenantId: string, userId: string, data: Partial<TutorEntity>): Promise<TutorEntity> {
         const tutor = this.repo.create({
             ...data,
             tenantId,
@@ -61,11 +54,7 @@ export class TutorsService {
         return this.repo.save(tutor);
     }
 
-    async update(
-        tenantId: string,
-        id: string,
-        data: Partial<TutorEntity>,
-    ): Promise<TutorEntity> {
+    async update(tenantId: string, id: string, data: Partial<TutorEntity>): Promise<TutorEntity> {
         const tutor = await this.findById(tenantId, id);
         Object.assign(tutor, data);
         return this.repo.save(tutor);

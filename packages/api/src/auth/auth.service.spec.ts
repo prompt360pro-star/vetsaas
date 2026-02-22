@@ -131,17 +131,13 @@ describe('AuthService', () => {
             userRepo.findOne.mockResolvedValue(mockUser);
             (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
-            await expect(
-                service.login('vet@clinica.ao', 'WrongPassword'),
-            ).rejects.toThrow(UnauthorizedException);
+            await expect(service.login('vet@clinica.ao', 'WrongPassword')).rejects.toThrow(UnauthorizedException);
         });
 
         it('should reject non-existent user', async () => {
             userRepo.findOne.mockResolvedValue(null);
 
-            await expect(
-                service.login('nobody@clinica.ao', 'Anything'),
-            ).rejects.toThrow(UnauthorizedException);
+            await expect(service.login('nobody@clinica.ao', 'Anything')).rejects.toThrow(UnauthorizedException);
         });
     });
 });

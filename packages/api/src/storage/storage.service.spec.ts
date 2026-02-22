@@ -33,13 +33,7 @@ describe('StorageService', () => {
     describe('upload', () => {
         it('should upload file with tenant-isolated path', async () => {
             const buffer = Buffer.from('test image data');
-            const result = await service.upload(
-                'tenant-1',
-                'photos',
-                buffer,
-                'pet-photo.jpg',
-                'image/jpeg',
-            );
+            const result = await service.upload('tenant-1', 'photos', buffer, 'pet-photo.jpg', 'image/jpeg');
 
             expect(result.key).toContain('tenant-1/photos/');
             expect(result.key).toEndWith('.jpg');
@@ -61,20 +55,14 @@ describe('StorageService', () => {
             // Create a buffer larger than 20MB
             const hugeBuffer = Buffer.alloc(21 * 1024 * 1024);
 
-            await expect(
-                service.upload('tenant-1', 'photos', hugeBuffer, 'huge.jpg', 'image/jpeg'),
-            ).rejects.toThrow(BadRequestException);
+            await expect(service.upload('tenant-1', 'photos', hugeBuffer, 'huge.jpg', 'image/jpeg')).rejects.toThrow(
+                BadRequestException,
+            );
         });
 
         it('should accept DICOM files for xrays', async () => {
             const buffer = Buffer.from('dicom data');
-            const result = await service.upload(
-                'tenant-1',
-                'xrays',
-                buffer,
-                'scan.dcm',
-                'image/dicom',
-            );
+            const result = await service.upload('tenant-1', 'xrays', buffer, 'scan.dcm', 'image/dicom');
 
             expect(result.key).toContain('tenant-1/xrays/');
             expect(result.mimeType).toBe('image/dicom');
@@ -82,13 +70,7 @@ describe('StorageService', () => {
 
         it('should accept PDF documents', async () => {
             const buffer = Buffer.from('pdf data');
-            const result = await service.upload(
-                'tenant-1',
-                'documents',
-                buffer,
-                'report.pdf',
-                'application/pdf',
-            );
+            const result = await service.upload('tenant-1', 'documents', buffer, 'report.pdf', 'application/pdf');
 
             expect(result.key).toContain('tenant-1/documents/');
         });
@@ -106,12 +88,7 @@ describe('StorageService', () => {
 
     describe('getPresignedUploadUrl', () => {
         it('should generate pre-signed URL with tenant prefix', async () => {
-            const result = await service.getPresignedUploadUrl(
-                'tenant-1',
-                'photos',
-                'photo.jpg',
-                'image/jpeg',
-            );
+            const result = await service.getPresignedUploadUrl('tenant-1', 'photos', 'photo.jpg', 'image/jpeg');
 
             expect(result.uploadUrl).toContain('tenant-1/photos/');
             expect(result.key).toContain('tenant-1/photos/');

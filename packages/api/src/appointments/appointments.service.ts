@@ -9,7 +9,7 @@ export class AppointmentsService {
     constructor(
         @InjectRepository(AppointmentEntity)
         private readonly repo: Repository<AppointmentEntity>,
-    ) { }
+    ) {}
 
     async findAll(
         tenantId: string,
@@ -54,11 +54,7 @@ export class AppointmentsService {
         return appointment;
     }
 
-    async create(
-        tenantId: string,
-        userId: string,
-        data: Partial<AppointmentEntity>,
-    ): Promise<AppointmentEntity> {
+    async create(tenantId: string, userId: string, data: Partial<AppointmentEntity>): Promise<AppointmentEntity> {
         const appointment = this.repo.create({
             ...data,
             tenantId,
@@ -67,11 +63,7 @@ export class AppointmentsService {
         return this.repo.save(appointment);
     }
 
-    async updateStatus(
-        tenantId: string,
-        id: string,
-        status: string,
-    ): Promise<AppointmentEntity> {
+    async updateStatus(tenantId: string, id: string, status: string): Promise<AppointmentEntity> {
         const appointment = await this.findById(tenantId, id);
         appointment.status = status;
 
@@ -95,11 +87,7 @@ export class AppointmentsService {
         return this.repo.save(appointment);
     }
 
-    async update(
-        tenantId: string,
-        id: string,
-        data: Partial<AppointmentEntity>,
-    ): Promise<AppointmentEntity> {
+    async update(tenantId: string, id: string, data: Partial<AppointmentEntity>): Promise<AppointmentEntity> {
         const appointment = await this.findById(tenantId, id);
         Object.assign(appointment, data);
         return this.repo.save(appointment);

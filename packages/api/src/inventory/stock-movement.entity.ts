@@ -2,13 +2,7 @@
 // Stock Movement Entity — Audit trail for inventory changes
 // ============================================================================
 
-import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    CreateDateColumn,
-    Index,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Index } from 'typeorm';
 
 @Entity('stock_movements')
 @Index(['tenantId', 'itemId'])

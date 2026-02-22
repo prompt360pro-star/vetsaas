@@ -12,11 +12,9 @@ import { PaymentsController } from './payments.controller';
 import { InvoicesController } from './invoices.controller';
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([PaymentEntity, InvoiceEntity]),
-    ],
+    imports: [TypeOrmModule.forFeature([PaymentEntity, InvoiceEntity])],
     controllers: [PaymentsController, InvoicesController],
     providers: [PaymentsService, InvoicesService],
     exports: [PaymentsService, InvoicesService],
 })
-export class PaymentsModule { }
+export class PaymentsModule {}

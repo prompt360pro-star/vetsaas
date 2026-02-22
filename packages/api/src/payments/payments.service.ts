@@ -34,13 +34,9 @@ export class PaymentsService {
     constructor(
         @InjectRepository(PaymentEntity)
         private readonly repo: Repository<PaymentEntity>,
-    ) { }
+    ) {}
 
-    async create(
-        tenantId: string,
-        userId: string,
-        input: CreatePaymentInput,
-    ): Promise<PaymentEntity> {
+    async create(tenantId: string, userId: string, input: CreatePaymentInput): Promise<PaymentEntity> {
         const referenceCode = this.generateReference(input.method);
 
         const payment = this.repo.create({
@@ -61,9 +57,7 @@ export class PaymentsService {
 
         const saved = await this.repo.save(payment);
 
-        this.logger.log(
-            `[PAYMENT] Created ${saved.id} | ${input.method} | ${input.amount} AOA | Tenant: ${tenantId}`,
-        );
+        this.logger.log(`[PAYMENT] Created ${saved.id} | ${input.method} | ${input.amount} AOA | Tenant: ${tenantId}`);
 
         return saved;
     }

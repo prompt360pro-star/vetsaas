@@ -146,9 +146,7 @@ describe('InventoryService', () => {
             itemRepo.save.mockResolvedValue({ ...mockItem, price: 4000 });
 
             const result = await service.update(tenantId, 'item-uuid-1', { price: 4000 });
-            expect(itemRepo.save).toHaveBeenCalledWith(
-                expect.objectContaining({ price: 4000 }),
-            );
+            expect(itemRepo.save).toHaveBeenCalledWith(expect.objectContaining({ price: 4000 }));
         });
     });
 
@@ -217,9 +215,7 @@ describe('InventoryService', () => {
 
     describe('getMovements', () => {
         it('should return movement history', async () => {
-            const movements = [
-                { id: '1', type: 'IN', quantity: 10, previousStock: 0, newStock: 10 },
-            ];
+            const movements = [{ id: '1', type: 'IN', quantity: 10, previousStock: 0, newStock: 10 }];
             movementRepo.find.mockResolvedValue(movements);
 
             const result = await service.getMovements(tenantId, 'item-uuid-1');
@@ -230,9 +226,7 @@ describe('InventoryService', () => {
     describe('getLowStockAlerts', () => {
         it('should return items below minimum', async () => {
             const qb = itemRepo.createQueryBuilder();
-            qb.getMany.mockResolvedValue([
-                { ...mockItem, stock: 3, minStock: 10 },
-            ]);
+            qb.getMany.mockResolvedValue([{ ...mockItem, stock: 3, minStock: 10 }]);
 
             const result = await service.getLowStockAlerts(tenantId);
             expect(result.count).toBe(1);
