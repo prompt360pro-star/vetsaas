@@ -32,6 +32,7 @@ import { InvoiceEntity } from './payments/invoice.entity';
 import { InventoryItemEntity } from './inventory/inventory-item.entity';
 import { StockMovementEntity } from './inventory/stock-movement.entity';
 import { LabResultEntity } from './records/lab-result.entity';
+import { DeviceTokenEntity } from './notifications/device-token.entity';
 
 @Module({
     imports: [
@@ -62,6 +63,7 @@ import { LabResultEntity } from './records/lab-result.entity';
                     InventoryItemEntity,
                     StockMovementEntity,
                     LabResultEntity,
+                    DeviceTokenEntity,
                 ],
                 synchronize: config.get('NODE_ENV') === 'development',
                 logging: config.get('NODE_ENV') === 'development',

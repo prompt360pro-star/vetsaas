@@ -1,8 +1,13 @@
 // ============================================================================
-// Notification Service — SMS / Email / Push stub for Angola
+// Notification Service — SMS / Email / Push
 // ============================================================================
 
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import * as admin from 'firebase-admin';
+import { ConfigService } from '@nestjs/config';
+import { DeviceTokenEntity } from './device-token.entity';
 
 export enum NotificationChannel {
     SMS = 'SMS',
@@ -28,6 +33,7 @@ export interface NotificationPayload {
     recipientPhone?: string;
     recipientEmail?: string;
     recipientName: string;
+    userId?: string;
     locale: string;
     data: Record<string, string>;
     tenantId: string;
@@ -78,12 +84,66 @@ const TEMPLATES: Record<NotificationTemplate, { subject: string; body: string }>
 };
 
 @Injectable()
-export class NotificationsService {
+export class NotificationsService implements OnModuleInit {
     private readonly logger = new Logger(NotificationsService.name);
+    private firebaseApp: admin.app.App | undefined;
+
+    constructor(
+        @InjectRepository(DeviceTokenEntity)
+        private readonly deviceTokenRepository: Repository<DeviceTokenEntity>,
+        private readonly configService: ConfigService,
+    ) {}
+
+    onModuleInit() {
+        this.initializeFirebase();
+    }
+
+    private initializeFirebase() {
+        if (admin.apps.length > 0) {
+            this.firebaseApp = admin.apps[0]!;
+            return;
+        }
+
+        try {
+            const serviceAccountPath = this.configService.get<string>('FIREBASE_SERVICE_ACCOUNT_PATH');
+
+            if (serviceAccountPath) {
+                 // eslint-disable-next-line @typescript-eslint/no-var-requires
+                const serviceAccount = require(serviceAccountPath);
+                this.firebaseApp = admin.initializeApp({
+                    credential: admin.credential.cert(serviceAccount),
+                });
+            } else {
+                this.firebaseApp = admin.initializeApp({
+                    credential: admin.credential.applicationDefault(),
+                });
+            }
+            this.logger.log('Firebase Admin initialized');
+        } catch (error) {
+            this.logger.warn(`Failed to initialize Firebase Admin: ${error.message}`);
+        }
+    }
+
+    async registerDevice(userId: string, token: string, platform: string): Promise<void> {
+        let existing = await this.deviceTokenRepository.findOne({ where: { token } });
+
+        if (existing) {
+            existing.userId = userId;
+            existing.platform = platform;
+            await this.deviceTokenRepository.save(existing);
+        } else {
+            await this.deviceTokenRepository.save({
+                userId,
+                token,
+                platform,
+            });
+        }
+        this.logger.log(`Device registered for user ${userId}`);
+    }
 
     /**
      * Send a notification via the appropriate channel.
-     * Currently stubs all providers — replace with real provider SDKs.
+     * Currently stubs SMS/Email/WhatsApp but uses real Push provider.
      */
     async send(payload: NotificationPayload): Promise<NotificationResult> {
         const template = TEMPLATES[payload.template];
@@ -109,7 +169,8 @@ export class NotificationsService {
             case NotificationChannel.WHATSAPP:
                 return this.sendWhatsApp(payload.recipientPhone!, renderedBody, payload.tenantId);
             case NotificationChannel.PUSH:
-                return this.sendPush(payload.recipientName, renderedSubject, renderedBody, payload.tenantId);
+                const targetUserId = payload.userId || payload.recipientName;
+                return this.sendPush(targetUserId, renderedSubject, renderedBody, payload.tenantId);
             default:
                 return { success: false, error: `Unsupported channel: ${payload.channel}` };
         }
@@ -168,7 +229,6 @@ export class NotificationsService {
         this.logger.log(`[SMS STUB] To: ${phone} | Tenant: ${tenantId}`);
         this.logger.debug(`[SMS STUB] Body: ${body}`);
 
-        // Simulate network latency
         await this.delay(100);
 
         return {
@@ -205,16 +265,65 @@ export class NotificationsService {
     }
 
     private async sendPush(userId: string, title: string, body: string, tenantId: string): Promise<NotificationResult> {
-        // TODO: Integrate with Firebase Cloud Messaging or similar
-        this.logger.log(`[PUSH STUB] User: ${userId} | Title: ${title} | Tenant: ${tenantId}`);
+        if (!this.firebaseApp) {
+             this.logger.warn('Firebase not initialized, skipping push notification');
+             return { success: false, error: 'Firebase not initialized' };
+        }
 
-        await this.delay(50);
+        const tokens = await this.deviceTokenRepository.find({ where: { userId } });
+        if (tokens.length === 0) {
+            this.logger.log(`No device tokens found for user ${userId}`);
+            return { success: false, error: 'No device tokens found' };
+        }
 
-        return {
-            success: true,
-            messageId: `push_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-            provider: 'stub',
-        };
+        const fcmTokens = tokens.map(t => t.token);
+
+        try {
+            const response = await this.firebaseApp.messaging().sendEachForMulticast({
+                tokens: fcmTokens,
+                notification: {
+                    title,
+                    body,
+                },
+                data: {
+                    tenantId,
+                },
+            });
+
+            // Handle invalid tokens
+            if (response.failureCount > 0) {
+                 const tokensToDelete: string[] = [];
+                 response.responses.forEach((resp, idx) => {
+                     if (!resp.success) {
+                         const error = resp.error;
+                         if (
+                             error?.code === 'messaging/invalid-registration-token' ||
+                             error?.code === 'messaging/registration-token-not-registered'
+                         ) {
+                             tokensToDelete.push(fcmTokens[idx]);
+                         }
+                     }
+                 });
+
+                 if (tokensToDelete.length > 0) {
+                     await this.deviceTokenRepository.delete(
+                         // Find tokens by token string
+                         tokens.filter(t => tokensToDelete.includes(t.token)).map(t => t.id)
+                     );
+                     this.logger.log(`Removed ${tokensToDelete.length} invalid tokens for user ${userId}`);
+                 }
+            }
+
+            return {
+                success: response.successCount > 0,
+                messageId: `push_batch_${Date.now()}`,
+                provider: 'firebase',
+            };
+
+        } catch (error) {
+            this.logger.error(`Error sending push notification: ${error.message}`, error.stack);
+            return { success: false, error: error.message };
+        }
     }
 
     // ── Helpers ────────────────────────────────────────
