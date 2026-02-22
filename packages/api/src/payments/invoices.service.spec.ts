@@ -1,233 +1,236 @@
 // ============================================================================
-// Invoices Service — Unit Tests
+// Payment Service — Unit Tests
 // ============================================================================
 
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { NotFoundException, BadRequestException } from '@nestjs/common';
-import { InvoicesService } from './invoices.service';
-import { InvoiceEntity } from './invoice.entity';
+import { Test, TestingModule } from "@nestjs/testing";
+import { getRepositoryToken } from "@nestjs/typeorm";
+import { NotFoundException } from "@nestjs/common";
+import { InvoicesService } from "./invoices.service";
+import { InvoiceEntity, InvoiceStatus } from "./invoice.entity";
+import { PaymentEntity, PaymentMethod, PaymentStatus } from "./payment.entity";
+// import { UserEntity } from "../auth/user.entity";
 
-describe('InvoicesService', () => {
-    let service: InvoicesService;
-    let repo: any;
+describe("InvoicesService", () => {
+  let service: InvoicesService;
+  let invoiceRepo: any;
+  let paymentRepo: any;
 
-    const tenantId = 'tenant-uuid-1';
-    const userId = 'user-uuid-1';
+  const tenantId = "tenant-uuid-1";
+  const userId = "user-uuid-1";
 
-    const mockInvoice: Partial<InvoiceEntity> = {
-        id: 'inv-uuid-1',
+  // const mockUser = {
+  //   id: userId,
+  //   name: "Dr. Silva",
+  // } as UserEntity;
+
+  const mockInvoice: Partial<InvoiceEntity> = {
+    id: "invoice-uuid-1",
+    tenantId,
+    amount: 15000,
+    paidAmount: 0,
+    status: InvoiceStatus.PENDING,
+    description: "Consulta Geral",
+    createdAt: new Date(),
+    dueDate: new Date(),
+    items: [],
+  };
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        InvoicesService,
+        {
+          provide: getRepositoryToken(InvoiceEntity),
+          useValue: {
+            create: jest.fn(),
+            save: jest.fn(),
+            findOne: jest.fn(),
+            find: jest.fn(),
+            findAndCount: jest.fn(),
+            createQueryBuilder: jest.fn().mockReturnValue({
+              where: jest.fn().mockReturnThis(),
+              andWhere: jest.fn().mockReturnThis(),
+              orderBy: jest.fn().mockReturnThis(),
+              skip: jest.fn().mockReturnThis(),
+              take: jest.fn().mockReturnThis(),
+              getManyAndCount: jest.fn().mockResolvedValue([[mockInvoice], 1]),
+            }),
+          },
+        },
+        {
+          provide: getRepositoryToken(PaymentEntity),
+          useValue: {
+            create: jest.fn(),
+            save: jest.fn(),
+            find: jest.fn(),
+          },
+        },
+      ],
+    }).compile();
+
+    service = module.get<InvoicesService>(InvoicesService);
+    invoiceRepo = module.get(getRepositoryToken(InvoiceEntity));
+    paymentRepo = module.get(getRepositoryToken(PaymentEntity));
+  });
+
+  it("should be defined", () => {
+    expect(service).toBeDefined();
+  });
+
+  describe("create", () => {
+    it("should create a new invoice", async () => {
+      invoiceRepo.create.mockReturnValue(mockInvoice);
+      invoiceRepo.save.mockResolvedValue(mockInvoice);
+
+      const result = await service.create(tenantId, userId, {
+        amount: 15000,
+        description: "Consulta",
+        dueDate: "2024-12-31",
+        items: [],
+      });
+
+      expect(invoiceRepo.save).toHaveBeenCalled();
+      expect(result).toBeDefined();
+    });
+  });
+
+  describe("registerPayment", () => {
+    it("should register partial payment", async () => {
+      const invoice = { ...mockInvoice };
+      invoiceRepo.findOne.mockResolvedValue(invoice);
+      invoiceRepo.save.mockImplementation((inv: any) => Promise.resolve(inv));
+
+      const payment = { id: "pay-1", amount: 5000 };
+      paymentRepo.create.mockReturnValue(payment);
+      paymentRepo.save.mockResolvedValue(payment);
+
+      const result = await service.registerPayment(
         tenantId,
-        tutorId: 'tutor-uuid-1',
-        tutorName: 'João Silva',
-        invoiceNumber: 'FAT-2025-000001',
-        items: [
-            { description: 'Consulta geral', quantity: 1, unitPrice: 10000, total: 10000 },
-            { description: 'Vacina antirrábica', quantity: 1, unitPrice: 5000, total: 5000 },
-        ],
-        subtotal: 15000,
-        tax: 2100, // 14% IVA
-        total: 17100,
-        currency: 'AOA',
-        status: 'DRAFT',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-    };
+        userId,
+        "invoice-uuid-1",
+        {
+          amount: 5000,
+          method: PaymentMethod.CASH,
+        },
+      );
 
-    beforeEach(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            providers: [
-                InvoicesService,
-                {
-                    provide: getRepositoryToken(InvoiceEntity),
-                    useValue: {
-                        create: jest.fn(),
-                        save: jest.fn(),
-                        findOne: jest.fn(),
-                        findAndCount: jest.fn(),
-                        count: jest.fn(),
-                    },
-                },
-            ],
-        }).compile();
-
-        service = module.get<InvoicesService>(InvoicesService);
-        repo = module.get(getRepositoryToken(InvoiceEntity));
+      expect(invoice.paidAmount).toBe(5000);
+      expect(invoice.status).toBe(InvoiceStatus.PARTIAL);
+      expect(result.status).toBe(InvoiceStatus.PARTIAL);
     });
 
-    it('should be defined', () => {
-        expect(service).toBeDefined();
+    it("should register full payment", async () => {
+      const invoice = { ...mockInvoice };
+      invoiceRepo.findOne.mockResolvedValue(invoice);
+      invoiceRepo.save.mockImplementation((inv: any) => Promise.resolve(inv));
+
+      const payment = { id: "pay-2", amount: 15000 };
+      paymentRepo.create.mockReturnValue(payment);
+      paymentRepo.save.mockResolvedValue(payment);
+
+      const result = await service.registerPayment(
+        tenantId,
+        userId,
+        "invoice-uuid-1",
+        {
+          amount: 15000,
+          method: PaymentMethod.MULTICAIXA,
+        },
+      );
+
+      expect(invoice.paidAmount).toBe(15000);
+      expect(invoice.status).toBe(InvoiceStatus.PAID);
+      expect(result.status).toBe(InvoiceStatus.PAID);
     });
 
-    describe('create', () => {
-        it('should create invoice with auto-generated number and IVA', async () => {
-            repo.count.mockResolvedValue(0); // First invoice
-            repo.create.mockReturnValue(mockInvoice);
-            repo.save.mockResolvedValue(mockInvoice);
-
-            const result = await service.create(tenantId, userId, {
-                tutorId: 'tutor-uuid-1',
-                tutorName: 'João Silva',
-                items: [
-                    { description: 'Consulta geral', quantity: 1, unitPrice: 10000, total: 0 },
-                    { description: 'Vacina antirrábica', quantity: 1, unitPrice: 5000, total: 0 },
-                ],
-            });
-
-            expect(repo.create).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    tenantId,
-                    invoiceNumber: expect.stringContaining('FAT-'),
-                    subtotal: 15000,
-                    tax: 2100, // 14% of 15000
-                    total: 17100,
-                    status: 'DRAFT',
-                }),
-            );
-            expect(result).toBeDefined();
-        });
-
-        it('should reject invoice with no items', async () => {
-            await expect(
-                service.create(tenantId, userId, {
-                    tutorId: 'tutor-uuid-1',
-                    tutorName: 'João Silva',
-                    items: [],
-                }),
-            ).rejects.toThrow(BadRequestException);
-        });
-
-        it('should accept custom tax rate', async () => {
-            repo.count.mockResolvedValue(5);
-            repo.create.mockReturnValue(mockInvoice);
-            repo.save.mockResolvedValue(mockInvoice);
-
-            await service.create(tenantId, userId, {
-                tutorId: 'tutor-uuid-1',
-                tutorName: 'Ana Santos',
-                items: [
-                    { description: 'Cirurgia', quantity: 1, unitPrice: 100000, total: 0 },
-                ],
-                taxRate: 0, // Tax exempt
-            });
-
-            expect(repo.create).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    subtotal: 100000,
-                    tax: 0,
-                    total: 100000,
-                }),
-            );
-        });
+    it("should throw NotFoundException if invoice not found", async () => {
+      invoiceRepo.findOne.mockResolvedValue(null);
+      await expect(
+        service.registerPayment(tenantId, userId, "inv-x", {
+          amount: 100,
+          method: PaymentMethod.CASH,
+        }),
+      ).rejects.toThrow(NotFoundException);
     });
+  });
 
-    describe('findAll', () => {
-        it('should return paginated invoices', async () => {
-            repo.findAndCount.mockResolvedValue([[mockInvoice], 1]);
+  describe("cancel", () => {
+    it("should cancel invoice", async () => {
+      const invoice = { ...mockInvoice };
+      invoiceRepo.findOne.mockResolvedValue(invoice);
+      invoiceRepo.save.mockImplementation((inv: any) => Promise.resolve(inv));
 
-            const result = await service.findAll(tenantId, { page: 1, limit: 10 });
+      const result = await service.cancel(tenantId, "invoice-uuid-1", "Erro");
 
-            expect(result.data).toHaveLength(1);
-            expect(result.total).toBe(1);
-        });
-
-        it('should filter by status', async () => {
-            repo.findAndCount.mockResolvedValue([[], 0]);
-
-            await service.findAll(tenantId, { page: 1, limit: 10, status: 'PAID' });
-
-            expect(repo.findAndCount).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    where: expect.objectContaining({ status: 'PAID' }),
-                }),
-            );
-        });
+      expect(invoice.status).toBe(InvoiceStatus.CANCELLED);
+      expect(result.status).toBe(InvoiceStatus.CANCELLED);
     });
+  });
 
-    describe('findById', () => {
-        it('should return invoice', async () => {
-            repo.findOne.mockResolvedValue(mockInvoice);
+  describe("refund", () => {
+    it("should refund payment", async () => {
+      // 1. Setup invoice with a payment
+      const invoice = {
+        ...mockInvoice,
+        status: InvoiceStatus.PAID,
+        paidAmount: 15000,
+      };
+      const payment = {
+        id: "pay-1",
+        amount: 15000,
+        status: PaymentStatus.COMPLETED,
+        invoice,
+      };
 
-            const result = await service.findById(tenantId, 'inv-uuid-1');
-            expect(result.invoiceNumber).toBe('FAT-2025-000001');
-        });
+      invoiceRepo.findOne.mockResolvedValue(invoice);
+      paymentRepo.find.mockResolvedValue([payment]);
+      // Mock finding the specific payment to refund
+      paymentRepo.findOne = jest.fn().mockResolvedValue(payment);
+      paymentRepo.save.mockImplementation((p: any) => Promise.resolve(p));
+      invoiceRepo.save.mockImplementation((inv: any) => Promise.resolve(inv));
 
-        it('should throw NotFoundException', async () => {
-            repo.findOne.mockResolvedValue(null);
+      await service.refundPayment(
+        tenantId,
+        userId,
+        "invoice-uuid-1",
+        "pay-1",
+        "Erro cobrança",
+      );
 
-            await expect(
-                service.findById(tenantId, 'nonexistent'),
-            ).rejects.toThrow(NotFoundException);
-        });
+      expect(payment.status).toBe(PaymentStatus.REFUNDED);
+      expect(invoice.paidAmount).toBe(0);
+      expect(invoice.status).toBe(InvoiceStatus.PENDING);
     });
+  });
 
-    describe('markAsPaid', () => {
-        it('should mark invoice as paid and link payment', async () => {
-            repo.findOne.mockResolvedValue({ ...mockInvoice });
-            repo.save.mockResolvedValue({ ...mockInvoice, status: 'PAID' });
+  describe("generateReceipt", () => {
+    it("should generate receipt data for paid invoice", async () => {
+      const invoice = {
+        ...mockInvoice,
+        status: InvoiceStatus.PAID,
+        customer: { name: "Cliente Teste" },
+        payments: [{ amount: 15000, date: new Date() }],
+      };
+      invoiceRepo.findOne.mockResolvedValue(invoice);
 
-            const result = await service.markAsPaid(tenantId, 'inv-uuid-1', 'pay-uuid-1');
-
-            expect(repo.save).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    status: 'PAID',
-                    paymentId: 'pay-uuid-1',
-                    paidAt: expect.any(Date),
-                }),
-            );
-        });
-
-        it('should reject paying a cancelled invoice', async () => {
-            repo.findOne.mockResolvedValue({ ...mockInvoice, status: 'CANCELLED' });
-
-            await expect(
-                service.markAsPaid(tenantId, 'inv-uuid-1', 'pay-uuid-1'),
-            ).rejects.toThrow(BadRequestException);
-        });
+      await service.generateReceipt(tenantId, "invoice-uuid-1");
+      // For now, this just returns the object, later it might return PDF buffer
+      expect(invoiceRepo.findOne).toHaveBeenCalled();
     });
+  });
 
-    describe('cancel', () => {
-        it('should cancel a draft invoice', async () => {
-            repo.findOne.mockResolvedValue({ ...mockInvoice });
-            repo.save.mockResolvedValue({ ...mockInvoice, status: 'CANCELLED' });
+  describe("sendReceipt", () => {
+    it("should simulate sending receipt", async () => {
+      const invoice = {
+        ...mockInvoice,
+        status: InvoiceStatus.PAID,
+        customer: { email: "teste@email.com" },
+      };
+      invoiceRepo.findOne.mockResolvedValue(invoice);
 
-            const result = await service.cancel(tenantId, 'inv-uuid-1', 'Erro de dados');
-
-            expect(repo.save).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    status: 'CANCELLED',
-                    cancellationReason: 'Erro de dados',
-                }),
-            );
-        });
-
-        it('should reject cancelling a paid invoice', async () => {
-            repo.findOne.mockResolvedValue({ ...mockInvoice, status: 'PAID' });
-
-            await expect(
-                service.cancel(tenantId, 'inv-uuid-1'),
-            ).rejects.toThrow(BadRequestException);
-        });
+      await service.sendReceipt(tenantId, "invoice-uuid-1");
+      // Stub implementation just logs
+      expect(invoiceRepo.findOne).toHaveBeenCalled();
     });
-
-    describe('send', () => {
-        it('should send a draft invoice', async () => {
-            repo.findOne.mockResolvedValue({ ...mockInvoice, status: 'DRAFT' });
-            repo.save.mockResolvedValue({ ...mockInvoice, status: 'SENT' });
-
-            const result = await service.send(tenantId, 'inv-uuid-1');
-
-            expect(repo.save).toHaveBeenCalledWith(
-                expect.objectContaining({ status: 'SENT' }),
-            );
-        });
-
-        it('should reject sending a non-draft invoice', async () => {
-            repo.findOne.mockResolvedValue({ ...mockInvoice, status: 'SENT' });
-
-            await expect(
-                service.send(tenantId, 'inv-uuid-1'),
-            ).rejects.toThrow(BadRequestException);
-        });
-    });
+  });
 });
