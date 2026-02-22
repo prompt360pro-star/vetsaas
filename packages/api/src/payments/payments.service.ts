@@ -166,29 +166,28 @@ export class PaymentsService {
             return;
         }
 
-        if (status && status !== '00' && status !== 'SUCCESS') {
+        if (status === '00' || status === 'SUCCESS') {
+            if (payment.status === 'COMPLETED') {
+                this.logger.log(`[WEBHOOK] Payment ${payment.id} already completed`);
+                return;
+            }
+
+            payment.status = 'COMPLETED';
+            payment.paidAt = new Date();
+            payment.transactionId = transactionId || `mc_${Date.now()}`;
+            payment.gateway = 'MULTICAIXA_GPO';
+
+            await this.repo.save(payment);
+            this.logger.log(`[WEBHOOK] Payment ${payment.id} completed via Multicaixa GPO`);
+        } else {
             payment.status = 'FAILED';
             payment.failedAt = new Date();
-            payment.failureReason = `Gateway status: ${status}`;
+            payment.failureReason = `Gateway status: ${status || 'UNKNOWN'}`;
             await this.repo.save(payment);
             this.logger.warn(
                 `[WEBHOOK] Payment ${payment.id} failed via Multicaixa GPO (Status: ${status})`,
             );
-            return;
         }
-
-        if (payment.status === 'COMPLETED') {
-            this.logger.log(`[WEBHOOK] Payment ${payment.id} already completed`);
-            return;
-        }
-
-        payment.status = 'COMPLETED';
-        payment.paidAt = new Date();
-        payment.transactionId = transactionId || `mc_${Date.now()}`;
-        payment.gateway = 'MULTICAIXA_GPO';
-
-        await this.repo.save(payment);
-        this.logger.log(`[WEBHOOK] Payment ${payment.id} completed via Multicaixa GPO`);
     }
 
     private async handleUnitelMoneyWebhook(payload: Record<string, unknown>): Promise<void> {
