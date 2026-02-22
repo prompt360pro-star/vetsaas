@@ -41,7 +41,8 @@ export class TenantsService {
     id: string,
     data: Partial<TenantEntity>,
   ): Promise<TenantEntity | null> {
-    await this.repo.update(id, data);
+    // Cast to any to bypass DeepPartial constraint on JSONB 'settings' field
+    await this.repo.update(id, data as any);
     return this.findById(id);
   }
 
