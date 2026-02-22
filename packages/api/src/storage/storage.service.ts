@@ -5,6 +5,8 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 export interface UploadResult {
     key: string;
@@ -38,11 +40,22 @@ export class StorageService {
     private readonly bucket: string;
     private readonly endpoint: string;
     private readonly region: string;
+    private readonly s3Client: S3Client;
 
     constructor(private configService: ConfigService) {
         this.bucket = this.configService.get<string>('S3_BUCKET', 'vetsaas-files');
         this.endpoint = this.configService.get<string>('S3_ENDPOINT', 'http://localhost:9000');
         this.region = this.configService.get<string>('S3_REGION', 'us-east-1');
+
+        this.s3Client = new S3Client({
+            endpoint: this.endpoint,
+            region: this.region,
+            credentials: {
+                accessKeyId: this.configService.get<string>('S3_ACCESS_KEY', 'minioadmin'),
+                secretAccessKey: this.configService.get<string>('S3_SECRET_KEY', 'minioadmin'),
+            },
+            forcePathStyle: true, // Required for MinIO
+        });
     }
 
     /**
@@ -113,14 +126,16 @@ export class StorageService {
         const ext = fileName.split('.').pop()?.toLowerCase() || 'bin';
         const key = `${tenantId}/${category}/${Date.now()}-${crypto.randomBytes(4).toString('hex')}.${ext}`;
 
-        // TODO: Replace with actual S3 pre-signed URL generation
-        // const command = new PutObjectCommand({ Bucket, Key: key, ContentType: mimeType });
-        // const uploadUrl = await getSignedUrl(s3, command, { expiresIn: expiresInSeconds });
+        const command = new PutObjectCommand({
+            Bucket: this.bucket,
+            Key: key,
+            ContentType: mimeType,
+        });
 
-        const uploadUrl = `${this.endpoint}/${this.bucket}/${key}?presigned=true&expires=${expiresInSeconds}`;
+        const uploadUrl = await getSignedUrl(this.s3Client, command, { expiresIn: expiresInSeconds });
 
         this.logger.log(
-            `[STORAGE STUB] Pre-signed URL generated: ${key} | Tenant: ${tenantId} | Expires: ${expiresInSeconds}s`,
+            `[STORAGE] Pre-signed URL generated: ${key} | Tenant: ${tenantId} | Expires: ${expiresInSeconds}s`,
         );
 
         return { uploadUrl, key, expiresIn: expiresInSeconds };
