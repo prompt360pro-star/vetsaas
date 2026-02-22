@@ -15,40 +15,42 @@ import { INestApplication } from '@nestjs/common';
  * In CI, these services are provided via GitHub Actions service containers.
  */
 describe('App (e2e)', () => {
-    let app: INestApplication;
+  let app: INestApplication;
 
-    // Skip if no DB is available (CI will set DATABASE_HOST)
-    const shouldRun = process.env.DATABASE_HOST || process.env.CI;
+  // Skip if no DB is available (CI will set DATABASE_HOST)
+  const shouldRun = process.env.DATABASE_HOST || process.env.CI;
 
-    beforeAll(async () => {
-        if (!shouldRun) return;
+  beforeAll(async () => {
+    if (!shouldRun) return;
 
-        // Lazy-import to avoid compilation if we skip
-        const { AppModule } = await import('../src/app.module');
+    // Lazy-import to avoid compilation if we skip
+    const { AppModule } = await import('../src/app.module');
 
-        const moduleFixture: TestingModule = await Test.createTestingModule({
-            imports: [AppModule],
-        }).compile();
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
 
-        app = moduleFixture.createNestApplication();
-        await app.init();
-    });
+    app = moduleFixture.createNestApplication();
+    await app.init();
+  });
 
-    afterAll(async () => {
-        if (app) await app.close();
-    });
+  afterAll(async () => {
+    if (app) await app.close();
+  });
 
-    it('should bootstrap the application', () => {
-        if (!shouldRun) {
-            console.log('⏭  E2E tests skipped — no database available. Run docker-compose up first.');
-            return;
-        }
-        expect(app).toBeDefined();
-    });
+  it('should bootstrap the application', () => {
+    if (!shouldRun) {
+      console.log(
+        '⏭  E2E tests skipped — no database available. Run docker-compose up first.',
+      );
+      return;
+    }
+    expect(app).toBeDefined();
+  });
 
-    it.skip('GET /api/health should return 200', async () => {
-        // Uncomment when a health endpoint is added
-        // const response = await request(app.getHttpServer()).get('/api/health');
-        // expect(response.status).toBe(200);
-    });
+  it.skip('GET /api/health should return 200', async () => {
+    // Uncomment when a health endpoint is added
+    // const response = await request(app.getHttpServer()).get('/api/health');
+    // expect(response.status).toBe(200);
+  });
 });
