@@ -25,7 +25,7 @@ export class TenantsService {
                 allowTeleconsult: false,
                 ...(data.settings || {}),
             },
-        });
+        } as unknown as TenantEntity);
         return this.repo.save(tenant);
     }
 
@@ -38,7 +38,9 @@ export class TenantsService {
     }
 
     async update(id: string, data: Partial<TenantEntity>): Promise<TenantEntity | null> {
-        await this.repo.update(id, data);
+        // TypeORM's update method signatures can be tricky with Partial entities involving JSON columns
+        // Casting data to any bypasses the strict check on the 'settings' property which causes the mismatch
+        await this.repo.update(id, data as any);
         return this.findById(id);
     }
 
