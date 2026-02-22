@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
+import { authenticator } from 'otplib';
 import { UserEntity } from './user.entity';
 import { TenantsService } from '../tenants/tenants.service';
 import type { JwtPayload, UserRole, AuthTokens, UserProfile } from '@vetsaas/shared';
@@ -69,7 +70,7 @@ export class AuthService {
     /**
      * Login with email and password.
      */
-    async login(email: string, password: string): Promise<AuthTokens> {
+    async login(email: string, password: string, mfaCode?: string): Promise<AuthTokens> {
         const user = await this.usersRepo.findOne({ where: { email } });
         if (!user || !user.isActive) {
             throw new UnauthorizedException('Invalid credentials');
@@ -78,6 +79,26 @@ export class AuthService {
         const isValid = await bcrypt.compare(password, user.passwordHash);
         if (!isValid) {
             throw new UnauthorizedException('Invalid credentials');
+        }
+
+        if (user.mfaEnabled) {
+            if (!mfaCode) {
+                throw new UnauthorizedException('MFA code required');
+            }
+            if (!user.mfaSecret) {
+                throw new UnauthorizedException('MFA configuration error');
+            }
+            try {
+                const isMfaValid = authenticator.verify({
+                    token: mfaCode,
+                    secret: user.mfaSecret,
+                });
+                if (!isMfaValid) {
+                    throw new UnauthorizedException('Invalid MFA code');
+                }
+            } catch (error) {
+                throw new UnauthorizedException('Invalid MFA code');
+            }
         }
 
         // Update last login

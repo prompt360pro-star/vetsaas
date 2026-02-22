@@ -26,7 +26,7 @@ export class AuthController {
     @Post('login')
     @UseGuards(RateLimitGuard)
     async login(@Body() dto: LoginDto) {
-        const tokens = await this.authService.login(dto.email, dto.password);
+        const tokens = await this.authService.login(dto.email, dto.password, dto.mfaCode);
         return { success: true, data: tokens };
     }
 

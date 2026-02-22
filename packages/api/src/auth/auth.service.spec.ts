@@ -11,10 +11,17 @@ import { AuthService } from './auth.service';
 import { UserEntity } from './user.entity';
 import { TenantsService } from '../tenants/tenants.service';
 import * as bcrypt from 'bcryptjs';
+import { authenticator } from 'otplib';
 
 jest.mock('bcryptjs', () => ({
     hash: jest.fn().mockResolvedValue('$2a$12$hashedPassword'),
     compare: jest.fn(),
+}));
+
+jest.mock('otplib', () => ({
+    authenticator: {
+        verify: jest.fn(),
+    },
 }));
 
 describe('AuthService', () => {
@@ -142,6 +149,43 @@ describe('AuthService', () => {
             await expect(
                 service.login('nobody@clinica.ao', 'Anything'),
             ).rejects.toThrow(UnauthorizedException);
+        });
+
+        it('should reject login if MFA enabled but no code provided', async () => {
+            const mfaUser = { ...mockUser, mfaEnabled: true, mfaSecret: 'secret' };
+            userRepo.findOne.mockResolvedValue(mfaUser);
+            (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+
+            await expect(
+                service.login('vet@clinica.ao', 'SecurePass123!'),
+            ).rejects.toThrow(UnauthorizedException);
+        });
+
+        it('should reject login if MFA code is invalid', async () => {
+            const mfaUser = { ...mockUser, mfaEnabled: true, mfaSecret: 'secret' };
+            userRepo.findOne.mockResolvedValue(mfaUser);
+            (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+            (authenticator.verify as jest.Mock).mockReturnValue(false);
+
+            await expect(
+                service.login('vet@clinica.ao', 'SecurePass123!', '123456'),
+            ).rejects.toThrow(UnauthorizedException);
+        });
+
+        it('should allow login if MFA code is valid', async () => {
+            const mfaUser = { ...mockUser, mfaEnabled: true, mfaSecret: 'secret' };
+            userRepo.findOne.mockResolvedValue(mfaUser);
+            userRepo.save.mockResolvedValue(mfaUser);
+            (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+            (authenticator.verify as jest.Mock).mockReturnValue(true);
+
+            const result = await service.login('vet@clinica.ao', 'SecurePass123!', '123456');
+
+            expect(result).toHaveProperty('accessToken');
+            expect(authenticator.verify).toHaveBeenCalledWith({
+                token: '123456',
+                secret: 'secret',
+            });
         });
     });
 });
