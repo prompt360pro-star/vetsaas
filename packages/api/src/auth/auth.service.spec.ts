@@ -11,14 +11,14 @@ import { AuthService } from "./auth.service";
 import { UserEntity } from "./user.entity";
 import { TenantsService } from "../tenants/tenants.service";
 import * as bcrypt from "bcryptjs";
-import { authenticator } from "otplib";
+import { authenticator } from "@otplib/preset-default";
 
 jest.mock("bcryptjs", () => ({
   hash: jest.fn().mockResolvedValue("$2a$12$hashedPassword"),
   compare: jest.fn(),
 }));
 
-jest.mock("otplib", () => ({
+jest.mock("@otplib/preset-default", () => ({
   authenticator: {
     verify: jest.fn(),
   },

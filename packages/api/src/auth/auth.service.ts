@@ -8,7 +8,7 @@ import { Repository } from "typeorm";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import * as bcrypt from "bcryptjs";
-import { authenticator } from "otplib";
+import { authenticator } from "@otplib/preset-default";
 import { UserEntity } from "./user.entity";
 import { TenantsService } from "../tenants/tenants.service";
 import type {
