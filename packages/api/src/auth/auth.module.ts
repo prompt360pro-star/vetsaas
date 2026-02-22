@@ -9,18 +9,26 @@ import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 import { TenantsModule } from '../tenants/tenants.module';
 
+export const jwtConfigFactory = (config: ConfigService) => {
+    const secret = config.get('JWT_SECRET');
+    if (!secret) {
+        throw new Error('JWT_SECRET environment variable is not defined');
+    }
+    return {
+        secret,
+        signOptions: {
+            expiresIn: config.get('JWT_EXPIRES_IN', '15m'),
+        },
+    };
+};
+
 @Module({
     imports: [
         TypeOrmModule.forFeature([UserEntity]),
         PassportModule.register({ defaultStrategy: 'jwt' }),
         JwtModule.registerAsync({
             imports: [ConfigModule],
-            useFactory: (config: ConfigService) => ({
-                secret: config.get('JWT_SECRET', 'change-me-in-production'),
-                signOptions: {
-                    expiresIn: config.get('JWT_EXPIRES_IN', '15m'),
-                },
-            }),
+            useFactory: jwtConfigFactory,
             inject: [ConfigService],
         }),
         TenantsModule,
