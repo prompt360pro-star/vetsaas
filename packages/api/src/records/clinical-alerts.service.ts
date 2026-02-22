@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan } from 'typeorm';
+import { Repository, LessThan, IsNull } from 'typeorm';
 import { ClinicalRecordEntity } from './clinical-record.entity';
 import { InventoryItemEntity } from '../inventory/inventory-item.entity';
 
@@ -71,7 +71,7 @@ export class ClinicalAlertsService {
         const unsigned = await this.recordsRepo.find({
             where: {
                 tenantId,
-                signedAt: undefined,
+                signedAt: IsNull(),
                 createdAt: LessThan(cutoff),
             },
             take: 20,
