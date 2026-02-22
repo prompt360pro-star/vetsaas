@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 
 /* ── Types ───────────────────────────────────────── */
 
@@ -28,6 +29,14 @@ const sizeMap: Record<AvatarSize, { container: string; text: string; status: str
     md: { container: 'w-10 h-10', text: 'text-xs', status: 'w-2.5 h-2.5 ring-2' },
     lg: { container: 'w-12 h-12', text: 'text-sm', status: 'w-3 h-3 ring-2' },
     xl: { container: 'w-16 h-16', text: 'text-base', status: 'w-3.5 h-3.5 ring-2' },
+};
+
+const pixelSizeMap: Record<AvatarSize, number> = {
+    xs: 24,
+    sm: 32,
+    md: 40,
+    lg: 48,
+    xl: 64,
 };
 
 const statusColors: Record<StatusType, string> = {
@@ -72,9 +81,11 @@ export function Avatar({ src, name, size = 'md', status, className = '' }: Avata
     return (
         <div className={`relative inline-flex flex-shrink-0 ${className}`}>
             {src ? (
-                <img
+                <Image
                     src={src}
                     alt={name ?? 'Avatar'}
+                    width={pixelSizeMap[size]}
+                    height={pixelSizeMap[size]}
                     className={`${cfg.container} rounded-full object-cover`}
                 />
             ) : (
