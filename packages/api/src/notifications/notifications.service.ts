@@ -3,6 +3,8 @@
 // ============================================================================
 
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import * as sgMail from '@sendgrid/mail';
 
 export enum NotificationChannel {
     SMS = 'SMS',
@@ -80,6 +82,20 @@ const TEMPLATES: Record<NotificationTemplate, { subject: string; body: string }>
 @Injectable()
 export class NotificationsService {
     private readonly logger = new Logger(NotificationsService.name);
+    private readonly sendGridApiKey: string | undefined;
+    private readonly sendGridSender: string | undefined;
+
+    constructor(private readonly configService: ConfigService) {
+        this.sendGridApiKey = this.configService.get<string>('SENDGRID_API_KEY');
+        this.sendGridSender = this.configService.get<string>('SENDGRID_SENDER_EMAIL');
+
+        if (this.sendGridApiKey) {
+            sgMail.setApiKey(this.sendGridApiKey);
+            this.logger.log('SendGrid configured successfully.');
+        } else {
+            this.logger.warn('SendGrid API key not found. Email notifications will use stub.');
+        }
+    }
 
     /**
      * Send a notification via the appropriate channel.
@@ -179,7 +195,40 @@ export class NotificationsService {
     }
 
     private async sendEmail(email: string, subject: string, body: string, tenantId: string): Promise<NotificationResult> {
-        // TODO: Integrate with email provider (SendGrid, AWS SES, etc.)
+        // If SendGrid is configured, use it
+        if (this.sendGridApiKey && this.sendGridSender) {
+            try {
+                const msg = {
+                    to: email,
+                    from: this.sendGridSender,
+                    subject: subject,
+                    text: body, // Fallback text version
+                    html: body.replace(/\n/g, '<br>'), // Simple HTML conversion
+                    customArgs: {
+                        tenantId: tenantId,
+                    },
+                };
+
+                const [response] = await sgMail.send(msg);
+
+                this.logger.log(`[EMAIL SENT] To: ${email} | Subject: ${subject} | ID: ${response.headers['x-message-id']}`);
+
+                return {
+                    success: true,
+                    messageId: response.headers['x-message-id'] as string,
+                    provider: 'sendgrid',
+                };
+            } catch (error: any) {
+                this.logger.error(`[EMAIL ERROR] Failed to send email to ${email}: ${error.message}`, error.stack);
+                return {
+                    success: false,
+                    error: error.message,
+                    provider: 'sendgrid',
+                };
+            }
+        }
+
+        // Fallback to stub
         this.logger.log(`[EMAIL STUB] To: ${email} | Subject: ${subject} | Tenant: ${tenantId}`);
 
         await this.delay(100);

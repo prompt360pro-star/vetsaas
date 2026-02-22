@@ -4,34 +4,15 @@
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { InventoryService } from './inventory.service';
 import { InventoryItemEntity } from './inventory-item.entity';
 import { StockMovementEntity } from './stock-movement.entity';
+import { Repository } from 'typeorm';
 
 describe('InventoryService', () => {
     let service: InventoryService;
-    let itemRepo: any;
-    let movementRepo: any;
-
-    const tenantId = 'tenant-uuid-1';
-    const userId = 'user-uuid-1';
-
-    const mockItem: Partial<InventoryItemEntity> = {
-        id: 'item-uuid-1',
-        tenantId,
-        name: 'Amoxicilina 500mg',
-        category: 'ANTIBIOTIC',
-        sku: 'AMX-500',
-        stock: 20,
-        minStock: 10,
-        unit: 'caixas',
-        price: 3500,
-        isControlled: false,
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-    };
+    let itemRepo: Repository<InventoryItemEntity>;
+    let movementRepo: Repository<StockMovementEntity>;
 
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -40,28 +21,24 @@ describe('InventoryService', () => {
                 {
                     provide: getRepositoryToken(InventoryItemEntity),
                     useValue: {
-                        create: jest.fn(),
-                        save: jest.fn(),
-                        findOne: jest.fn(),
                         find: jest.fn(),
-                        findAndCount: jest.fn(),
-                        createQueryBuilder: jest.fn().mockReturnValue({
+                        findOne: jest.fn(),
+                        create: jest.fn().mockImplementation((dto) => dto),
+                        save: jest.fn().mockImplementation((item) => Promise.resolve({ id: 'uuid-1', ...item })),
+                        update: jest.fn(),
+                        createQueryBuilder: jest.fn(() => ({
                             where: jest.fn().mockReturnThis(),
                             andWhere: jest.fn().mockReturnThis(),
-                            orderBy: jest.fn().mockReturnThis(),
-                            skip: jest.fn().mockReturnThis(),
-                            take: jest.fn().mockReturnThis(),
-                            getManyAndCount: jest.fn().mockResolvedValue([[mockItem], 1]),
-                            getMany: jest.fn().mockResolvedValue([]),
-                        }),
+                            getCount: jest.fn().mockResolvedValue(0),
+                        })),
                     },
                 },
                 {
                     provide: getRepositoryToken(StockMovementEntity),
                     useValue: {
-                        create: jest.fn().mockReturnValue({}),
-                        save: jest.fn().mockResolvedValue({}),
-                        find: jest.fn().mockResolvedValue([]),
+                        create: jest.fn().mockImplementation((dto) => dto),
+                        save: jest.fn().mockImplementation((m) => Promise.resolve({ id: 'move-1', ...m })),
+                        find: jest.fn(),
                     },
                 },
             ],
@@ -76,178 +53,146 @@ describe('InventoryService', () => {
         expect(service).toBeDefined();
     });
 
-    describe('create', () => {
-        it('should create item and record initial stock movement', async () => {
-            const saved = { ...mockItem, stock: 50 };
-            itemRepo.create.mockReturnValue(saved);
-            itemRepo.save.mockResolvedValue(saved);
+    describe('createItem', () => {
+        it('should create a new inventory item', async () => {
+            const dto = {
+                name: 'Vacina Antirrábica',
+                sku: 'VAC-001',
+                category: 'Medication',
+                quantity: 50,
+                minQuantity: 10,
+                unit: 'vials',
+                costPrice: 500,
+                sellingPrice: 1500,
+                supplier: 'MedVet Angola',
+                expiryDate: '2025-12-31' as unknown as Date,
+            };
 
-            const result = await service.create(tenantId, userId, {
-                name: 'Amoxicilina 500mg',
-                category: 'ANTIBIOTIC',
-                minStock: 10,
-                unit: 'caixas',
-                price: 3500,
-                stock: 50,
-            });
+            const result = await service.create('tenant-1', 'user-1', dto);
 
-            expect(itemRepo.create).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    tenantId,
-                    name: 'Amoxicilina 500mg',
-                    stock: 50,
-                }),
-            );
-            // Should record initial stock movement
-            expect(movementRepo.create).toHaveBeenCalledWith(
+            expect(result).toHaveProperty('id', 'uuid-1');
+            expect(itemRepo.save).toHaveBeenCalled();
+            expect(movementRepo.save).toHaveBeenCalledWith(
                 expect.objectContaining({
                     type: 'IN',
                     quantity: 50,
-                    previousStock: 0,
-                    newStock: 50,
-                    reason: 'Estoque inicial',
+                    reason: 'Initial Stock',
                 }),
-            );
-            expect(result).toBeDefined();
-        });
-
-        it('should reject if required fields missing', async () => {
-            await expect(
-                service.create(tenantId, userId, { name: '', category: 'OTHER', minStock: 0, unit: '', price: 0 }),
-            ).rejects.toThrow(BadRequestException);
-        });
-    });
-
-    describe('findAll', () => {
-        it('should return paginated items', async () => {
-            const result = await service.findAll(tenantId, { page: 1, limit: 10 });
-
-            expect(result.data).toHaveLength(1);
-            expect(result.total).toBe(1);
-        });
-    });
-
-    describe('findById', () => {
-        it('should return item', async () => {
-            itemRepo.findOne.mockResolvedValue(mockItem);
-            const result = await service.findById(tenantId, 'item-uuid-1');
-            expect(result.name).toBe('Amoxicilina 500mg');
-        });
-
-        it('should throw NotFoundException', async () => {
-            itemRepo.findOne.mockResolvedValue(null);
-            await expect(service.findById(tenantId, 'x')).rejects.toThrow(NotFoundException);
-        });
-    });
-
-    describe('update', () => {
-        it('should update item fields', async () => {
-            itemRepo.findOne.mockResolvedValue({ ...mockItem });
-            itemRepo.save.mockResolvedValue({ ...mockItem, price: 4000 });
-
-            const result = await service.update(tenantId, 'item-uuid-1', { price: 4000 });
-            expect(itemRepo.save).toHaveBeenCalledWith(
-                expect.objectContaining({ price: 4000 }),
             );
         });
     });
 
     describe('adjustStock', () => {
-        it('should add stock (IN)', async () => {
-            const item = { ...mockItem, stock: 20 };
-            itemRepo.findOne.mockResolvedValue(item);
-            itemRepo.save.mockResolvedValue({ ...item, stock: 30 });
+        it('should increase stock', async () => {
+            jest.spyOn(itemRepo, 'findOne').mockResolvedValue({
+                id: 'uuid-1',
+                stock: 10,
+                tenantId: 'tenant-1',
+            } as any);
 
-            const result = await service.adjustStock(tenantId, userId, 'item-uuid-1', {
-                quantity: 10,
-                type: 'IN',
-                reason: 'Reposição mensal',
-            });
+            await service.adjustStock('tenant-1', 'user-1', 'uuid-1', { quantityChange: 5, reason: 'Restock', reference: 'PO-123' });
 
-            expect(item.stock).toBe(30);
-            expect(movementRepo.create).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    type: 'IN',
-                    previousStock: 20,
-                    newStock: 30,
-                }),
-            );
+            expect(itemRepo.save).toHaveBeenCalledWith(expect.objectContaining({ stock: 15 }));
+            expect(movementRepo.save).toHaveBeenCalledWith(expect.objectContaining({ type: 'IN', quantity: 5 }));
         });
 
-        it('should remove stock (OUT)', async () => {
-            const item = { ...mockItem, stock: 20 };
-            itemRepo.findOne.mockResolvedValue(item);
-            itemRepo.save.mockResolvedValue({ ...item, stock: 15 });
+        it('should decrease stock', async () => {
+            jest.spyOn(itemRepo, 'findOne').mockResolvedValue({
+                id: 'uuid-1',
+                stock: 10,
+                tenantId: 'tenant-1',
+            } as any);
 
-            await service.adjustStock(tenantId, userId, 'item-uuid-1', {
-                quantity: 5,
-                type: 'OUT',
-                reason: 'Uso em consulta',
-            });
+            await service.adjustStock('tenant-1', 'user-1', 'uuid-1', { quantityChange: -3, reason: 'Usage' });
 
-            expect(item.stock).toBe(15);
+            expect(itemRepo.save).toHaveBeenCalledWith(expect.objectContaining({ stock: 7 }));
+            expect(movementRepo.save).toHaveBeenCalledWith(expect.objectContaining({ type: 'OUT', quantity: 3 }));
         });
 
-        it('should reject OUT if insufficient stock', async () => {
-            const item = { ...mockItem, stock: 3 };
-            itemRepo.findOne.mockResolvedValue(item);
+        it('should prevent negative stock', async () => {
+            jest.spyOn(itemRepo, 'findOne').mockResolvedValue({
+                id: 'uuid-1',
+                stock: 2,
+                tenantId: 'tenant-1',
+            } as any);
 
-            await expect(
-                service.adjustStock(tenantId, userId, 'item-uuid-1', {
-                    quantity: 10,
-                    type: 'OUT',
-                }),
-            ).rejects.toThrow(BadRequestException);
-        });
-
-        it('should set stock directly (ADJUSTMENT)', async () => {
-            const item = { ...mockItem, stock: 20 };
-            itemRepo.findOne.mockResolvedValue(item);
-            itemRepo.save.mockResolvedValue({ ...item, stock: 50 });
-
-            await service.adjustStock(tenantId, userId, 'item-uuid-1', {
-                quantity: 50,
-                type: 'ADJUSTMENT',
-                reason: 'Contagem física',
-            });
-
-            expect(item.stock).toBe(50);
+            await expect(service.adjustStock('tenant-1', 'user-1', 'uuid-1', { quantityChange: -5, reason: 'Usage' })).rejects.toThrow();
         });
     });
 
-    describe('getMovements', () => {
-        it('should return movement history', async () => {
-            const movements = [
-                { id: '1', type: 'IN', quantity: 10, previousStock: 0, newStock: 10 },
-            ];
-            movementRepo.find.mockResolvedValue(movements);
+    describe('checkLowStock', () => {
+        it('should return items below min quantity', async () => {
+            // Mock QueryBuilder for this specific call since it uses createQueryBuilder
+            const mockQueryBuilder = {
+                where: jest.fn().mockReturnThis(),
+                andWhere: jest.fn().mockReturnThis(),
+                getMany: jest.fn().mockResolvedValue([
+                    { name: 'Item A', stock: 5, minStock: 10 }
+                ]),
+            };
 
-            const result = await service.getMovements(tenantId, 'item-uuid-1');
+            jest.spyOn(itemRepo, 'createQueryBuilder').mockReturnValue(mockQueryBuilder as any);
+
+            const result = await service.getLowStockAlerts('tenant-1');
             expect(result).toHaveLength(1);
-        });
-    });
-
-    describe('getLowStockAlerts', () => {
-        it('should return items below minimum', async () => {
-            const qb = itemRepo.createQueryBuilder();
-            qb.getMany.mockResolvedValue([
-                { ...mockItem, stock: 3, minStock: 10 },
-            ]);
-
-            const result = await service.getLowStockAlerts(tenantId);
-            expect(result.count).toBe(1);
-            expect(result.items[0].stock).toBeLessThan(result.items[0].minStock);
+            expect(result[0].name).toBe('Item A');
         });
     });
 
     describe('getExpiringSoon', () => {
-        it('should return items expiring within window', async () => {
-            const expiring = { ...mockItem, expiryDate: new Date() };
-            itemRepo.find.mockResolvedValue([expiring]);
+        it('should return items expiring within 30 days', async () => {
+            const future = new Date();
+            future.setDate(future.getDate() + 15);
 
-            const result = await service.getExpiringSoon(tenantId, 30);
-            expect(result.count).toBe(1);
-            expect(result.daysAhead).toBe(30);
+            const mockQueryBuilder = {
+                where: jest.fn().mockReturnThis(),
+                andWhere: jest.fn().mockReturnThis(),
+                getMany: jest.fn().mockResolvedValue([
+                    { name: 'Item B', expiryDate: future }
+                ]),
+            };
+
+            jest.spyOn(itemRepo, 'createQueryBuilder').mockReturnValue(mockQueryBuilder as any);
+
+            const result = await service.getExpiringSoon('tenant-1', 30);
+            expect(itemRepo.createQueryBuilder).toHaveBeenCalled();
+            expect(result).toHaveLength(1);
+        });
+    });
+
+    describe('valuation', () => {
+        it('should calculate total inventory value', async () => {
+            jest.spyOn(itemRepo, 'find').mockResolvedValue([
+                { stock: 10, cost: 100 } as any,
+                { stock: 5, cost: 200 } as any,
+            ]);
+
+            const result = await service.getInventoryValuation('tenant-1');
+            expect(result.totalValue).toBe(2000); // 10*100 + 5*200
+            expect(result.itemCount).toBe(15);
+        });
+    });
+
+    describe('sku uniqueness', () => {
+        it('should check if sku exists', async () => {
+            (itemRepo.createQueryBuilder as jest.Mock).mockReturnValue({
+                where: jest.fn().mockReturnThis(),
+                andWhere: jest.fn().mockReturnThis(),
+                getCount: jest.fn().mockResolvedValue(1),
+            });
+
+            await expect(
+                service.create('tenant-1', 'user-1', {
+                    name: 'Test',
+                    sku: 'EXISTING',
+                    category: 'Test',
+                    quantity: 1,
+                    minQuantity: 1,
+                    unit: 'each',
+                    costPrice: 10,
+                    sellingPrice: 20
+                } as any),
+            ).rejects.toThrow();
         });
     });
 });

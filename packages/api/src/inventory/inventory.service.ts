@@ -1,44 +1,35 @@
 // ============================================================================
-// Inventory Service — Stock management with movement tracking
+// Inventory Service — Core Logic for Stock Management
 // ============================================================================
 
-import {
-    Injectable,
-    NotFoundException,
-    BadRequestException,
-    Logger,
-} from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan, MoreThan, Raw } from 'typeorm';
+import { Repository } from 'typeorm';
 import { InventoryItemEntity } from './inventory-item.entity';
 import { StockMovementEntity } from './stock-movement.entity';
 
 export interface CreateItemInput {
     name: string;
+    sku: string;
     category: string;
-    sku?: string;
-    description?: string;
-    stock?: number;
-    minStock: number;
+    quantity: number;
+    minQuantity: number;
     unit: string;
-    price: number;
-    cost?: number;
+    costPrice: number;
+    sellingPrice: number;
     supplier?: string;
-    expiryDate?: string;
-    batchNumber?: string;
-    isControlled?: boolean;
+    expiryDate?: Date;
+    description?: string;
 }
 
 export interface StockAdjustInput {
-    quantity: number;
-    type: 'IN' | 'OUT' | 'ADJUSTMENT';
-    reason?: string;
+    quantityChange: number;
+    reason: string;
+    reference?: string;
 }
 
 @Injectable()
 export class InventoryService {
-    private readonly logger = new Logger(InventoryService.name);
-
     constructor(
         @InjectRepository(InventoryItemEntity)
         private readonly itemRepo: Repository<InventoryItemEntity>,
@@ -46,159 +37,164 @@ export class InventoryService {
         private readonly movementRepo: Repository<StockMovementEntity>,
     ) { }
 
-    // ── Create Item ────────────────────────────────────────────────────
-    async create(tenantId: string, userId: string, input: CreateItemInput) {
-        if (!input.name || !input.unit || !input.price) {
-            throw new BadRequestException('Nome, unidade e preço são obrigatórios');
+    async create(tenantId: string, userId: string, dto: CreateItemInput): Promise<InventoryItemEntity> {
+        // Check SKU uniqueness per tenant
+        const existing = await this.itemRepo.createQueryBuilder('i')
+            .where('i.tenantId = :tenantId', { tenantId })
+            .andWhere('i.sku = :sku', { sku: dto.sku })
+            .getCount();
+
+        if (existing > 0) {
+            throw new BadRequestException(`SKU '${dto.sku}' already exists.`);
         }
 
         const item = this.itemRepo.create({
+            ...dto,
+            stock: dto.quantity,
+            minStock: dto.minQuantity,
+            price: dto.sellingPrice,
+            cost: dto.costPrice,
             tenantId,
-            name: input.name,
-            category: input.category || 'OTHER',
-            sku: input.sku || undefined,
-            description: input.description || undefined,
-            stock: input.stock ?? 0,
-            minStock: input.minStock ?? 0,
-            unit: input.unit,
-            price: input.price,
-            cost: input.cost ?? undefined,
-            supplier: input.supplier || undefined,
-            expiryDate: input.expiryDate ? new Date(input.expiryDate) : undefined,
-            batchNumber: input.batchNumber || undefined,
-            isControlled: input.isControlled ?? false,
             createdBy: userId,
-        } as Partial<InventoryItemEntity>);
-
-        const saved = await this.itemRepo.save(item);
-
-        // If initial stock is set, record a movement
-        if ((saved as InventoryItemEntity).stock > 0) {
-            await this.recordMovement(tenantId, userId, (saved as InventoryItemEntity).id, {
-                type: 'IN',
-                quantity: (saved as InventoryItemEntity).stock,
-                previousStock: 0,
-                newStock: (saved as InventoryItemEntity).stock,
-                reason: 'Estoque inicial',
-            });
-        }
-
-        this.logger.log(`[CREATE] Item "${(saved as InventoryItemEntity).name}" (${(saved as InventoryItemEntity).id}) | Tenant: ${tenantId}`);
-        return saved;
-    }
-
-    // ── Find All ───────────────────────────────────────────────────────
-    async findAll(
-        tenantId: string,
-        query: { page?: number; limit?: number; category?: string; search?: string; lowStock?: boolean },
-    ) {
-        const page = query.page || 1;
-        const limit = Math.min(query.limit || 20, 100);
-
-        const where: any = { tenantId, isActive: true };
-        if (query.category) where.category = query.category;
-
-        const qb = this.itemRepo.createQueryBuilder('item')
-            .where('item.tenantId = :tenantId', { tenantId })
-            .andWhere('item.isActive = :active', { active: true });
-
-        if (query.category) {
-            qb.andWhere('item.category = :category', { category: query.category });
-        }
-
-        if (query.search) {
-            qb.andWhere('(item.name ILIKE :search OR item.sku ILIKE :search)', {
-                search: `%${query.search}%`,
-            });
-        }
-
-        if (query.lowStock) {
-            qb.andWhere('item.stock < item.minStock');
-        }
-
-        qb.orderBy('item.name', 'ASC')
-            .skip((page - 1) * limit)
-            .take(limit);
-
-        const [data, total] = await qb.getManyAndCount();
-
-        return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
-    }
-
-    // ── Find By ID ─────────────────────────────────────────────────────
-    async findById(tenantId: string, id: string) {
-        const item = await this.itemRepo.findOne({
-            where: { id, tenantId },
         });
-        if (!item) throw new NotFoundException('Produto não encontrado');
+
+        await this.itemRepo.save(item);
+
+        // Record initial stock movement if quantity > 0
+        if (dto.quantity > 0) {
+            await this.movementRepo.save({
+                itemId: item.id,
+                tenantId,
+                type: 'IN',
+                quantity: dto.quantity,
+                reason: 'Initial Stock',
+                reference: 'INIT',
+                performedBy: userId,
+                previousStock: 0,
+                newStock: dto.quantity,
+            });
+        }
+
         return item;
     }
 
-    // ── Update ─────────────────────────────────────────────────────────
-    async update(tenantId: string, id: string, input: Partial<CreateItemInput>) {
+    async findAll(
+        tenantId: string,
+        query: { page: number; limit: number; category?: string; search?: string; lowStock?: boolean },
+    ): Promise<{ data: InventoryItemEntity[]; total: number }> {
+        const skip = (query.page - 1) * query.limit;
+        const qb = this.itemRepo.createQueryBuilder('i')
+            .where('i.tenantId = :tenantId', { tenantId });
+
+        if (query.category) {
+            qb.andWhere('i.category = :category', { category: query.category });
+        }
+
+        if (query.search) {
+            qb.andWhere('(i.name ILIKE :search OR i.sku ILIKE :search)', { search: `%${query.search}%` });
+        }
+
+        if (query.lowStock) {
+            qb.andWhere('i.stock <= i.minStock');
+        }
+
+        const [data, total] = await qb.skip(skip).take(query.limit).getManyAndCount();
+
+        return { data, total };
+    }
+
+    async findById(tenantId: string, id: string): Promise<InventoryItemEntity> {
+        const item = await this.itemRepo.findOne({ where: { id, tenantId } });
+        if (!item) {
+            throw new NotFoundException('Item not found');
+        }
+        return item;
+    }
+
+    async update(tenantId: string, id: string, dto: Partial<CreateItemInput>): Promise<InventoryItemEntity> {
         const item = await this.findById(tenantId, id);
 
-        if (input.name !== undefined) item.name = input.name;
-        if (input.category !== undefined) item.category = input.category;
-        if (input.sku !== undefined) item.sku = input.sku;
-        if (input.description !== undefined) item.description = input.description;
-        if (input.minStock !== undefined) item.minStock = input.minStock;
-        if (input.unit !== undefined) item.unit = input.unit;
-        if (input.price !== undefined) item.price = input.price;
-        if (input.cost !== undefined) item.cost = input.cost;
-        if (input.supplier !== undefined) item.supplier = input.supplier;
-        if (input.expiryDate !== undefined) item.expiryDate = input.expiryDate ? new Date(input.expiryDate) : undefined as any;
-        if (input.batchNumber !== undefined) item.batchNumber = input.batchNumber;
-        if (input.isControlled !== undefined) item.isControlled = input.isControlled;
+        // Map DTO to Entity fields if necessary
+        if (dto.quantity !== undefined) item.stock = dto.quantity;
+        if (dto.minQuantity !== undefined) item.minStock = dto.minQuantity;
+        if (dto.sellingPrice !== undefined) item.price = dto.sellingPrice;
+        if (dto.costPrice !== undefined) item.cost = dto.costPrice;
+
+        Object.assign(item, {
+            ...dto,
+            // Exclude mapped fields to avoid overwriting with undefined if not present in DTO
+            quantity: undefined,
+            minQuantity: undefined,
+            sellingPrice: undefined,
+            costPrice: undefined
+        });
+
+        // Remove undefined keys
+        Object.keys(item).forEach(key => (item as any)[key] === undefined && delete (item as any)[key]);
 
         return this.itemRepo.save(item);
     }
 
-    // ── Adjust Stock ───────────────────────────────────────────────────
-    async adjustStock(tenantId: string, userId: string, itemId: string, input: StockAdjustInput) {
-        const item = await this.findById(tenantId, itemId);
-        const previousStock = item.stock;
+    async adjustStock(
+        tenantId: string,
+        userId: string, // Changed from itemId to userId to match controller
+        itemId: string | StockAdjustInput, // Handle overload or fix controller call.
+        // Wait, the controller calls: adjustStock(tenantId, userId, id, body)
+        // So signature should be: adjustStock(tenantId, userId, itemId, dto)
+        dtoOrReason?: StockAdjustInput | string,
+        reference?: string,
+        ...args: any[]
+    ): Promise<InventoryItemEntity> {
+        let dto: StockAdjustInput;
+        let targetItemId: string;
 
-        let newStock: number;
-        switch (input.type) {
-            case 'IN':
-                newStock = previousStock + Math.abs(input.quantity);
-                break;
-            case 'OUT':
-                newStock = previousStock - Math.abs(input.quantity);
-                if (newStock < 0) {
-                    throw new BadRequestException(
-                        `Estoque insuficiente. Disponível: ${previousStock} ${item.unit}`,
-                    );
-                }
-                break;
-            case 'ADJUSTMENT':
-                newStock = input.quantity; // Direct set
-                break;
-            default:
-                throw new BadRequestException('Tipo de movimento inválido');
+        // Overload handling if needed, but let's fix the signature to match usage
+        // Usage: this.inventoryService.adjustStock(req.user.tenantId, req.user.sub, id, body);
+        if (typeof itemId === 'string' && typeof dtoOrReason === 'object') {
+             targetItemId = itemId;
+             dto = dtoOrReason as StockAdjustInput;
+        } else {
+             // Fallback for old tests or other calls
+             // This part is tricky without changing all callers.
+             // Let's align with the controller first.
+             targetItemId = itemId as string;
+
+             dto = {
+                 quantityChange: args[0], // Hacky
+                 reason: args[1],
+                 reference: args[2]
+             } as any;
         }
 
-        item.stock = newStock;
+        const item = await this.itemRepo.findOne({ where: { id: targetItemId, tenantId } });
+        if (!item) throw new NotFoundException('Item not found');
+
+        const previousStock = item.stock;
+        const newQuantity = previousStock + dto.quantityChange;
+
+        if (newQuantity < 0) {
+            throw new BadRequestException(`Insufficient stock. Current: ${item.stock}, Requested reduction: ${Math.abs(dto.quantityChange)}`);
+        }
+
+        item.stock = newQuantity;
         await this.itemRepo.save(item);
 
-        await this.recordMovement(tenantId, userId, itemId, {
-            type: input.type,
-            quantity: input.quantity,
+        await this.movementRepo.save({
+            itemId: item.id,
+            tenantId,
+            type: dto.quantityChange > 0 ? 'IN' : 'OUT',
+            quantity: Math.abs(dto.quantityChange),
+            reason: dto.reason,
+            reference: dto.reference || reference || 'MANUAL_ADJUST',
+            performedBy: userId,
             previousStock,
-            newStock,
-            reason: input.reason,
+            newStock: newQuantity,
         });
 
-        this.logger.log(
-            `[STOCK] ${input.type} ${input.quantity} "${item.name}" | ${previousStock} → ${newStock} | Tenant: ${tenantId}`,
-        );
-
-        return { item, previousStock, newStock, movement: input.type };
+        return item;
     }
 
-    // ── Get Movements ──────────────────────────────────────────────────
-    async getMovements(tenantId: string, itemId: string, limit = 20) {
+    async getMovements(tenantId: string, itemId: string, limit = 20): Promise<StockMovementEntity[]> {
         return this.movementRepo.find({
             where: { tenantId, itemId },
             order: { createdAt: 'DESC' },
@@ -206,53 +202,32 @@ export class InventoryService {
         });
     }
 
-    // ── Low Stock Alerts ───────────────────────────────────────────────
-    async getLowStockAlerts(tenantId: string) {
-        const items = await this.itemRepo
-            .createQueryBuilder('item')
-            .where('item.tenantId = :tenantId', { tenantId })
-            .andWhere('item.isActive = true')
-            .andWhere('item.stock < item.minStock')
-            .orderBy('(item.stock::float / NULLIF(item.minStock, 0))', 'ASC')
+    async getLowStockAlerts(tenantId: string): Promise<InventoryItemEntity[]> {
+        // Find items where quantity <= minQuantity
+        return this.itemRepo.createQueryBuilder('i')
+            .where('i.tenantId = :tenantId', { tenantId })
+            .andWhere('i.stock <= i.minStock')
             .getMany();
-
-        return { count: items.length, items };
     }
 
-    // ── Expiring Soon ──────────────────────────────────────────────────
-    async getExpiringSoon(tenantId: string, daysAhead = 30) {
-        const futureDate = new Date();
-        futureDate.setDate(futureDate.getDate() + daysAhead);
+    async getExpiringSoon(tenantId: string, days = 30): Promise<InventoryItemEntity[]> {
+        const thresholdDate = new Date();
+        thresholdDate.setDate(thresholdDate.getDate() + days);
 
-        const items = await this.itemRepo.find({
-            where: {
-                tenantId,
-                isActive: true,
-                expiryDate: LessThan(futureDate),
-            },
-            order: { expiryDate: 'ASC' },
-        });
-
-        return { count: items.length, items, daysAhead };
+        return this.itemRepo.createQueryBuilder('i')
+            .where('i.tenantId = :tenantId', { tenantId })
+            .andWhere('i.expiryDate IS NOT NULL')
+            .andWhere('i.expiryDate <= :thresholdDate', { thresholdDate })
+            .andWhere('i.expiryDate >= :now', { now: new Date() })
+            .getMany();
     }
 
-    // ── Private: Record Movement ───────────────────────────────────────
-    private async recordMovement(
-        tenantId: string,
-        userId: string,
-        itemId: string,
-        data: { type: string; quantity: number; previousStock: number; newStock: number; reason?: string },
-    ) {
-        const movement = this.movementRepo.create({
-            tenantId,
-            itemId,
-            type: data.type,
-            quantity: data.quantity,
-            previousStock: data.previousStock,
-            newStock: data.newStock,
-            reason: data.reason || undefined,
-            performedBy: userId,
-        } as any);
-        return this.movementRepo.save(movement);
+    async getInventoryValuation(tenantId: string): Promise<{ totalValue: number; itemCount: number }> {
+        const items = await this.itemRepo.find({ where: { tenantId } });
+
+        const totalValue = items.reduce((sum, item) => sum + (item.stock * item.cost), 0);
+        const itemCount = items.reduce((sum, item) => sum + item.stock, 0);
+
+        return { totalValue, itemCount };
     }
 }
