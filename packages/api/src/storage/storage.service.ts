@@ -5,6 +5,7 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
+import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3';
 
 export interface UploadResult {
     key: string;
@@ -38,11 +39,25 @@ export class StorageService {
     private readonly bucket: string;
     private readonly endpoint: string;
     private readonly region: string;
+    private readonly s3Client: S3Client;
 
     constructor(private configService: ConfigService) {
         this.bucket = this.configService.get<string>('S3_BUCKET', 'vetsaas-files');
         this.endpoint = this.configService.get<string>('S3_ENDPOINT', 'http://localhost:9000');
         this.region = this.configService.get<string>('S3_REGION', 'us-east-1');
+
+        const accessKeyId = this.configService.get<string>('S3_ACCESS_KEY', 'minioadmin');
+        const secretAccessKey = this.configService.get<string>('S3_SECRET_KEY', 'minioadmin');
+
+        this.s3Client = new S3Client({
+            endpoint: this.endpoint,
+            region: this.region,
+            credentials: {
+                accessKeyId,
+                secretAccessKey,
+            },
+            forcePathStyle: true, // For MinIO compatibility
+        });
     }
 
     /**
@@ -138,8 +153,18 @@ export class StorageService {
      * Delete a file from storage.
      */
     async delete(key: string): Promise<void> {
-        // TODO: Replace with actual S3 DeleteObjectCommand
-        this.logger.log(`[STORAGE STUB] Deleted: ${key}`);
+        try {
+            await this.s3Client.send(
+                new DeleteObjectCommand({
+                    Bucket: this.bucket,
+                    Key: key,
+                }),
+            );
+            this.logger.log(`[STORAGE] Deleted: ${key}`);
+        } catch (error) {
+            this.logger.error(`[STORAGE] Error deleting file: ${key}`, error);
+            throw error;
+        }
     }
 
     /**
