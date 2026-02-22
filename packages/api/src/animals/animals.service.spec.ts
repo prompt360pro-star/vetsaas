@@ -57,10 +57,16 @@ describe('AnimalsService', () => {
 
     describe('findAll', () => {
         it('should return paginated animals for the given tenant', async () => {
-            const animals = [mockAnimal, { ...mockAnimal, id: 'animal-uuid-2', name: 'Bolt' }];
+            const animals = [
+                mockAnimal,
+                { ...mockAnimal, id: 'animal-uuid-2', name: 'Bolt' },
+            ];
             repo.findAndCount.mockResolvedValue([animals, 2]);
 
-            const result = await service.findAll(tenantId, { page: 1, limit: 20 });
+            const result = await service.findAll(tenantId, {
+                page: 1,
+                limit: 20,
+            });
 
             expect(repo.findAndCount).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -79,7 +85,9 @@ describe('AnimalsService', () => {
 
             expect(repo.findAndCount).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    where: expect.objectContaining({ tenantId: 'different-tenant' }),
+                    where: expect.objectContaining({
+                        tenantId: 'different-tenant',
+                    }),
                 }),
             );
         });
@@ -118,8 +126,17 @@ describe('AnimalsService', () => {
             };
             const userId = 'user-uuid-1';
 
-            repo.create.mockReturnValue({ ...dto, tenantId, createdBy: userId });
-            repo.save.mockResolvedValue({ ...dto, id: 'new-uuid', tenantId, createdBy: userId });
+            repo.create.mockReturnValue({
+                ...dto,
+                tenantId,
+                createdBy: userId,
+            });
+            repo.save.mockResolvedValue({
+                ...dto,
+                id: 'new-uuid',
+                tenantId,
+                createdBy: userId,
+            });
 
             const result = await service.create(tenantId, userId, dto);
 

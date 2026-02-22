@@ -14,7 +14,7 @@ import { RateLimitGuard } from '../common/rate-limit.guard';
 
 @Controller('auth')
 export class AuthController {
-    constructor(private readonly authService: AuthService) { }
+    constructor(private readonly authService: AuthService) {}
 
     @Post('register')
     @UseGuards(RateLimitGuard)
@@ -45,15 +45,28 @@ export class AuthController {
 
     @Patch('profile')
     @UseGuards(AuthGuard('jwt'))
-    async updateProfile(@Request() req: any, @Body() body: { firstName?: string; lastName?: string; phone?: string }) {
-        const profile = await this.authService.updateProfile(req.user.sub, body);
+    async updateProfile(
+        @Request() req: any,
+        @Body() body: { firstName?: string; lastName?: string; phone?: string },
+    ) {
+        const profile = await this.authService.updateProfile(
+            req.user.sub,
+            body,
+        );
         return { success: true, data: profile };
     }
 
     @Post('change-password')
     @UseGuards(AuthGuard('jwt'))
-    async changePassword(@Request() req: any, @Body() body: { oldPassword: string; newPassword: string }) {
-        await this.authService.changePassword(req.user.sub, body.oldPassword, body.newPassword);
+    async changePassword(
+        @Request() req: any,
+        @Body() body: { oldPassword: string; newPassword: string },
+    ) {
+        await this.authService.changePassword(
+            req.user.sub,
+            body.oldPassword,
+            body.newPassword,
+        );
         return { success: true, message: 'Password updated successfully' };
     }
 }

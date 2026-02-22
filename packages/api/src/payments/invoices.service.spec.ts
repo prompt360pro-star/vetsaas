@@ -22,8 +22,18 @@ describe('InvoicesService', () => {
         tutorName: 'João Silva',
         invoiceNumber: 'FAT-2025-000001',
         items: [
-            { description: 'Consulta geral', quantity: 1, unitPrice: 10000, total: 10000 },
-            { description: 'Vacina antirrábica', quantity: 1, unitPrice: 5000, total: 5000 },
+            {
+                description: 'Consulta geral',
+                quantity: 1,
+                unitPrice: 10000,
+                total: 10000,
+            },
+            {
+                description: 'Vacina antirrábica',
+                quantity: 1,
+                unitPrice: 5000,
+                total: 5000,
+            },
         ],
         subtotal: 15000,
         tax: 2100, // 14% IVA
@@ -69,8 +79,18 @@ describe('InvoicesService', () => {
                 tutorId: 'tutor-uuid-1',
                 tutorName: 'João Silva',
                 items: [
-                    { description: 'Consulta geral', quantity: 1, unitPrice: 10000, total: 0 },
-                    { description: 'Vacina antirrábica', quantity: 1, unitPrice: 5000, total: 0 },
+                    {
+                        description: 'Consulta geral',
+                        quantity: 1,
+                        unitPrice: 10000,
+                        total: 0,
+                    },
+                    {
+                        description: 'Vacina antirrábica',
+                        quantity: 1,
+                        unitPrice: 5000,
+                        total: 0,
+                    },
                 ],
             });
 
@@ -106,7 +126,12 @@ describe('InvoicesService', () => {
                 tutorId: 'tutor-uuid-1',
                 tutorName: 'Ana Santos',
                 items: [
-                    { description: 'Cirurgia', quantity: 1, unitPrice: 100000, total: 0 },
+                    {
+                        description: 'Cirurgia',
+                        quantity: 1,
+                        unitPrice: 100000,
+                        total: 0,
+                    },
                 ],
                 taxRate: 0, // Tax exempt
             });
@@ -125,7 +150,10 @@ describe('InvoicesService', () => {
         it('should return paginated invoices', async () => {
             repo.findAndCount.mockResolvedValue([[mockInvoice], 1]);
 
-            const result = await service.findAll(tenantId, { page: 1, limit: 10 });
+            const result = await service.findAll(tenantId, {
+                page: 1,
+                limit: 10,
+            });
 
             expect(result.data).toHaveLength(1);
             expect(result.total).toBe(1);
@@ -134,7 +162,11 @@ describe('InvoicesService', () => {
         it('should filter by status', async () => {
             repo.findAndCount.mockResolvedValue([[], 0]);
 
-            await service.findAll(tenantId, { page: 1, limit: 10, status: 'PAID' });
+            await service.findAll(tenantId, {
+                page: 1,
+                limit: 10,
+                status: 'PAID',
+            });
 
             expect(repo.findAndCount).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -166,7 +198,7 @@ describe('InvoicesService', () => {
             repo.findOne.mockResolvedValue({ ...mockInvoice });
             repo.save.mockResolvedValue({ ...mockInvoice, status: 'PAID' });
 
-            const result = await service.markAsPaid(tenantId, 'inv-uuid-1', 'pay-uuid-1');
+            await service.markAsPaid(tenantId, 'inv-uuid-1', 'pay-uuid-1');
 
             expect(repo.save).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -178,7 +210,10 @@ describe('InvoicesService', () => {
         });
 
         it('should reject paying a cancelled invoice', async () => {
-            repo.findOne.mockResolvedValue({ ...mockInvoice, status: 'CANCELLED' });
+            repo.findOne.mockResolvedValue({
+                ...mockInvoice,
+                status: 'CANCELLED',
+            });
 
             await expect(
                 service.markAsPaid(tenantId, 'inv-uuid-1', 'pay-uuid-1'),
@@ -189,9 +224,12 @@ describe('InvoicesService', () => {
     describe('cancel', () => {
         it('should cancel a draft invoice', async () => {
             repo.findOne.mockResolvedValue({ ...mockInvoice });
-            repo.save.mockResolvedValue({ ...mockInvoice, status: 'CANCELLED' });
+            repo.save.mockResolvedValue({
+                ...mockInvoice,
+                status: 'CANCELLED',
+            });
 
-            const result = await service.cancel(tenantId, 'inv-uuid-1', 'Erro de dados');
+            await service.cancel(tenantId, 'inv-uuid-1', 'Erro de dados');
 
             expect(repo.save).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -215,7 +253,7 @@ describe('InvoicesService', () => {
             repo.findOne.mockResolvedValue({ ...mockInvoice, status: 'DRAFT' });
             repo.save.mockResolvedValue({ ...mockInvoice, status: 'SENT' });
 
-            const result = await service.send(tenantId, 'inv-uuid-1');
+            await service.send(tenantId, 'inv-uuid-1');
 
             expect(repo.save).toHaveBeenCalledWith(
                 expect.objectContaining({ status: 'SENT' }),
@@ -225,9 +263,9 @@ describe('InvoicesService', () => {
         it('should reject sending a non-draft invoice', async () => {
             repo.findOne.mockResolvedValue({ ...mockInvoice, status: 'SENT' });
 
-            await expect(
-                service.send(tenantId, 'inv-uuid-1'),
-            ).rejects.toThrow(BadRequestException);
+            await expect(service.send(tenantId, 'inv-uuid-1')).rejects.toThrow(
+                BadRequestException,
+            );
         });
     });
 });

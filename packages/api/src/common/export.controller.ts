@@ -16,7 +16,7 @@ import { ExportService } from './export.service';
 @UseGuards(AuthGuard('jwt'), RolesGuard)
 @Roles('CLINIC_ADMIN')
 export class ExportController {
-    constructor(private readonly exportService: ExportService) { }
+    constructor(private readonly exportService: ExportService) {}
 
     @Get('animals')
     async exportAnimals(@Request() req: any, @Res() res: Response) {
@@ -55,7 +55,10 @@ export class ExportController {
     private sendCsv(res: Response, csv: string, name: string) {
         const date = new Date().toISOString().split('T')[0];
         res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-        res.setHeader('Content-Disposition', `attachment; filename="${name}_${date}.csv"`);
+        res.setHeader(
+            'Content-Disposition',
+            `attachment; filename="${name}_${date}.csv"`,
+        );
         // BOM for Excel UTF-8 compatibility
         res.send('\uFEFF' + csv);
     }

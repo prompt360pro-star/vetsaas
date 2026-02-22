@@ -2,7 +2,11 @@
 // Notifications Service — Unit Tests
 // ============================================================================
 
-import { NotificationsService, NotificationChannel, NotificationTemplate } from './notifications.service';
+import {
+    NotificationsService,
+    NotificationChannel,
+    NotificationTemplate,
+} from './notifications.service';
 
 describe('NotificationsService', () => {
     let service: NotificationsService;
@@ -45,7 +49,10 @@ describe('NotificationsService', () => {
                 recipientName: 'João Silva',
                 locale: 'pt-AO',
                 tenantId: 'tenant-1',
-                data: { clinicName: 'VetAngola', loginUrl: 'https://app.vetangola.ao' },
+                data: {
+                    clinicName: 'VetAngola',
+                    loginUrl: 'https://app.vetangola.ao',
+                },
             });
 
             expect(result.success).toBe(true);
@@ -60,7 +67,11 @@ describe('NotificationsService', () => {
                 recipientName: 'Ana Santos',
                 locale: 'pt-AO',
                 tenantId: 'tenant-1',
-                data: { amount: '15.000 Kz', description: 'Consulta', clinicName: 'VetAngola' },
+                data: {
+                    amount: '15.000 Kz',
+                    description: 'Consulta',
+                    clinicName: 'VetAngola',
+                },
             });
 
             expect(result.success).toBe(true);

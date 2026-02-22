@@ -20,7 +20,10 @@ describe('AuditService', () => {
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 AuditService,
-                { provide: getRepositoryToken(AuditLogEntity), useValue: mockRepo },
+                {
+                    provide: getRepositoryToken(AuditLogEntity),
+                    useValue: mockRepo,
+                },
             ],
         }).compile();
 
@@ -30,7 +33,11 @@ describe('AuditService', () => {
 
     describe('log', () => {
         it('should create an audit log entry', async () => {
-            const entry = { id: 'log-1', action: 'CREATE', entityType: 'animal' };
+            const entry = {
+                id: 'log-1',
+                action: 'CREATE',
+                entityType: 'animal',
+            };
             mockRepo.create.mockReturnValue(entry);
             mockRepo.save.mockResolvedValue(entry);
 
@@ -61,7 +68,12 @@ describe('AuditService', () => {
             mockRepo.create.mockReturnValue(entry);
             mockRepo.save.mockResolvedValue(entry);
 
-            await service.log({ tenantId, userId, action: 'LOGIN', entityType: 'user' });
+            await service.log({
+                tenantId,
+                userId,
+                action: 'LOGIN',
+                entityType: 'user',
+            });
 
             expect(mockRepo.create).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -80,7 +92,10 @@ describe('AuditService', () => {
             const logs = [{ id: 'log-1' }, { id: 'log-2' }];
             mockRepo.findAndCount.mockResolvedValue([logs, 2]);
 
-            const result = await service.findByTenant(tenantId, { page: 1, limit: 10 });
+            const result = await service.findByTenant(tenantId, {
+                page: 1,
+                limit: 10,
+            });
 
             expect(result.data).toEqual(logs);
             expect(result.total).toBe(2);
@@ -91,7 +106,10 @@ describe('AuditService', () => {
         it('should filter by entityType and action', async () => {
             mockRepo.findAndCount.mockResolvedValue([[], 0]);
 
-            await service.findByTenant(tenantId, { entityType: 'animal', action: 'CREATE' });
+            await service.findByTenant(tenantId, {
+                entityType: 'animal',
+                action: 'CREATE',
+            });
 
             expect(mockRepo.findAndCount).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -124,10 +142,16 @@ describe('AuditService', () => {
 
     describe('findByEntity', () => {
         it('should return entity history', async () => {
-            const logs = [{ id: 'log-1', entityType: 'animal', entityId: 'a-1' }];
+            const logs = [
+                { id: 'log-1', entityType: 'animal', entityId: 'a-1' },
+            ];
             mockRepo.find.mockResolvedValue(logs);
 
-            const result = await service.findByEntity(tenantId, 'animal', 'a-1');
+            const result = await service.findByEntity(
+                tenantId,
+                'animal',
+                'a-1',
+            );
 
             expect(result).toEqual(logs);
             expect(mockRepo.find).toHaveBeenCalledWith(

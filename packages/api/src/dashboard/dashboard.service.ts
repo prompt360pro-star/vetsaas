@@ -12,7 +12,7 @@ export interface DashboardStats {
     totalTutors: number;
     todayAppointments: number;
     monthlyRevenue: number;
-    animalsChange: number;    // vs last month
+    animalsChange: number; // vs last month
     tutorsChange: number;
     appointmentsChange: number;
     revenueChange: number;
@@ -30,30 +30,46 @@ export class DashboardService {
         @InjectRepository(PaymentEntity)
         private readonly paymentsRepo: Repository<PaymentEntity>,
         private readonly auditService: AuditService,
-    ) { }
+    ) {}
 
     /**
      * Get dashboard statistics for a tenant.
      */
     async getStats(tenantId: string): Promise<DashboardStats> {
         const now = new Date();
-        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const startOfDay = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+        );
         const endOfDay = new Date(startOfDay.getTime() + 86400000);
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+        const startOfLastMonth = new Date(
+            now.getFullYear(),
+            now.getMonth() - 1,
+            1,
+        );
+        const endOfLastMonth = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            0,
+            23,
+            59,
+            59,
+        );
 
         // Current counts
-        const [totalAnimals, totalTutors, todayAppointments] = await Promise.all([
-            this.animalsRepo.count({ where: { tenantId } }),
-            this.tutorsRepo.count({ where: { tenantId } }),
-            this.appointmentsRepo.count({
-                where: {
-                    tenantId,
-                    scheduledAt: Between(startOfDay, endOfDay),
-                },
-            }),
-        ]);
+        const [totalAnimals, totalTutors, todayAppointments] =
+            await Promise.all([
+                this.animalsRepo.count({ where: { tenantId } }),
+                this.tutorsRepo.count({ where: { tenantId } }),
+                this.appointmentsRepo.count({
+                    where: {
+                        tenantId,
+                        scheduledAt: Between(startOfDay, endOfDay),
+                    },
+                }),
+            ]);
 
         // Monthly revenue
         const paymentsThisMonth = await this.paymentsRepo.find({
@@ -63,29 +79,33 @@ export class DashboardService {
                 paidAt: Between(startOfMonth, now),
             },
         });
-        const monthlyRevenue = paymentsThisMonth.reduce((sum, p) => sum + p.amount, 0);
+        const monthlyRevenue = paymentsThisMonth.reduce(
+            (sum, p) => sum + p.amount,
+            0,
+        );
 
         // Last month comparisons
-        const [lastMonthAnimals, lastMonthTutors, lastMonthAppointments] = await Promise.all([
-            this.animalsRepo.count({
-                where: {
-                    tenantId,
-                    createdAt: Between(startOfLastMonth, endOfLastMonth),
-                },
-            }),
-            this.tutorsRepo.count({
-                where: {
-                    tenantId,
-                    createdAt: Between(startOfLastMonth, endOfLastMonth),
-                },
-            }),
-            this.appointmentsRepo.count({
-                where: {
-                    tenantId,
-                    scheduledAt: Between(startOfLastMonth, endOfLastMonth),
-                },
-            }),
-        ]);
+        const [lastMonthAnimals, lastMonthTutors, lastMonthAppointments] =
+            await Promise.all([
+                this.animalsRepo.count({
+                    where: {
+                        tenantId,
+                        createdAt: Between(startOfLastMonth, endOfLastMonth),
+                    },
+                }),
+                this.tutorsRepo.count({
+                    where: {
+                        tenantId,
+                        createdAt: Between(startOfLastMonth, endOfLastMonth),
+                    },
+                }),
+                this.appointmentsRepo.count({
+                    where: {
+                        tenantId,
+                        scheduledAt: Between(startOfLastMonth, endOfLastMonth),
+                    },
+                }),
+            ]);
 
         const paymentsLastMonth = await this.paymentsRepo.find({
             where: {
@@ -94,7 +114,10 @@ export class DashboardService {
                 paidAt: Between(startOfLastMonth, endOfLastMonth),
             },
         });
-        const lastMonthRevenue = paymentsLastMonth.reduce((sum, p) => sum + p.amount, 0);
+        const lastMonthRevenue = paymentsLastMonth.reduce(
+            (sum, p) => sum + p.amount,
+            0,
+        );
 
         return {
             totalAnimals,
@@ -104,9 +127,14 @@ export class DashboardService {
             animalsChange: totalAnimals - lastMonthAnimals,
             tutorsChange: totalTutors - lastMonthTutors,
             appointmentsChange: todayAppointments - lastMonthAppointments,
-            revenueChange: lastMonthRevenue > 0
-                ? Math.round(((monthlyRevenue - lastMonthRevenue) / lastMonthRevenue) * 100)
-                : 0,
+            revenueChange:
+                lastMonthRevenue > 0
+                    ? Math.round(
+                          ((monthlyRevenue - lastMonthRevenue) /
+                              lastMonthRevenue) *
+                              100,
+                      )
+                    : 0,
         };
     }
 

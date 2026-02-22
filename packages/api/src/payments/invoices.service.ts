@@ -2,7 +2,12 @@
 // Invoices Service — Multi-tenant, auto-numbering
 // ============================================================================
 
-import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
+import {
+    Injectable,
+    NotFoundException,
+    BadRequestException,
+    Logger,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { InvoiceEntity, InvoiceLineItem } from './invoice.entity';
@@ -25,7 +30,7 @@ export class InvoicesService {
     constructor(
         @InjectRepository(InvoiceEntity)
         private readonly repo: Repository<InvoiceEntity>,
-    ) { }
+    ) {}
 
     async create(
         tenantId: string,
@@ -33,17 +38,22 @@ export class InvoicesService {
         input: CreateInvoiceInput,
     ): Promise<InvoiceEntity> {
         if (!input.items || input.items.length === 0) {
-            throw new BadRequestException('A fatura deve conter pelo menos um item');
+            throw new BadRequestException(
+                'A fatura deve conter pelo menos um item',
+            );
         }
 
         // Calculate totals
-        const subtotal = input.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
+        const subtotal = input.items.reduce(
+            (sum, item) => sum + item.quantity * item.unitPrice,
+            0,
+        );
         const taxRate = input.taxRate ?? 14; // IVA Angola default 14%
         const tax = Math.round(subtotal * taxRate) / 100;
         const total = subtotal + tax;
 
         // Compute items with totals
-        const items: InvoiceLineItem[] = input.items.map(item => ({
+        const items: InvoiceLineItem[] = input.items.map((item) => ({
             ...item,
             total: item.quantity * item.unitPrice,
         }));
@@ -112,11 +122,17 @@ export class InvoicesService {
         return invoice;
     }
 
-    async markAsPaid(tenantId: string, id: string, paymentId: string): Promise<InvoiceEntity> {
+    async markAsPaid(
+        tenantId: string,
+        id: string,
+        paymentId: string,
+    ): Promise<InvoiceEntity> {
         const invoice = await this.findById(tenantId, id);
 
         if (invoice.status === 'CANCELLED') {
-            throw new BadRequestException('Não é possível pagar uma fatura cancelada');
+            throw new BadRequestException(
+                'Não é possível pagar uma fatura cancelada',
+            );
         }
 
         invoice.status = 'PAID';
@@ -130,18 +146,26 @@ export class InvoicesService {
         const invoice = await this.findById(tenantId, id);
 
         if (invoice.status !== 'DRAFT') {
-            throw new BadRequestException('Apenas faturas em rascunho podem ser enviadas');
+            throw new BadRequestException(
+                'Apenas faturas em rascunho podem ser enviadas',
+            );
         }
 
         invoice.status = 'SENT';
         return this.repo.save(invoice);
     }
 
-    async cancel(tenantId: string, id: string, reason?: string): Promise<InvoiceEntity> {
+    async cancel(
+        tenantId: string,
+        id: string,
+        reason?: string,
+    ): Promise<InvoiceEntity> {
         const invoice = await this.findById(tenantId, id);
 
         if (invoice.status === 'PAID') {
-            throw new BadRequestException('Não é possível cancelar uma fatura já paga');
+            throw new BadRequestException(
+                'Não é possível cancelar uma fatura já paga',
+            );
         }
 
         invoice.status = 'CANCELLED';
@@ -153,7 +177,10 @@ export class InvoicesService {
     // ── Helpers ─────────────────────────────────────────
 
     private async getNextSequence(tenantId: string): Promise<number> {
-        const count = await this.repo.count({ where: { tenantId }, withDeleted: true });
+        const count = await this.repo.count({
+            where: { tenantId },
+            withDeleted: true,
+        });
         return count + 1;
     }
 }

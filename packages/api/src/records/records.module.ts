@@ -10,10 +10,15 @@ import { ClinicalAlertsService } from './clinical-alerts.service';
 import { ClinicalAlertsController } from './clinical-alerts.controller';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([ClinicalRecordEntity, InventoryItemEntity])],
-    controllers: [RecordsController, TemplatesController, ClinicalAlertsController],
+    imports: [
+        TypeOrmModule.forFeature([ClinicalRecordEntity, InventoryItemEntity]),
+    ],
+    controllers: [
+        RecordsController,
+        TemplatesController,
+        ClinicalAlertsController,
+    ],
     providers: [RecordsService, TemplatesService, ClinicalAlertsService],
     exports: [RecordsService, TemplatesService, ClinicalAlertsService],
 })
-export class RecordsModule { }
-
+export class RecordsModule {}

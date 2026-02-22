@@ -12,8 +12,10 @@ interface WrappedResponse<T> {
 }
 
 @Injectable()
-export class TransformInterceptor<T>
-    implements NestInterceptor<T, WrappedResponse<T>> {
+export class TransformInterceptor<T> implements NestInterceptor<
+    T,
+    WrappedResponse<T>
+> {
     intercept(
         _context: ExecutionContext,
         next: CallHandler,
@@ -21,11 +23,7 @@ export class TransformInterceptor<T>
         return next.handle().pipe(
             map((data) => {
                 // Skip wrapping if response already has success key
-                if (
-                    data &&
-                    typeof data === 'object' &&
-                    'success' in data
-                ) {
+                if (data && typeof data === 'object' && 'success' in data) {
                     return data;
                 }
                 return { success: true, data };

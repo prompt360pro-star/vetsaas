@@ -29,4 +29,4 @@ import { TenantsModule } from '../tenants/tenants.module';
     providers: [AuthService, JwtStrategy],
     exports: [AuthService, JwtStrategy, PassportModule],
 })
-export class AuthModule { }
+export class AuthModule {}

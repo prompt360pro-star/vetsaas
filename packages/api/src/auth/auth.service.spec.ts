@@ -58,14 +58,22 @@ describe('AuthService', () => {
                 {
                     provide: ConfigService,
                     useValue: {
-                        get: jest.fn((key: string, defaultValue?: string) => defaultValue ?? 'test-secret'),
+                        get: jest.fn(
+                            (key: string, defaultValue?: string) =>
+                                defaultValue ?? 'test-secret',
+                        ),
                     },
                 },
                 {
                     provide: TenantsService,
                     useValue: {
-                        generateSlug: jest.fn().mockReturnValue('clinica-vetangola'),
-                        create: jest.fn().mockResolvedValue({ id: 'tenant-uuid-1', name: 'VetAngola' }),
+                        generateSlug: jest
+                            .fn()
+                            .mockReturnValue('clinica-vetangola'),
+                        create: jest.fn().mockResolvedValue({
+                            id: 'tenant-uuid-1',
+                            name: 'VetAngola',
+                        }),
                     },
                 },
             ],
@@ -120,7 +128,10 @@ describe('AuthService', () => {
             userRepo.save.mockResolvedValue(mockUser);
             (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
-            const result = await service.login('vet@clinica.ao', 'SecurePass123!');
+            const result = await service.login(
+                'vet@clinica.ao',
+                'SecurePass123!',
+            );
 
             expect(result).toHaveProperty('accessToken');
             expect(result).toHaveProperty('refreshToken');

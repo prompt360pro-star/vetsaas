@@ -21,8 +21,14 @@ describe('ClinicalAlertsService', () => {
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 ClinicalAlertsService,
-                { provide: getRepositoryToken(ClinicalRecordEntity), useValue: mockRecordsRepo },
-                { provide: getRepositoryToken(InventoryItemEntity), useValue: mockInventoryRepo },
+                {
+                    provide: getRepositoryToken(ClinicalRecordEntity),
+                    useValue: mockRecordsRepo,
+                },
+                {
+                    provide: getRepositoryToken(InventoryItemEntity),
+                    useValue: mockInventoryRepo,
+                },
             ],
         }).compile();
 
@@ -60,7 +66,14 @@ describe('ClinicalAlertsService', () => {
                 where: jest.fn().mockReturnThis(),
                 andWhere: jest.fn().mockReturnThis(),
                 getMany: jest.fn().mockResolvedValue([
-                    { id: 'inv-1', name: 'Amoxicilina', stock: 0, minStock: 10, unit: 'un', isActive: true },
+                    {
+                        id: 'inv-1',
+                        name: 'Amoxicilina',
+                        stock: 0,
+                        minStock: 10,
+                        unit: 'un',
+                        isActive: true,
+                    },
                 ]),
             };
             mockInventoryRepo.createQueryBuilder.mockReturnValue(qb);
@@ -77,7 +90,14 @@ describe('ClinicalAlertsService', () => {
                 where: jest.fn().mockReturnThis(),
                 andWhere: jest.fn().mockReturnThis(),
                 getMany: jest.fn().mockResolvedValue([
-                    { id: 'inv-2', name: 'Seringa', stock: 3, minStock: 10, unit: 'un', isActive: true },
+                    {
+                        id: 'inv-2',
+                        name: 'Seringa',
+                        stock: 3,
+                        minStock: 10,
+                        unit: 'un',
+                        isActive: true,
+                    },
                 ]),
             };
             mockInventoryRepo.createQueryBuilder.mockReturnValue(qb);
@@ -105,7 +125,10 @@ describe('ClinicalAlertsService', () => {
         });
 
         it('should return empty for normal vitals', () => {
-            const alerts = service.checkVitals('DOG', { temperature: 38.5, heartRate: 80 });
+            const alerts = service.checkVitals('DOG', {
+                temperature: 38.5,
+                heartRate: 80,
+            });
             expect(alerts).toHaveLength(0);
         });
 

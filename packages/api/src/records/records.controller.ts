@@ -16,7 +16,7 @@ import type { PaginationQuery } from '@vetsaas/shared';
 @Controller('records')
 @UseGuards(AuthGuard('jwt'))
 export class RecordsController {
-    constructor(private readonly recordsService: RecordsService) { }
+    constructor(private readonly recordsService: RecordsService) {}
 
     @Get('animal/:animalId')
     async findByAnimal(

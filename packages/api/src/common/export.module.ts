@@ -7,9 +7,11 @@ import { ExportService } from './export.service';
 import { ExportController } from './export.controller';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([AnimalEntity, PaymentEntity, AuditLogEntity])],
+    imports: [
+        TypeOrmModule.forFeature([AnimalEntity, PaymentEntity, AuditLogEntity]),
+    ],
     controllers: [ExportController],
     providers: [ExportService],
     exports: [ExportService],
 })
-export class ExportModule { }
+export class ExportModule {}

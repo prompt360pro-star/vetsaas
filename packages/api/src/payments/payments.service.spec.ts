@@ -86,7 +86,11 @@ describe('PaymentsService', () => {
         });
 
         it('should auto-complete cash payments', async () => {
-            const cashPayment = { ...mockPayment, method: 'CASH', status: 'COMPLETED' };
+            const cashPayment = {
+                ...mockPayment,
+                method: 'CASH',
+                status: 'COMPLETED',
+            };
             repo.create.mockReturnValue(cashPayment);
             repo.save.mockResolvedValue(cashPayment);
 
@@ -124,7 +128,10 @@ describe('PaymentsService', () => {
         it('should return paginated payments for tenant', async () => {
             repo.findAndCount.mockResolvedValue([[mockPayment], 1]);
 
-            const result = await service.findAll(tenantId, { page: 1, limit: 10 });
+            const result = await service.findAll(tenantId, {
+                page: 1,
+                limit: 10,
+            });
 
             expect(result.data).toHaveLength(1);
             expect(result.total).toBe(1);
@@ -138,11 +145,18 @@ describe('PaymentsService', () => {
         it('should filter by status', async () => {
             repo.findAndCount.mockResolvedValue([[], 0]);
 
-            await service.findAll(tenantId, { page: 1, limit: 10, status: 'COMPLETED' });
+            await service.findAll(tenantId, {
+                page: 1,
+                limit: 10,
+                status: 'COMPLETED',
+            });
 
             expect(repo.findAndCount).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    where: expect.objectContaining({ tenantId, status: 'COMPLETED' }),
+                    where: expect.objectContaining({
+                        tenantId,
+                        status: 'COMPLETED',
+                    }),
                 }),
             );
         });
@@ -179,8 +193,14 @@ describe('PaymentsService', () => {
 
     describe('processWebhook', () => {
         it('should mark payment as completed on webhook', async () => {
-            repo.findOne.mockResolvedValue({ ...mockPayment, status: 'PENDING' });
-            repo.save.mockResolvedValue({ ...mockPayment, status: 'COMPLETED' });
+            repo.findOne.mockResolvedValue({
+                ...mockPayment,
+                status: 'PENDING',
+            });
+            repo.save.mockResolvedValue({
+                ...mockPayment,
+                status: 'COMPLETED',
+            });
 
             await service.processWebhook('MULTICAIXA_GPO', {
                 referenceCode: '000001234567890',

@@ -32,7 +32,7 @@ export class AuditService {
     constructor(
         @InjectRepository(AuditLogEntity)
         private readonly repo: Repository<AuditLogEntity>,
-    ) { }
+    ) {}
 
     /**
      * Append an immutable audit log entry.
@@ -50,7 +50,9 @@ export class AuditService {
             userAgent: input.userAgent ?? null,
         });
         const saved = await this.repo.save(entry);
-        this.logger.debug(`[AUDIT] ${input.action} ${input.entityType} by ${input.userId}`);
+        this.logger.debug(
+            `[AUDIT] ${input.action} ${input.entityType} by ${input.userId}`,
+        );
         return saved;
     }
 
@@ -60,7 +62,13 @@ export class AuditService {
     async findByTenant(
         tenantId: string,
         filters: AuditQueryFilters = {},
-    ): Promise<{ data: AuditLogEntity[]; total: number; page: number; limit: number; totalPages: number }> {
+    ): Promise<{
+        data: AuditLogEntity[];
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+    }> {
         const page = filters.page ?? 1;
         const limit = Math.min(filters.limit ?? 20, 100);
         const skip = (page - 1) * limit;
@@ -108,7 +116,10 @@ export class AuditService {
     /**
      * Get recent activity for a tenant (used by dashboard).
      */
-    async getRecentActivity(tenantId: string, limit = 10): Promise<AuditLogEntity[]> {
+    async getRecentActivity(
+        tenantId: string,
+        limit = 10,
+    ): Promise<AuditLogEntity[]> {
         return this.repo.find({
             where: { tenantId },
             order: { createdAt: 'DESC' },

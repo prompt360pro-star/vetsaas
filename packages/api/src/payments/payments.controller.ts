@@ -10,20 +10,16 @@ import {
     Param,
     Query,
     Request,
-    UseGuards,
     HttpCode,
 } from '@nestjs/common';
 import { PaymentsService, CreatePaymentInput } from './payments.service';
 
 @Controller('payments')
 export class PaymentsController {
-    constructor(private readonly paymentsService: PaymentsService) { }
+    constructor(private readonly paymentsService: PaymentsService) {}
 
     @Post()
-    async create(
-        @Request() req: any,
-        @Body() body: CreatePaymentInput,
-    ) {
+    async create(@Request() req: any, @Body() body: CreatePaymentInput) {
         const tenantId = req.user?.tenantId;
         const userId = req.user?.sub;
         return this.paymentsService.create(tenantId, userId, body);

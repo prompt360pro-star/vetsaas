@@ -18,7 +18,7 @@ export class ExportService {
         private readonly paymentsRepo: Repository<PaymentEntity>,
         @InjectRepository(AuditLogEntity)
         private readonly auditRepo: Repository<AuditLogEntity>,
-    ) { }
+    ) {}
 
     /**
      * Export animals as CSV.
@@ -29,7 +29,8 @@ export class ExportService {
             order: { name: 'ASC' },
         });
 
-        const header = 'Nome,Espécie,Raça,Sexo,Peso,Microchip,Castrado,Criado em';
+        const header =
+            'Nome,Espécie,Raça,Sexo,Peso,Microchip,Castrado,Criado em';
         const rows = animals.map((a) =>
             [
                 this.esc(a.name),
@@ -49,7 +50,11 @@ export class ExportService {
     /**
      * Export payments as CSV with optional date range.
      */
-    async exportPayments(tenantId: string, startDate?: Date, endDate?: Date): Promise<string> {
+    async exportPayments(
+        tenantId: string,
+        startDate?: Date,
+        endDate?: Date,
+    ): Promise<string> {
         const where: Record<string, unknown> = { tenantId };
         if (startDate && endDate) {
             where.createdAt = Between(startDate, endDate);
@@ -102,7 +107,11 @@ export class ExportService {
 
     /** Escape CSV field (wrap in quotes if contains comma/quote/newline). */
     private esc(value: string): string {
-        if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+        if (
+            value.includes(',') ||
+            value.includes('"') ||
+            value.includes('\n')
+        ) {
             return `"${value.replace(/"/g, '""')}"`;
         }
         return value;

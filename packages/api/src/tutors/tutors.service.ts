@@ -9,7 +9,7 @@ export class TutorsService {
     constructor(
         @InjectRepository(TutorEntity)
         private readonly repo: Repository<TutorEntity>,
-    ) { }
+    ) {}
 
     async findAll(
         tenantId: string,

@@ -51,7 +51,9 @@ describe('InventoryService', () => {
                             orderBy: jest.fn().mockReturnThis(),
                             skip: jest.fn().mockReturnThis(),
                             take: jest.fn().mockReturnThis(),
-                            getManyAndCount: jest.fn().mockResolvedValue([[mockItem], 1]),
+                            getManyAndCount: jest
+                                .fn()
+                                .mockResolvedValue([[mockItem], 1]),
                             getMany: jest.fn().mockResolvedValue([]),
                         }),
                     },
@@ -113,14 +115,23 @@ describe('InventoryService', () => {
 
         it('should reject if required fields missing', async () => {
             await expect(
-                service.create(tenantId, userId, { name: '', category: 'OTHER', minStock: 0, unit: '', price: 0 }),
+                service.create(tenantId, userId, {
+                    name: '',
+                    category: 'OTHER',
+                    minStock: 0,
+                    unit: '',
+                    price: 0,
+                }),
             ).rejects.toThrow(BadRequestException);
         });
     });
 
     describe('findAll', () => {
         it('should return paginated items', async () => {
-            const result = await service.findAll(tenantId, { page: 1, limit: 10 });
+            const result = await service.findAll(tenantId, {
+                page: 1,
+                limit: 10,
+            });
 
             expect(result.data).toHaveLength(1);
             expect(result.total).toBe(1);
@@ -136,7 +147,9 @@ describe('InventoryService', () => {
 
         it('should throw NotFoundException', async () => {
             itemRepo.findOne.mockResolvedValue(null);
-            await expect(service.findById(tenantId, 'x')).rejects.toThrow(NotFoundException);
+            await expect(service.findById(tenantId, 'x')).rejects.toThrow(
+                NotFoundException,
+            );
         });
     });
 
@@ -145,7 +158,9 @@ describe('InventoryService', () => {
             itemRepo.findOne.mockResolvedValue({ ...mockItem });
             itemRepo.save.mockResolvedValue({ ...mockItem, price: 4000 });
 
-            const result = await service.update(tenantId, 'item-uuid-1', { price: 4000 });
+            await service.update(tenantId, 'item-uuid-1', {
+                price: 4000,
+            });
             expect(itemRepo.save).toHaveBeenCalledWith(
                 expect.objectContaining({ price: 4000 }),
             );
@@ -158,7 +173,7 @@ describe('InventoryService', () => {
             itemRepo.findOne.mockResolvedValue(item);
             itemRepo.save.mockResolvedValue({ ...item, stock: 30 });
 
-            const result = await service.adjustStock(tenantId, userId, 'item-uuid-1', {
+            await service.adjustStock(tenantId, userId, 'item-uuid-1', {
                 quantity: 10,
                 type: 'IN',
                 reason: 'Reposição mensal',
@@ -218,7 +233,13 @@ describe('InventoryService', () => {
     describe('getMovements', () => {
         it('should return movement history', async () => {
             const movements = [
-                { id: '1', type: 'IN', quantity: 10, previousStock: 0, newStock: 10 },
+                {
+                    id: '1',
+                    type: 'IN',
+                    quantity: 10,
+                    previousStock: 0,
+                    newStock: 10,
+                },
             ];
             movementRepo.find.mockResolvedValue(movements);
 
@@ -236,7 +257,9 @@ describe('InventoryService', () => {
 
             const result = await service.getLowStockAlerts(tenantId);
             expect(result.count).toBe(1);
-            expect(result.items[0].stock).toBeLessThan(result.items[0].minStock);
+            expect(result.items[0].stock).toBeLessThan(
+                result.items[0].minStock,
+            );
         });
     });
 

@@ -6,8 +6,6 @@ import {
     Controller,
     Post,
     UseGuards,
-    UseInterceptors,
-    UploadedFile,
     Param,
     Req,
     BadRequestException,
@@ -23,7 +21,7 @@ import { StorageService, UploadResult } from './storage.service';
 @Controller('uploads')
 @UseGuards(AuthGuard('jwt'))
 export class UploadController {
-    constructor(private readonly storageService: StorageService) { }
+    constructor(private readonly storageService: StorageService) {}
 
     /**
      * POST /api/uploads/:category
@@ -31,7 +29,8 @@ export class UploadController {
      */
     @Post(':category')
     async uploadFile(
-        @Param('category') category: 'photos' | 'documents' | 'xrays' | 'lab-results' | 'avatars',
+        @Param('category')
+        category: 'photos' | 'documents' | 'xrays' | 'lab-results' | 'avatars',
         @Req() req: any,
     ): Promise<{ data: UploadResult }> {
         const tenantId = req.user?.tenantId;

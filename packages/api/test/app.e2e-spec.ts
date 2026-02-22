@@ -40,7 +40,9 @@ describe('App (e2e)', () => {
 
     it('should bootstrap the application', () => {
         if (!shouldRun) {
-            console.log('⏭  E2E tests skipped — no database available. Run docker-compose up first.');
+            console.log(
+                '⏭  E2E tests skipped — no database available. Run docker-compose up first.',
+            );
             return;
         }
         expect(app).toBeDefined();

@@ -14,7 +14,10 @@ import {
 @Entity('payments')
 @Index(['tenantId'])
 @Index(['tenantId', 'status'])
-@Index(['referenceCode'], { unique: true, where: '"referenceCode" IS NOT NULL' })
+@Index(['referenceCode'], {
+    unique: true,
+    where: '"referenceCode" IS NOT NULL',
+})
 export class PaymentEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;

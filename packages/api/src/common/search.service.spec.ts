@@ -26,9 +26,18 @@ describe('SearchService', () => {
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 SearchService,
-                { provide: getRepositoryToken(AnimalEntity), useValue: mockAnimalsRepo },
-                { provide: getRepositoryToken(TutorEntity), useValue: mockTutorsRepo },
-                { provide: getRepositoryToken(ClinicalRecordEntity), useValue: mockRecordsRepo },
+                {
+                    provide: getRepositoryToken(AnimalEntity),
+                    useValue: mockAnimalsRepo,
+                },
+                {
+                    provide: getRepositoryToken(TutorEntity),
+                    useValue: mockTutorsRepo,
+                },
+                {
+                    provide: getRepositoryToken(ClinicalRecordEntity),
+                    useValue: mockRecordsRepo,
+                },
             ],
         }).compile();
 
@@ -49,13 +58,28 @@ describe('SearchService', () => {
 
     it('should search across animals, tutors, and records', async () => {
         mockAnimalsRepo.createQueryBuilder.mockReturnValue(
-            mockQb([{ id: 'a1', name: 'Rex', species: 'Cão', breed: 'Labrador' }]),
+            mockQb([
+                { id: 'a1', name: 'Rex', species: 'Cão', breed: 'Labrador' },
+            ]),
         );
         mockTutorsRepo.createQueryBuilder.mockReturnValue(
-            mockQb([{ id: 't1', firstName: 'João', lastName: 'Silva', phone: '+244 912 345 678' }]),
+            mockQb([
+                {
+                    id: 't1',
+                    firstName: 'João',
+                    lastName: 'Silva',
+                    phone: '+244 912 345 678',
+                },
+            ]),
         );
         mockRecordsRepo.createQueryBuilder.mockReturnValue(
-            mockQb([{ id: 'r1', assessment: 'Infecção urinária', createdAt: new Date() }]),
+            mockQb([
+                {
+                    id: 'r1',
+                    assessment: 'Infecção urinária',
+                    createdAt: new Date(),
+                },
+            ]),
         );
 
         const res = await service.search(tenantId, 'rex');

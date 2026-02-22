@@ -8,7 +8,7 @@ export class TenantsService {
     constructor(
         @InjectRepository(TenantEntity)
         private readonly repo: Repository<TenantEntity>,
-    ) { }
+    ) {}
 
     async create(data: Partial<TenantEntity>): Promise<TenantEntity> {
         const tenant = this.repo.create({
@@ -37,7 +37,10 @@ export class TenantsService {
         return this.repo.findOne({ where: { slug } });
     }
 
-    async update(id: string, data: Partial<TenantEntity>): Promise<TenantEntity | null> {
+    async update(
+        id: string,
+        data: Partial<TenantEntity>,
+    ): Promise<TenantEntity | null> {
         await this.repo.update(id, data);
         return this.findById(id);
     }

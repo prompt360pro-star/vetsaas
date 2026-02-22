@@ -17,7 +17,10 @@ export interface ClinicalAlert {
 }
 
 // Normal vital ranges by species
-const VITAL_RANGES: Record<string, Record<string, { min: number; max: number; unit: string }>> = {
+const VITAL_RANGES: Record<
+    string,
+    Record<string, { min: number; max: number; unit: string }>
+> = {
     DOG: {
         temperature: { min: 38.0, max: 39.2, unit: '°C' },
         heartRate: { min: 60, max: 140, unit: 'bpm' },
@@ -39,7 +42,7 @@ export class ClinicalAlertsService {
         private readonly recordsRepo: Repository<ClinicalRecordEntity>,
         @InjectRepository(InventoryItemEntity)
         private readonly inventoryRepo: Repository<InventoryItemEntity>,
-    ) { }
+    ) {}
 
     /**
      * Evaluate all clinical rules and return active alerts for a tenant.
@@ -58,7 +61,9 @@ export class ClinicalAlertsService {
         const severityOrder = { DANGER: 0, WARNING: 1, INFO: 2 };
         alerts.sort((a, b) => severityOrder[a.type] - severityOrder[b.type]);
 
-        this.logger.debug(`[ALERTS] ${alerts.length} active alerts for tenant ${tenantId}`);
+        this.logger.debug(
+            `[ALERTS] ${alerts.length} active alerts for tenant ${tenantId}`,
+        );
         return alerts;
     }
 
@@ -103,7 +108,9 @@ export class ClinicalAlertsService {
 
         return items.map((item) => ({
             id: `low-stock-${item.id}`,
-            type: (item.stock === 0 ? 'DANGER' : 'WARNING') as 'DANGER' | 'WARNING',
+            type: (item.stock === 0 ? 'DANGER' : 'WARNING') as
+                | 'DANGER'
+                | 'WARNING',
             category: 'LOW_STOCK',
             title: item.stock === 0 ? 'Stock esgotado' : 'Stock baixo',
             description: `${item.name}: ${item.stock}/${item.minStock} ${item.unit}`,

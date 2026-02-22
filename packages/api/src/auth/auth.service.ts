@@ -10,7 +10,12 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
 import { UserEntity } from './user.entity';
 import { TenantsService } from '../tenants/tenants.service';
-import type { JwtPayload, UserRole, AuthTokens, UserProfile } from '@vetsaas/shared';
+import type {
+    JwtPayload,
+    UserRole,
+    AuthTokens,
+    UserProfile,
+} from '@vetsaas/shared';
 
 @Injectable()
 export class AuthService {
@@ -20,7 +25,7 @@ export class AuthService {
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
         private readonly tenantsService: TenantsService,
-    ) { }
+    ) {}
 
     /**
      * Register a new clinic (tenant) with its admin user.
@@ -132,11 +137,14 @@ export class AuthService {
     /**
      * Update user profile fields.
      */
-    async updateProfile(userId: string, data: {
-        firstName?: string;
-        lastName?: string;
-        phone?: string;
-    }): Promise<UserProfile> {
+    async updateProfile(
+        userId: string,
+        data: {
+            firstName?: string;
+            lastName?: string;
+            phone?: string;
+        },
+    ): Promise<UserProfile> {
         const user = await this.usersRepo.findOne({ where: { id: userId } });
         if (!user) {
             throw new UnauthorizedException('User not found');
@@ -151,7 +159,11 @@ export class AuthService {
     /**
      * Change password with old password verification.
      */
-    async changePassword(userId: string, oldPassword: string, newPassword: string): Promise<void> {
+    async changePassword(
+        userId: string,
+        oldPassword: string,
+        newPassword: string,
+    ): Promise<void> {
         const user = await this.usersRepo.findOne({ where: { id: userId } });
         if (!user) {
             throw new UnauthorizedException('User not found');

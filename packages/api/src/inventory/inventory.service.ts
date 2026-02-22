@@ -9,7 +9,7 @@ import {
     Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan, MoreThan, Raw } from 'typeorm';
+import { Repository, LessThan } from 'typeorm';
 import { InventoryItemEntity } from './inventory-item.entity';
 import { StockMovementEntity } from './stock-movement.entity';
 
@@ -44,12 +44,14 @@ export class InventoryService {
         private readonly itemRepo: Repository<InventoryItemEntity>,
         @InjectRepository(StockMovementEntity)
         private readonly movementRepo: Repository<StockMovementEntity>,
-    ) { }
+    ) {}
 
     // ── Create Item ────────────────────────────────────────────────────
     async create(tenantId: string, userId: string, input: CreateItemInput) {
         if (!input.name || !input.unit || !input.price) {
-            throw new BadRequestException('Nome, unidade e preço são obrigatórios');
+            throw new BadRequestException(
+                'Nome, unidade e preço são obrigatórios',
+            );
         }
 
         const item = this.itemRepo.create({
@@ -64,7 +66,9 @@ export class InventoryService {
             price: input.price,
             cost: input.cost ?? undefined,
             supplier: input.supplier || undefined,
-            expiryDate: input.expiryDate ? new Date(input.expiryDate) : undefined,
+            expiryDate: input.expiryDate
+                ? new Date(input.expiryDate)
+                : undefined,
             batchNumber: input.batchNumber || undefined,
             isControlled: input.isControlled ?? false,
             createdBy: userId,
@@ -74,23 +78,36 @@ export class InventoryService {
 
         // If initial stock is set, record a movement
         if ((saved as InventoryItemEntity).stock > 0) {
-            await this.recordMovement(tenantId, userId, (saved as InventoryItemEntity).id, {
-                type: 'IN',
-                quantity: (saved as InventoryItemEntity).stock,
-                previousStock: 0,
-                newStock: (saved as InventoryItemEntity).stock,
-                reason: 'Estoque inicial',
-            });
+            await this.recordMovement(
+                tenantId,
+                userId,
+                (saved as InventoryItemEntity).id,
+                {
+                    type: 'IN',
+                    quantity: (saved as InventoryItemEntity).stock,
+                    previousStock: 0,
+                    newStock: (saved as InventoryItemEntity).stock,
+                    reason: 'Estoque inicial',
+                },
+            );
         }
 
-        this.logger.log(`[CREATE] Item "${(saved as InventoryItemEntity).name}" (${(saved as InventoryItemEntity).id}) | Tenant: ${tenantId}`);
+        this.logger.log(
+            `[CREATE] Item "${(saved as InventoryItemEntity).name}" (${(saved as InventoryItemEntity).id}) | Tenant: ${tenantId}`,
+        );
         return saved;
     }
 
     // ── Find All ───────────────────────────────────────────────────────
     async findAll(
         tenantId: string,
-        query: { page?: number; limit?: number; category?: string; search?: string; lowStock?: boolean },
+        query: {
+            page?: number;
+            limit?: number;
+            category?: string;
+            search?: string;
+            lowStock?: boolean;
+        },
     ) {
         const page = query.page || 1;
         const limit = Math.min(query.limit || 20, 100);
@@ -98,12 +115,15 @@ export class InventoryService {
         const where: any = { tenantId, isActive: true };
         if (query.category) where.category = query.category;
 
-        const qb = this.itemRepo.createQueryBuilder('item')
+        const qb = this.itemRepo
+            .createQueryBuilder('item')
             .where('item.tenantId = :tenantId', { tenantId })
             .andWhere('item.isActive = :active', { active: true });
 
         if (query.category) {
-            qb.andWhere('item.category = :category', { category: query.category });
+            qb.andWhere('item.category = :category', {
+                category: query.category,
+            });
         }
 
         if (query.search) {
@@ -122,7 +142,13 @@ export class InventoryService {
 
         const [data, total] = await qb.getManyAndCount();
 
-        return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+        return {
+            data,
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
+        };
     }
 
     // ── Find By ID ─────────────────────────────────────────────────────
@@ -135,27 +161,42 @@ export class InventoryService {
     }
 
     // ── Update ─────────────────────────────────────────────────────────
-    async update(tenantId: string, id: string, input: Partial<CreateItemInput>) {
+    async update(
+        tenantId: string,
+        id: string,
+        input: Partial<CreateItemInput>,
+    ) {
         const item = await this.findById(tenantId, id);
 
         if (input.name !== undefined) item.name = input.name;
         if (input.category !== undefined) item.category = input.category;
         if (input.sku !== undefined) item.sku = input.sku;
-        if (input.description !== undefined) item.description = input.description;
+        if (input.description !== undefined)
+            item.description = input.description;
         if (input.minStock !== undefined) item.minStock = input.minStock;
         if (input.unit !== undefined) item.unit = input.unit;
         if (input.price !== undefined) item.price = input.price;
         if (input.cost !== undefined) item.cost = input.cost;
         if (input.supplier !== undefined) item.supplier = input.supplier;
-        if (input.expiryDate !== undefined) item.expiryDate = input.expiryDate ? new Date(input.expiryDate) : undefined as any;
-        if (input.batchNumber !== undefined) item.batchNumber = input.batchNumber;
-        if (input.isControlled !== undefined) item.isControlled = input.isControlled;
+        if (input.expiryDate !== undefined)
+            item.expiryDate = input.expiryDate
+                ? new Date(input.expiryDate)
+                : (undefined as any);
+        if (input.batchNumber !== undefined)
+            item.batchNumber = input.batchNumber;
+        if (input.isControlled !== undefined)
+            item.isControlled = input.isControlled;
 
         return this.itemRepo.save(item);
     }
 
     // ── Adjust Stock ───────────────────────────────────────────────────
-    async adjustStock(tenantId: string, userId: string, itemId: string, input: StockAdjustInput) {
+    async adjustStock(
+        tenantId: string,
+        userId: string,
+        itemId: string,
+        input: StockAdjustInput,
+    ) {
         const item = await this.findById(tenantId, itemId);
         const previousStock = item.stock;
 
@@ -241,7 +282,13 @@ export class InventoryService {
         tenantId: string,
         userId: string,
         itemId: string,
-        data: { type: string; quantity: number; previousStock: number; newStock: number; reason?: string },
+        data: {
+            type: string;
+            quantity: number;
+            previousStock: number;
+            newStock: number;
+            reason?: string;
+        },
     ) {
         const movement = this.movementRepo.create({
             tenantId,

@@ -17,12 +17,13 @@ import type { PaginationQuery } from '@vetsaas/shared';
 @Controller('appointments')
 @UseGuards(AuthGuard('jwt'))
 export class AppointmentsController {
-    constructor(private readonly appointmentsService: AppointmentsService) { }
+    constructor(private readonly appointmentsService: AppointmentsService) {}
 
     @Get()
     async findAll(
         @Request() req: any,
-        @Query() query: PaginationQuery & { date?: string; veterinarianId?: string },
+        @Query()
+        query: PaginationQuery & { date?: string; veterinarianId?: string },
     ) {
         const data = await this.appointmentsService.findAll(
             req.user.tenantId,
