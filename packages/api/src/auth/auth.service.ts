@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
+import { v4 as uuidv4 } from 'uuid';
 import { UserEntity } from './user.entity';
 import { TenantsService } from '../tenants/tenants.service';
 import type { JwtPayload, UserRole, AuthTokens, UserProfile } from '@vetsaas/shared';
@@ -52,7 +53,9 @@ export class AuthService {
 
         // Create admin user
         const passwordHash = await bcrypt.hash(data.password, 12);
+        const userId = uuidv4();
         const user = this.usersRepo.create({
+            id: userId,
             tenantId: tenant.id,
             email: data.email,
             passwordHash,
@@ -61,9 +64,12 @@ export class AuthService {
             phone: data.phone,
             role: 'CLINIC_ADMIN',
         });
+
+        // Generate tokens before saving to persist user + refresh token in one go
+        const tokens = this.createTokens(user);
         await this.usersRepo.save(user);
 
-        return this.generateTokens(user);
+        return tokens;
     }
 
     /**
@@ -82,9 +88,12 @@ export class AuthService {
 
         // Update last login
         user.lastLoginAt = new Date();
+
+        // Generate tokens and save user (updates both lastLoginAt and refreshToken)
+        const tokens = this.createTokens(user);
         await this.usersRepo.save(user);
 
-        return this.generateTokens(user);
+        return tokens;
     }
 
     /**
@@ -101,7 +110,9 @@ export class AuthService {
             if (!user || !user.isActive || user.refreshToken !== refreshToken) {
                 throw new UnauthorizedException('Invalid refresh token');
             }
-            return this.generateTokens(user);
+            const tokens = this.createTokens(user);
+            await this.usersRepo.save(user);
+            return tokens;
         } catch {
             throw new UnauthorizedException('Invalid refresh token');
         }
@@ -166,8 +177,9 @@ export class AuthService {
 
     /**
      * Generate JWT access + refresh tokens.
+     * Updates user entity with new refresh token but DOES NOT save to DB.
      */
-    private async generateTokens(user: UserEntity): Promise<AuthTokens> {
+    private createTokens(user: UserEntity): AuthTokens {
         const payload: JwtPayload = {
             sub: user.id,
             tenantId: user.tenantId,
@@ -180,9 +192,8 @@ export class AuthService {
             expiresIn: this.configService.get('JWT_REFRESH_EXPIRES_IN', '7d'),
         });
 
-        // Store refresh token hash
+        // Update refresh token on user object
         user.refreshToken = refreshToken;
-        await this.usersRepo.save(user);
 
         return {
             accessToken,
