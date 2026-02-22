@@ -11,7 +11,7 @@ import { TemplatesService } from './templates.service';
 @Controller('records/templates')
 @UseGuards(AuthGuard('jwt'))
 export class TemplatesController {
-    constructor(private readonly templatesService: TemplatesService) { }
+    constructor(private readonly templatesService: TemplatesService) {}
 
     /**
      * GET /records/templates — List all SOAP templates.

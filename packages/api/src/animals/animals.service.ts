@@ -9,7 +9,7 @@ export class AnimalsService {
     constructor(
         @InjectRepository(AnimalEntity)
         private readonly repo: Repository<AnimalEntity>,
-    ) { }
+    ) {}
 
     async findAll(
         tenantId: string,

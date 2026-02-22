@@ -10,4 +10,4 @@ import { AppointmentsController } from './appointments.controller';
     providers: [AppointmentsService],
     exports: [AppointmentsService],
 })
-export class AppointmentsModule { }
+export class AppointmentsModule {}

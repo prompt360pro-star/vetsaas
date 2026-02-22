@@ -9,7 +9,7 @@ export class RecordsService {
     constructor(
         @InjectRepository(ClinicalRecordEntity)
         private readonly repo: Repository<ClinicalRecordEntity>,
-    ) { }
+    ) {}
 
     async findByAnimal(
         tenantId: string,
@@ -36,7 +36,10 @@ export class RecordsService {
         };
     }
 
-    async findById(tenantId: string, id: string): Promise<ClinicalRecordEntity> {
+    async findById(
+        tenantId: string,
+        id: string,
+    ): Promise<ClinicalRecordEntity> {
         const record = await this.repo.findOne({ where: { id, tenantId } });
         if (!record) {
             throw new NotFoundException('Clinical record not found');

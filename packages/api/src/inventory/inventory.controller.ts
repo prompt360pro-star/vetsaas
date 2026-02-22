@@ -12,11 +12,15 @@ import {
     Query,
     Request,
 } from '@nestjs/common';
-import { InventoryService, CreateItemInput, StockAdjustInput } from './inventory.service';
+import {
+    InventoryService,
+    CreateItemInput,
+    StockAdjustInput,
+} from './inventory.service';
 
 @Controller('inventory')
 export class InventoryController {
-    constructor(private readonly inventoryService: InventoryService) { }
+    constructor(private readonly inventoryService: InventoryService) {}
 
     @Post()
     async create(@Request() req: any, @Body() body: CreateItemInput) {

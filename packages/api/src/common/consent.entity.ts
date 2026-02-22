@@ -14,29 +14,29 @@ import {
 @Index(['tenantId', 'tutorId'])
 export class ConsentEntity {
     @PrimaryGeneratedColumn('uuid')
-    id: string;
+    id!: string;
 
     @Column('uuid')
-    tenantId: string;
+    tenantId!: string;
 
     @Column('uuid')
-    tutorId: string;
+    tutorId!: string;
 
     @Column({ length: 50 })
-    consentType: string;
+    consentType!: string;
 
     @Column({ type: 'int', default: 1 })
-    version: number;
+    version!: number;
 
     @CreateDateColumn()
-    grantedAt: Date;
+    grantedAt!: Date;
 
     @Column({ type: 'timestamp', nullable: true })
-    revokedAt: Date;
+    revokedAt!: Date;
 
     @Column({ length: 50, nullable: true })
-    ipAddress: string;
+    ipAddress!: string;
 
     @Column({ type: 'text', nullable: true })
-    details: string;
+    details!: string;
 }

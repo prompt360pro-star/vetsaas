@@ -9,7 +9,7 @@ export class AppointmentsService {
     constructor(
         @InjectRepository(AppointmentEntity)
         private readonly repo: Repository<AppointmentEntity>,
-    ) { }
+    ) {}
 
     async findAll(
         tenantId: string,
@@ -47,7 +47,9 @@ export class AppointmentsService {
     }
 
     async findById(tenantId: string, id: string): Promise<AppointmentEntity> {
-        const appointment = await this.repo.findOne({ where: { id, tenantId } });
+        const appointment = await this.repo.findOne({
+            where: { id, tenantId },
+        });
         if (!appointment) {
             throw new NotFoundException('Appointment not found');
         }

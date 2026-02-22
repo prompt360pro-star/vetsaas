@@ -42,7 +42,10 @@ interface NotificationResult {
 }
 
 // Portuguese notification templates for Angola
-const TEMPLATES: Record<NotificationTemplate, { subject: string; body: string }> = {
+const TEMPLATES: Record<
+    NotificationTemplate,
+    { subject: string; body: string }
+> = {
     [NotificationTemplate.APPOINTMENT_REMINDER]: {
         subject: 'Lembrete de Consulta — {{clinicName}}',
         body: 'Olá {{recipientName}}, relembramos que {{animalName}} tem consulta agendada para {{date}} às {{time}}. {{clinicName}}',
@@ -88,7 +91,10 @@ export class NotificationsService {
     async send(payload: NotificationPayload): Promise<NotificationResult> {
         const template = TEMPLATES[payload.template];
         if (!template) {
-            return { success: false, error: `Unknown template: ${payload.template}` };
+            return {
+                success: false,
+                error: `Unknown template: ${payload.template}`,
+            };
         }
 
         const renderedBody = this.renderTemplate(template.body, {
@@ -103,15 +109,36 @@ export class NotificationsService {
 
         switch (payload.channel) {
             case NotificationChannel.SMS:
-                return this.sendSms(payload.recipientPhone!, renderedBody, payload.tenantId);
+                return this.sendSms(
+                    payload.recipientPhone!,
+                    renderedBody,
+                    payload.tenantId,
+                );
             case NotificationChannel.EMAIL:
-                return this.sendEmail(payload.recipientEmail!, renderedSubject, renderedBody, payload.tenantId);
+                return this.sendEmail(
+                    payload.recipientEmail!,
+                    renderedSubject,
+                    renderedBody,
+                    payload.tenantId,
+                );
             case NotificationChannel.WHATSAPP:
-                return this.sendWhatsApp(payload.recipientPhone!, renderedBody, payload.tenantId);
+                return this.sendWhatsApp(
+                    payload.recipientPhone!,
+                    renderedBody,
+                    payload.tenantId,
+                );
             case NotificationChannel.PUSH:
-                return this.sendPush(payload.recipientName, renderedSubject, renderedBody, payload.tenantId);
+                return this.sendPush(
+                    payload.recipientName,
+                    renderedSubject,
+                    renderedBody,
+                    payload.tenantId,
+                );
             default:
-                return { success: false, error: `Unsupported channel: ${payload.channel}` };
+                return {
+                    success: false,
+                    error: `Unsupported channel: ${payload.channel}`,
+                };
         }
     }
 
@@ -163,7 +190,11 @@ export class NotificationsService {
 
     // ── Provider Stubs ─────────────────────────────────
 
-    private async sendSms(phone: string, body: string, tenantId: string): Promise<NotificationResult> {
+    private async sendSms(
+        phone: string,
+        body: string,
+        tenantId: string,
+    ): Promise<NotificationResult> {
         // TODO: Integrate with Angola SMS provider (e.g., Unitel SMS API, Africell)
         this.logger.log(`[SMS STUB] To: ${phone} | Tenant: ${tenantId}`);
         this.logger.debug(`[SMS STUB] Body: ${body}`);
@@ -178,9 +209,16 @@ export class NotificationsService {
         };
     }
 
-    private async sendEmail(email: string, subject: string, body: string, tenantId: string): Promise<NotificationResult> {
+    private async sendEmail(
+        email: string,
+        subject: string,
+        body: string,
+        tenantId: string,
+    ): Promise<NotificationResult> {
         // TODO: Integrate with email provider (SendGrid, AWS SES, etc.)
-        this.logger.log(`[EMAIL STUB] To: ${email} | Subject: ${subject} | Tenant: ${tenantId}`);
+        this.logger.log(
+            `[EMAIL STUB] To: ${email} | Subject: ${subject} | Tenant: ${tenantId}`,
+        );
 
         await this.delay(100);
 
@@ -191,7 +229,11 @@ export class NotificationsService {
         };
     }
 
-    private async sendWhatsApp(phone: string, body: string, tenantId: string): Promise<NotificationResult> {
+    private async sendWhatsApp(
+        phone: string,
+        body: string,
+        tenantId: string,
+    ): Promise<NotificationResult> {
         // TODO: Integrate with WhatsApp Business API
         this.logger.log(`[WHATSAPP STUB] To: ${phone} | Tenant: ${tenantId}`);
 
@@ -204,9 +246,16 @@ export class NotificationsService {
         };
     }
 
-    private async sendPush(userId: string, title: string, body: string, tenantId: string): Promise<NotificationResult> {
+    private async sendPush(
+        userId: string,
+        title: string,
+        body: string,
+        tenantId: string,
+    ): Promise<NotificationResult> {
         // TODO: Integrate with Firebase Cloud Messaging or similar
-        this.logger.log(`[PUSH STUB] User: ${userId} | Title: ${title} | Tenant: ${tenantId}`);
+        this.logger.log(
+            `[PUSH STUB] User: ${userId} | Title: ${title} | Tenant: ${tenantId}`,
+        );
 
         await this.delay(50);
 
@@ -219,8 +268,14 @@ export class NotificationsService {
 
     // ── Helpers ────────────────────────────────────────
 
-    private renderTemplate(template: string, data: Record<string, string>): string {
-        return template.replace(/\{\{(\w+)\}\}/g, (_, key) => data[key] || `{{${key}}}`);
+    private renderTemplate(
+        template: string,
+        data: Record<string, string>,
+    ): string {
+        return template.replace(
+            /\{\{(\w+)\}\}/g,
+            (_, key) => data[key] || `{{${key}}}`,
+        );
     }
 
     private delay(ms: number): Promise<void> {

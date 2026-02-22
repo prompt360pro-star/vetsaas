@@ -11,13 +11,13 @@ import type { UserRole } from '@vetsaas/shared';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-    constructor(private readonly reflector: Reflector) { }
+    constructor(private readonly reflector: Reflector) {}
 
     canActivate(context: ExecutionContext): boolean {
-        const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(ROLES_KEY, [
-            context.getHandler(),
-            context.getClass(),
-        ]);
+        const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(
+            ROLES_KEY,
+            [context.getHandler(), context.getClass()],
+        );
 
         // No @Roles() decorator → allow access
         if (!requiredRoles || requiredRoles.length === 0) {

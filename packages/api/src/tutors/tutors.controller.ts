@@ -17,7 +17,7 @@ import type { PaginationQuery } from '@vetsaas/shared';
 @Controller('tutors')
 @UseGuards(AuthGuard('jwt'))
 export class TutorsController {
-    constructor(private readonly tutorsService: TutorsService) { }
+    constructor(private readonly tutorsService: TutorsService) {}
 
     @Get()
     async findAll(@Request() req: any, @Query() query: PaginationQuery) {
@@ -47,7 +47,11 @@ export class TutorsController {
         @Param('id') id: string,
         @Body() body: any,
     ) {
-        const data = await this.tutorsService.update(req.user.tenantId, id, body);
+        const data = await this.tutorsService.update(
+            req.user.tenantId,
+            id,
+            body,
+        );
         return { success: true, data };
     }
 

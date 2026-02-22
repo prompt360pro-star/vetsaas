@@ -5,19 +5,35 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { BadRequestException } from '@nestjs/common';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { StorageService } from './storage.service';
+
+jest.mock('@aws-sdk/client-s3', () => {
+    return {
+        S3Client: jest.fn().mockImplementation(() => {
+            return {};
+        }),
+        GetObjectCommand: jest.fn(),
+    };
+});
+
+jest.mock('@aws-sdk/s3-request-presigner');
 
 describe('StorageService', () => {
     let service: StorageService;
 
     beforeEach(async () => {
+        jest.clearAllMocks();
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 StorageService,
                 {
                     provide: ConfigService,
                     useValue: {
-                        get: jest.fn((key: string, defaultValue?: string) => defaultValue),
+                        get: jest.fn(
+                            (key: string, defaultValue?: string) =>
+                                defaultValue,
+                        ),
                     },
                 },
             ],
@@ -53,7 +69,13 @@ describe('StorageService', () => {
             const buffer = Buffer.from('fake executable');
 
             await expect(
-                service.upload('tenant-1', 'photos', buffer, 'malware.exe', 'application/x-msdownload'),
+                service.upload(
+                    'tenant-1',
+                    'photos',
+                    buffer,
+                    'malware.exe',
+                    'application/x-msdownload',
+                ),
             ).rejects.toThrow(BadRequestException);
         });
 
@@ -62,7 +84,13 @@ describe('StorageService', () => {
             const hugeBuffer = Buffer.alloc(21 * 1024 * 1024);
 
             await expect(
-                service.upload('tenant-1', 'photos', hugeBuffer, 'huge.jpg', 'image/jpeg'),
+                service.upload(
+                    'tenant-1',
+                    'photos',
+                    hugeBuffer,
+                    'huge.jpg',
+                    'image/jpeg',
+                ),
             ).rejects.toThrow(BadRequestException);
         });
 
@@ -96,7 +124,13 @@ describe('StorageService', () => {
         it('should generate keys with correct structure', async () => {
             const buffer = Buffer.from('data');
 
-            const result1 = await service.upload('tenant-1', 'photos', buffer, 'a.jpg', 'image/jpeg');
+            const result1 = await service.upload(
+                'tenant-1',
+                'photos',
+                buffer,
+                'a.jpg',
+                'image/jpeg',
+            );
 
             // Key should have tenant/category prefix and correct extension
             expect(result1.key).toContain('tenant-1/photos/');
@@ -120,23 +154,35 @@ describe('StorageService', () => {
 
         it('should reject unsupported MIME type in pre-signed URL', async () => {
             await expect(
-                service.getPresignedUploadUrl('tenant-1', 'photos', 'file.exe', 'application/x-msdownload'),
+                service.getPresignedUploadUrl(
+                    'tenant-1',
+                    'photos',
+                    'file.exe',
+                    'application/x-msdownload',
+                ),
             ).rejects.toThrow(BadRequestException);
         });
     });
 
     describe('getPresignedDownloadUrl', () => {
         it('should return download URL', async () => {
-            const url = await service.getPresignedDownloadUrl('tenant-1/photos/test.jpg');
+            (getSignedUrl as jest.Mock).mockResolvedValue(
+                'https://mock-s3-url.com/download',
+            );
+            const url = await service.getPresignedDownloadUrl(
+                'tenant-1/photos/test.jpg',
+            );
 
-            expect(url).toContain('tenant-1/photos/test.jpg');
-            expect(url).toContain('download=true');
+            expect(url).toBe('https://mock-s3-url.com/download');
+            expect(getSignedUrl).toHaveBeenCalled();
         });
     });
 
     describe('delete', () => {
         it('should not throw on delete', async () => {
-            await expect(service.delete('tenant-1/photos/test.jpg')).resolves.not.toThrow();
+            await expect(
+                service.delete('tenant-1/photos/test.jpg'),
+            ).resolves.not.toThrow();
         });
     });
 
@@ -160,6 +206,7 @@ expect.extend({
 });
 
 declare global {
+    // eslint-disable-next-line @typescript-eslint/no-namespace
     namespace jest {
         interface Matchers<R> {
             toEndWith(suffix: string): R;

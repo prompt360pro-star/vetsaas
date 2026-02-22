@@ -4,6 +4,8 @@
 
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import * as crypto from 'crypto';
 
 export interface UploadResult {
@@ -38,11 +40,34 @@ export class StorageService {
     private readonly bucket: string;
     private readonly endpoint: string;
     private readonly region: string;
+    private readonly s3: S3Client;
 
     constructor(private configService: ConfigService) {
-        this.bucket = this.configService.get<string>('S3_BUCKET', 'vetsaas-files');
-        this.endpoint = this.configService.get<string>('S3_ENDPOINT', 'http://localhost:9000');
+        this.bucket = this.configService.get<string>(
+            'S3_BUCKET',
+            'vetsaas-files',
+        );
+        this.endpoint = this.configService.get<string>(
+            'S3_ENDPOINT',
+            'http://localhost:9000',
+        );
         this.region = this.configService.get<string>('S3_REGION', 'us-east-1');
+
+        this.s3 = new S3Client({
+            endpoint: this.endpoint,
+            region: this.region,
+            forcePathStyle: true,
+            credentials: {
+                accessKeyId: this.configService.get<string>(
+                    'S3_ACCESS_KEY',
+                    'minioadmin',
+                ),
+                secretAccessKey: this.configService.get<string>(
+                    'S3_SECRET_KEY',
+                    'minioadmin',
+                ),
+            },
+        });
     }
 
     /**
@@ -71,11 +96,18 @@ export class StorageService {
 
         // Generate unique key with tenant isolation
         const ext = originalName.split('.').pop()?.toLowerCase() || 'bin';
-        const hash = crypto.createHash('md5').update(buffer).digest('hex').slice(0, 8);
+        const hash = crypto
+            .createHash('md5')
+            .update(buffer)
+            .digest('hex')
+            .slice(0, 8);
         const timestamp = Date.now();
         const key = `${tenantId}/${category}/${timestamp}-${hash}.${ext}`;
 
-        const checksum = crypto.createHash('sha256').update(buffer).digest('hex');
+        const checksum = crypto
+            .createHash('sha256')
+            .update(buffer)
+            .digest('hex');
 
         // TODO: Replace with actual S3 SDK call
         // const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
@@ -107,7 +139,9 @@ export class StorageService {
         expiresInSeconds = 3600,
     ): Promise<PresignedUrlResult> {
         if (!ALLOWED_MIME_TYPES.includes(mimeType)) {
-            throw new BadRequestException(`Tipo de ficheiro não suportado: ${mimeType}`);
+            throw new BadRequestException(
+                `Tipo de ficheiro não suportado: ${mimeType}`,
+            );
         }
 
         const ext = fileName.split('.').pop()?.toLowerCase() || 'bin';
@@ -129,9 +163,17 @@ export class StorageService {
     /**
      * Get a pre-signed download URL for a stored file.
      */
-    async getPresignedDownloadUrl(key: string, expiresInSeconds = 3600): Promise<string> {
-        // TODO: Replace with actual S3 pre-signed GET URL
-        return `${this.endpoint}/${this.bucket}/${key}?download=true&expires=${expiresInSeconds}`;
+    async getPresignedDownloadUrl(
+        key: string,
+        expiresInSeconds = 3600,
+    ): Promise<string> {
+        const command = new GetObjectCommand({
+            Bucket: this.bucket,
+            Key: key,
+            ResponseContentDisposition: 'attachment',
+        });
+
+        return getSignedUrl(this.s3, command, { expiresIn: expiresInSeconds });
     }
 
     /**
@@ -151,7 +193,9 @@ export class StorageService {
         maxResults = 100,
     ): Promise<{ key: string; size: number; lastModified: Date }[]> {
         // TODO: Replace with actual S3 ListObjectsV2Command
-        this.logger.log(`[STORAGE STUB] Listing: ${tenantId}/${category} (max: ${maxResults})`);
+        this.logger.log(
+            `[STORAGE STUB] Listing: ${tenantId}/${category} (max: ${maxResults})`,
+        );
         return [];
     }
 }

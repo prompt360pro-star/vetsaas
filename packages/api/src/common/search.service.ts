@@ -32,9 +32,13 @@ export class SearchService {
         private readonly tutorsRepo: Repository<TutorEntity>,
         @InjectRepository(ClinicalRecordEntity)
         private readonly recordsRepo: Repository<ClinicalRecordEntity>,
-    ) { }
+    ) {}
 
-    async search(tenantId: string, query: string, limit: number = 20): Promise<SearchResponse> {
+    async search(
+        tenantId: string,
+        query: string,
+        limit: number = 20,
+    ): Promise<SearchResponse> {
         if (!query || query.trim().length < 2) {
             return { query, total: 0, results: [] };
         }
@@ -52,11 +56,18 @@ export class SearchService {
         return { query, total: results.length, results };
     }
 
-    private async searchAnimals(tenantId: string, q: string, limit: number): Promise<SearchResult[]> {
+    private async searchAnimals(
+        tenantId: string,
+        q: string,
+        limit: number,
+    ): Promise<SearchResult[]> {
         const animals = await this.animalsRepo
             .createQueryBuilder('a')
             .where('a.tenantId = :tenantId', { tenantId })
-            .andWhere('(LOWER(a.name) LIKE :q OR LOWER(a.species) LIKE :q OR LOWER(a.breed) LIKE :q OR a.microchipId LIKE :q)', { q })
+            .andWhere(
+                '(LOWER(a.name) LIKE :q OR LOWER(a.species) LIKE :q OR LOWER(a.breed) LIKE :q OR a.microchipId LIKE :q)',
+                { q },
+            )
             .orderBy('a.name', 'ASC')
             .take(limit)
             .getMany();
@@ -70,11 +81,18 @@ export class SearchService {
         }));
     }
 
-    private async searchTutors(tenantId: string, q: string, limit: number): Promise<SearchResult[]> {
+    private async searchTutors(
+        tenantId: string,
+        q: string,
+        limit: number,
+    ): Promise<SearchResult[]> {
         const tutors = await this.tutorsRepo
             .createQueryBuilder('t')
             .where('t.tenantId = :tenantId', { tenantId })
-            .andWhere('(LOWER(t.firstName) LIKE :q OR LOWER(t.lastName) LIKE :q OR LOWER(t.email) LIKE :q OR t.phone LIKE :q)', { q })
+            .andWhere(
+                '(LOWER(t.firstName) LIKE :q OR LOWER(t.lastName) LIKE :q OR LOWER(t.email) LIKE :q OR t.phone LIKE :q)',
+                { q },
+            )
             .orderBy('t.firstName', 'ASC')
             .take(limit)
             .getMany();
@@ -88,11 +106,18 @@ export class SearchService {
         }));
     }
 
-    private async searchRecords(tenantId: string, q: string, limit: number): Promise<SearchResult[]> {
+    private async searchRecords(
+        tenantId: string,
+        q: string,
+        limit: number,
+    ): Promise<SearchResult[]> {
         const records = await this.recordsRepo
             .createQueryBuilder('r')
             .where('r.tenantId = :tenantId', { tenantId })
-            .andWhere('(LOWER(r.subjective) LIKE :q OR LOWER(r.assessment) LIKE :q OR LOWER(r.plan) LIKE :q)', { q })
+            .andWhere(
+                '(LOWER(r.subjective) LIKE :q OR LOWER(r.assessment) LIKE :q OR LOWER(r.plan) LIKE :q)',
+                { q },
+            )
             .orderBy('r.createdAt', 'DESC')
             .take(limit)
             .getMany();

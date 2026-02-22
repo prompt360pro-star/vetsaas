@@ -17,11 +17,14 @@ import type { PaginationQuery } from '@vetsaas/shared';
 @Controller('animals')
 @UseGuards(AuthGuard('jwt'))
 export class AnimalsController {
-    constructor(private readonly animalsService: AnimalsService) { }
+    constructor(private readonly animalsService: AnimalsService) {}
 
     @Get()
     async findAll(@Request() req: any, @Query() query: PaginationQuery) {
-        const data = await this.animalsService.findAll(req.user.tenantId, query);
+        const data = await this.animalsService.findAll(
+            req.user.tenantId,
+            query,
+        );
         return { success: true, data };
     }
 
