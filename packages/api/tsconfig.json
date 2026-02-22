@@ -2,6 +2,7 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "module": "commonjs",
+    "moduleResolution": "node",
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
@@ -19,9 +20,10 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "resolveJsonModule": true,
+    "rootDir": "../..",
     "paths": {
-      "@vetsaas/shared": ["../shared/src"]
+      "@vetsaas/shared": ["packages/shared/src"]
     }
   },
-  "include": ["src", "test"]
+  "include": ["src", "test", "../shared/src"]
 }

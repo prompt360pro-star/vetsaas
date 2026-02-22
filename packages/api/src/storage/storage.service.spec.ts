@@ -186,10 +186,11 @@ expect.extend({
   },
 });
 
-// declare global {
-//   namespace jest {
-//     interface Matchers<R> {
-//       toEndWith(suffix: string): R;
-//     }
-//   }
-// }
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace jest {
+    interface Matchers<R> {
+      toEndWith(suffix: string): R;
+    }
+  }
+}
