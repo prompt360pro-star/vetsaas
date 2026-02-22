@@ -6,20 +6,20 @@ import type { JwtPayload } from '@vetsaas/shared';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-    constructor(configService: ConfigService) {
-        super({
-            jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-            ignoreExpiration: false,
-            secretOrKey: configService.get('JWT_SECRET', 'change-me-in-production'),
-        });
-    }
+  constructor(configService: ConfigService) {
+    super({
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ignoreExpiration: false,
+      secretOrKey: configService.get('JWT_SECRET', 'change-me-in-production'),
+    });
+  }
 
-    async validate(payload: JwtPayload) {
-        return {
-            sub: payload.sub,
-            tenantId: payload.tenantId,
-            email: payload.email,
-            role: payload.role,
-        };
-    }
+  async validate(payload: JwtPayload) {
+    return {
+      sub: payload.sub,
+      tenantId: payload.tenantId,
+      email: payload.email,
+      role: payload.role,
+    };
+  }
 }
