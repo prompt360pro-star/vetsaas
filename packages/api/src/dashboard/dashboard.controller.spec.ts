@@ -1,8 +1,8 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { DashboardController } from './dashboard.controller';
-import { DashboardService } from './dashboard.service';
+import { Test, TestingModule } from "@nestjs/testing";
+import { DashboardController } from "./dashboard.controller";
+import { DashboardService } from "./dashboard.service";
 
-describe('DashboardController', () => {
+describe("DashboardController", () => {
   let controller: DashboardController;
   let service: DashboardService;
 
@@ -11,7 +11,7 @@ describe('DashboardController', () => {
     getRecentActivity: jest.fn(),
   };
 
-  const tenantId = 'tenant-123';
+  const tenantId = "tenant-123";
   const mockRequest = {
     user: {
       tenantId,
@@ -37,12 +37,12 @@ describe('DashboardController', () => {
     jest.clearAllMocks();
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(controller).toBeDefined();
   });
 
-  describe('stats', () => {
-    it('should call service.getStats with correct tenantId', async () => {
+  describe("stats", () => {
+    it("should call service.getStats with correct tenantId", async () => {
       const mockStats = {
         totalAnimals: 10,
         totalTutors: 5,
@@ -63,10 +63,10 @@ describe('DashboardController', () => {
     });
   });
 
-  describe('activity', () => {
-    it('should call service.getRecentActivity with correct tenantId', async () => {
+  describe("activity", () => {
+    it("should call service.getRecentActivity with correct tenantId", async () => {
       const mockActivity = [
-        { id: 1, action: 'CREATE', entity: 'Animal', timestamp: new Date() },
+        { id: 1, action: "CREATE", entity: "Animal", timestamp: new Date() },
       ];
 
       mockDashboardService.getRecentActivity.mockResolvedValue(mockActivity);
