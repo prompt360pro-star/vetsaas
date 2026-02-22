@@ -302,7 +302,8 @@ export class NotificationsService implements OnModuleInit {
             };
         } catch (error) {
             this.logger.error('Error sending push notification', error);
-            return { success: false, error: error.message };
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            return { success: false, error: errorMessage };
         }
     }
 
