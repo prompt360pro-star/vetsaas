@@ -9,6 +9,7 @@ import {
 
 @Entity('clinical_records')
 @Index(['tenantId', 'animalId'])
+@Index('idx_unsigned_records', ['tenantId', 'createdAt'], { where: '"signedAt" IS NULL' })
 export class ClinicalRecordEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
