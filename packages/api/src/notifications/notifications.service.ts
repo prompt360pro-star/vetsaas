@@ -252,7 +252,7 @@ export class NotificationsService {
           messageId: response.headers["x-message-id"] as string,
           provider: "sendgrid",
         };
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error(
           `[EMAIL ERROR] Failed to send email to ${email}: ${error.message}`,
           error.stack,
