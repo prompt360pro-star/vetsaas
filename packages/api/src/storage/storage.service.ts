@@ -5,6 +5,14 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
+import {
+    S3Client,
+    PutObjectCommand,
+    GetObjectCommand,
+    DeleteObjectCommand,
+    ListObjectsV2Command,
+} from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 export interface UploadResult {
     key: string;
@@ -38,11 +46,25 @@ export class StorageService {
     private readonly bucket: string;
     private readonly endpoint: string;
     private readonly region: string;
+    private readonly s3Client: S3Client;
 
     constructor(private configService: ConfigService) {
         this.bucket = this.configService.get<string>('S3_BUCKET', 'vetsaas-files');
         this.endpoint = this.configService.get<string>('S3_ENDPOINT', 'http://localhost:9000');
         this.region = this.configService.get<string>('S3_REGION', 'us-east-1');
+
+        const accessKeyId = this.configService.get<string>('S3_ACCESS_KEY', 'minioadmin');
+        const secretAccessKey = this.configService.get<string>('S3_SECRET_KEY', 'minioadmin');
+
+        this.s3Client = new S3Client({
+            endpoint: this.endpoint,
+            region: this.region,
+            credentials: {
+                accessKeyId,
+                secretAccessKey,
+            },
+            forcePathStyle: true, // Needed for MinIO compatibility
+        });
     }
 
     /**
@@ -77,23 +99,40 @@ export class StorageService {
 
         const checksum = crypto.createHash('sha256').update(buffer).digest('hex');
 
-        // TODO: Replace with actual S3 SDK call
-        // const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
-        // const s3 = new S3Client({ endpoint, region, credentials: {...} });
-        // await s3.send(new PutObjectCommand({ Bucket, Key: key, Body: buffer, ContentType: mimeType }));
+        try {
+            await this.s3Client.send(
+                new PutObjectCommand({
+                    Bucket: this.bucket,
+                    Key: key,
+                    Body: buffer,
+                    ContentType: mimeType,
+                    Metadata: {
+                        'original-name': originalName,
+                        'tenant-id': tenantId,
+                    },
+                }),
+            );
 
-        this.logger.log(
-            `[STORAGE STUB] Uploaded: ${key} (${(buffer.length / 1024).toFixed(1)}KB, ${mimeType}) | Tenant: ${tenantId}`,
-        );
+            this.logger.log(
+                `Uploaded: ${key} (${(buffer.length / 1024).toFixed(1)}KB, ${mimeType}) | Tenant: ${tenantId}`,
+            );
 
-        return {
-            key,
-            url: `${this.endpoint}/${this.bucket}/${key}`,
-            bucket: this.bucket,
-            size: buffer.length,
-            mimeType,
-            checksum,
-        };
+            // Construct public URL (assumes bucket is public or behind a proxy that handles auth/presigning if private)
+            // For private buckets, getPresignedDownloadUrl should be used instead of raw URL
+            const url = `${this.endpoint}/${this.bucket}/${key}`;
+
+            return {
+                key,
+                url,
+                bucket: this.bucket,
+                size: buffer.length,
+                mimeType,
+                checksum,
+            };
+        } catch (error) {
+            this.logger.error(`Failed to upload file: ${key}`, error);
+            throw new BadRequestException('Falha ao carregar o ficheiro para o armazenamento.');
+        }
     }
 
     /**
@@ -113,33 +152,67 @@ export class StorageService {
         const ext = fileName.split('.').pop()?.toLowerCase() || 'bin';
         const key = `${tenantId}/${category}/${Date.now()}-${crypto.randomBytes(4).toString('hex')}.${ext}`;
 
-        // TODO: Replace with actual S3 pre-signed URL generation
-        // const command = new PutObjectCommand({ Bucket, Key: key, ContentType: mimeType });
-        // const uploadUrl = await getSignedUrl(s3, command, { expiresIn: expiresInSeconds });
+        try {
+            const command = new PutObjectCommand({
+                Bucket: this.bucket,
+                Key: key,
+                ContentType: mimeType,
+                Metadata: {
+                    'original-name': fileName,
+                    'tenant-id': tenantId,
+                },
+            });
 
-        const uploadUrl = `${this.endpoint}/${this.bucket}/${key}?presigned=true&expires=${expiresInSeconds}`;
+            const uploadUrl = await getSignedUrl(this.s3Client, command, {
+                expiresIn: expiresInSeconds,
+            });
 
-        this.logger.log(
-            `[STORAGE STUB] Pre-signed URL generated: ${key} | Tenant: ${tenantId} | Expires: ${expiresInSeconds}s`,
-        );
+            this.logger.log(
+                `Pre-signed URL generated: ${key} | Tenant: ${tenantId} | Expires: ${expiresInSeconds}s`,
+            );
 
-        return { uploadUrl, key, expiresIn: expiresInSeconds };
+            return { uploadUrl, key, expiresIn: expiresInSeconds };
+        } catch (error) {
+            this.logger.error(`Failed to generate pre-signed upload URL for: ${key}`, error);
+            throw new BadRequestException('Falha ao gerar URL de upload.');
+        }
     }
 
     /**
      * Get a pre-signed download URL for a stored file.
      */
     async getPresignedDownloadUrl(key: string, expiresInSeconds = 3600): Promise<string> {
-        // TODO: Replace with actual S3 pre-signed GET URL
-        return `${this.endpoint}/${this.bucket}/${key}?download=true&expires=${expiresInSeconds}`;
+        try {
+            const command = new GetObjectCommand({
+                Bucket: this.bucket,
+                Key: key,
+            });
+
+            return await getSignedUrl(this.s3Client, command, {
+                expiresIn: expiresInSeconds,
+            });
+        } catch (error) {
+            this.logger.error(`Failed to generate pre-signed download URL for: ${key}`, error);
+            throw new BadRequestException('Falha ao gerar URL de download.');
+        }
     }
 
     /**
      * Delete a file from storage.
      */
     async delete(key: string): Promise<void> {
-        // TODO: Replace with actual S3 DeleteObjectCommand
-        this.logger.log(`[STORAGE STUB] Deleted: ${key}`);
+        try {
+            await this.s3Client.send(
+                new DeleteObjectCommand({
+                    Bucket: this.bucket,
+                    Key: key,
+                }),
+            );
+            this.logger.log(`Deleted: ${key}`);
+        } catch (error) {
+            this.logger.error(`Failed to delete file: ${key}`, error);
+            // We might not want to throw here to make delete operations idempotent/robust
+        }
     }
 
     /**
@@ -150,8 +223,26 @@ export class StorageService {
         category: string,
         maxResults = 100,
     ): Promise<{ key: string; size: number; lastModified: Date }[]> {
-        // TODO: Replace with actual S3 ListObjectsV2Command
-        this.logger.log(`[STORAGE STUB] Listing: ${tenantId}/${category} (max: ${maxResults})`);
-        return [];
+        const prefix = `${tenantId}/${category}/`;
+        try {
+            const response = await this.s3Client.send(
+                new ListObjectsV2Command({
+                    Bucket: this.bucket,
+                    Prefix: prefix,
+                    MaxKeys: maxResults,
+                }),
+            );
+
+            return (
+                response.Contents?.map((item) => ({
+                    key: item.Key || '',
+                    size: item.Size || 0,
+                    lastModified: item.LastModified || new Date(),
+                })) || []
+            );
+        } catch (error) {
+            this.logger.error(`Failed to list files: ${prefix}`, error);
+            throw new BadRequestException('Falha ao listar ficheiros.');
+        }
     }
 }

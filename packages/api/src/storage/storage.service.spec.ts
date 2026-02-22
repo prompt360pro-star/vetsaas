@@ -6,11 +6,28 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { BadRequestException } from '@nestjs/common';
 import { StorageService } from './storage.service';
+import { mockClient } from 'aws-sdk-client-mock';
+import {
+    S3Client,
+    PutObjectCommand,
+    DeleteObjectCommand,
+    ListObjectsV2Command,
+    GetObjectCommand,
+} from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+
+// Mock getSignedUrl
+jest.mock('@aws-sdk/s3-request-presigner', () => ({
+    getSignedUrl: jest.fn().mockResolvedValue('http://mock-signed-url'),
+}));
 
 describe('StorageService', () => {
     let service: StorageService;
+    const s3Mock = mockClient(S3Client);
 
     beforeEach(async () => {
+        s3Mock.reset();
+
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 StorageService,
@@ -32,6 +49,8 @@ describe('StorageService', () => {
 
     describe('upload', () => {
         it('should upload file with tenant-isolated path', async () => {
+            s3Mock.on(PutObjectCommand).resolves({});
+
             const buffer = Buffer.from('test image data');
             const result = await service.upload(
                 'tenant-1',
@@ -47,6 +66,15 @@ describe('StorageService', () => {
             expect(result.mimeType).toBe('image/jpeg');
             expect(result.checksum).toBeDefined();
             expect(result.checksum.length).toBe(64); // SHA-256 hex
+
+            // Verify S3 call
+            const calls = s3Mock.commandCalls(PutObjectCommand);
+            expect(calls.length).toBe(1);
+            const input = calls[0].args[0].input;
+            expect(input.Bucket).toBe('vetsaas-files');
+            expect(input.Key).toBe(result.key);
+            expect(input.Body).toEqual(buffer);
+            expect(input.ContentType).toBe('image/jpeg');
         });
 
         it('should reject unsupported MIME types', async () => {
@@ -67,6 +95,7 @@ describe('StorageService', () => {
         });
 
         it('should accept DICOM files for xrays', async () => {
+            s3Mock.on(PutObjectCommand).resolves({});
             const buffer = Buffer.from('dicom data');
             const result = await service.upload(
                 'tenant-1',
@@ -81,6 +110,7 @@ describe('StorageService', () => {
         });
 
         it('should accept PDF documents', async () => {
+            s3Mock.on(PutObjectCommand).resolves({});
             const buffer = Buffer.from('pdf data');
             const result = await service.upload(
                 'tenant-1',
@@ -94,6 +124,7 @@ describe('StorageService', () => {
         });
 
         it('should generate keys with correct structure', async () => {
+            s3Mock.on(PutObjectCommand).resolves({});
             const buffer = Buffer.from('data');
 
             const result1 = await service.upload('tenant-1', 'photos', buffer, 'a.jpg', 'image/jpeg');
@@ -113,9 +144,11 @@ describe('StorageService', () => {
                 'image/jpeg',
             );
 
-            expect(result.uploadUrl).toContain('tenant-1/photos/');
+            expect(result.uploadUrl).toBe('http://mock-signed-url');
             expect(result.key).toContain('tenant-1/photos/');
             expect(result.expiresIn).toBe(3600);
+
+            expect(getSignedUrl).toHaveBeenCalled();
         });
 
         it('should reject unsupported MIME type in pre-signed URL', async () => {
@@ -129,19 +162,37 @@ describe('StorageService', () => {
         it('should return download URL', async () => {
             const url = await service.getPresignedDownloadUrl('tenant-1/photos/test.jpg');
 
-            expect(url).toContain('tenant-1/photos/test.jpg');
-            expect(url).toContain('download=true');
+            expect(url).toBe('http://mock-signed-url');
+            expect(getSignedUrl).toHaveBeenCalled();
         });
     });
 
     describe('delete', () => {
         it('should not throw on delete', async () => {
+            s3Mock.on(DeleteObjectCommand).resolves({});
             await expect(service.delete('tenant-1/photos/test.jpg')).resolves.not.toThrow();
+            expect(s3Mock.commandCalls(DeleteObjectCommand).length).toBe(1);
         });
     });
 
     describe('listFiles', () => {
-        it('should return empty array (stub)', async () => {
+        it('should return file list', async () => {
+            s3Mock.on(ListObjectsV2Command).resolves({
+                Contents: [
+                    { Key: 'key1', Size: 123, LastModified: new Date() },
+                    { Key: 'key2', Size: 456, LastModified: new Date() },
+                ],
+            });
+
+            const result = await service.listFiles('tenant-1', 'photos');
+            expect(result.length).toBe(2);
+            expect(result[0].key).toBe('key1');
+            expect(result[1].key).toBe('key2');
+        });
+
+         it('should return empty list if no contents', async () => {
+            s3Mock.on(ListObjectsV2Command).resolves({});
+
             const result = await service.listFiles('tenant-1', 'photos');
             expect(result).toEqual([]);
         });
