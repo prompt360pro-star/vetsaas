@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, ILike } from 'typeorm';
+import { Repository, Raw } from 'typeorm';
 import { AnimalEntity } from './animal.entity';
 import type { PaginatedResponse, PaginationQuery } from '@vetsaas/shared';
 
@@ -21,7 +21,9 @@ export class AnimalsService {
 
         const where: any = { tenantId };
         if (query.search) {
-            where.name = ILike(`%${query.search}%`);
+            where.name = Raw((alias) => `LOWER(${alias}) LIKE LOWER(:search)`, {
+                search: `${query.search.replace(/[%_]/g, '\\$&')}%`,
+            });
         }
 
         const [data, total] = await this.repo.findAndCount({
