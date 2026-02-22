@@ -34,61 +34,61 @@ import { StockMovementEntity } from './inventory/stock-movement.entity';
 import { LabResultEntity } from './records/lab-result.entity';
 
 @Module({
-    imports: [
-        // Config
-        ConfigModule.forRoot({ isGlobal: true }),
+  imports: [
+    // Config
+    ConfigModule.forRoot({ isGlobal: true }),
 
-        // Database
-        TypeOrmModule.forRootAsync({
-            imports: [ConfigModule],
-            useFactory: (config: ConfigService) => ({
-                type: 'postgres',
-                host: config.get('DATABASE_HOST', 'localhost'),
-                port: config.get<number>('DATABASE_PORT', 5432),
-                username: config.get('DATABASE_USER', 'vetsaas'),
-                password: config.get('DATABASE_PASSWORD', 'vetsaas_dev_2024'),
-                database: config.get('DATABASE_NAME', 'vetsaas'),
-                entities: [
-                    TenantEntity,
-                    UserEntity,
-                    AnimalEntity,
-                    TutorEntity,
-                    ClinicalRecordEntity,
-                    AppointmentEntity,
-                    AuditLogEntity,
-                    ConsentEntity,
-                    PaymentEntity,
-                    InvoiceEntity,
-                    InventoryItemEntity,
-                    StockMovementEntity,
-                    LabResultEntity,
-                ],
-                synchronize: config.get('NODE_ENV') === 'development',
-                logging: config.get('NODE_ENV') === 'development',
-            }),
-            inject: [ConfigService],
-        }),
+    // Database
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (config: ConfigService) => ({
+        type: 'postgres',
+        host: config.get('DATABASE_HOST', 'localhost'),
+        port: config.get<number>('DATABASE_PORT', 5432),
+        username: config.get('DATABASE_USER', 'vetsaas'),
+        password: config.get('DATABASE_PASSWORD', 'vetsaas_dev_2024'),
+        database: config.get('DATABASE_NAME', 'vetsaas'),
+        entities: [
+          TenantEntity,
+          UserEntity,
+          AnimalEntity,
+          TutorEntity,
+          ClinicalRecordEntity,
+          AppointmentEntity,
+          AuditLogEntity,
+          ConsentEntity,
+          PaymentEntity,
+          InvoiceEntity,
+          InventoryItemEntity,
+          StockMovementEntity,
+          LabResultEntity,
+        ],
+        synchronize: config.get('NODE_ENV') === 'development',
+        logging: config.get('NODE_ENV') === 'development',
+      }),
+      inject: [ConfigService],
+    }),
 
-        // Feature modules
-        AuthModule,
-        TenantsModule,
-        AnimalsModule,
-        TutorsModule,
-        RecordsModule,
-        AppointmentsModule,
-        NotificationsModule,
-        StorageModule,
-        PaymentsModule,
-        InventoryModule,
-        AuditModule,
-        DashboardModule,
-        ExportModule,
-        SearchModule,
-    ],
-    controllers: [HealthController],
+    // Feature modules
+    AuthModule,
+    TenantsModule,
+    AnimalsModule,
+    TutorsModule,
+    RecordsModule,
+    AppointmentsModule,
+    NotificationsModule,
+    StorageModule,
+    PaymentsModule,
+    InventoryModule,
+    AuditModule,
+    DashboardModule,
+    ExportModule,
+    SearchModule,
+  ],
+  controllers: [HealthController],
 })
 export class AppModule implements NestModule {
-    configure(consumer: MiddlewareConsumer) {
-        consumer.apply(RequestLoggerMiddleware).forRoutes('*');
-    }
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(RequestLoggerMiddleware).forRoutes('*');
+  }
 }
