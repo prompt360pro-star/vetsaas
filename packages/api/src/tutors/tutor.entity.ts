@@ -10,6 +10,7 @@ import {
 
 @Entity('tutors')
 @Index(['tenantId'])
+@Index(['firstName'])
 export class TutorEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
