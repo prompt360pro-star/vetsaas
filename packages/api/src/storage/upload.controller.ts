@@ -11,6 +11,7 @@ import {
     Param,
     Req,
     BadRequestException,
+    ForbiddenException,
     Get,
     Query,
 } from '@nestjs/common';
@@ -87,7 +88,16 @@ export class UploadController {
      * Get a pre-signed download URL
      */
     @Get('download')
-    async getDownloadUrl(@Query('key') key: string) {
+    async getDownloadUrl(@Query('key') key: string, @Req() req: any) {
+        const tenantId = req.user?.tenantId;
+        if (!tenantId) {
+            throw new BadRequestException('Tenant context required');
+        }
+
+        if (!key.startsWith(`${tenantId}/`)) {
+            throw new ForbiddenException('Access denied');
+        }
+
         const url = await this.storageService.getPresignedDownloadUrl(key);
         return { data: { url } };
     }
