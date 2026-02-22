@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig.json",
+  "include": ["."],
+  "exclude": [],
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "ES2021",
+    "noEmit": true
+  }
+}
