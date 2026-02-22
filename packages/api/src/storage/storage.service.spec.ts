@@ -6,11 +6,32 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { BadRequestException } from '@nestjs/common';
 import { StorageService } from './storage.service';
+import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3';
+
+// Create a mock function for send
+const sendMock = jest.fn();
+
+// Mock the S3 Client
+jest.mock('@aws-sdk/client-s3', () => {
+    return {
+        S3Client: jest.fn().mockImplementation(() => {
+            return {
+                send: sendMock,
+            };
+        }),
+        DeleteObjectCommand: jest.fn(),
+    };
+});
 
 describe('StorageService', () => {
     let service: StorageService;
 
     beforeEach(async () => {
+        // Clear all mocks before each test
+        jest.clearAllMocks();
+        // Reset the sendMock implementation to success by default
+        sendMock.mockResolvedValue({});
+
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 StorageService,
@@ -135,8 +156,23 @@ describe('StorageService', () => {
     });
 
     describe('delete', () => {
-        it('should not throw on delete', async () => {
-            await expect(service.delete('tenant-1/photos/test.jpg')).resolves.not.toThrow();
+        it('should delete file using S3Client', async () => {
+            const key = 'tenant-1/photos/test.jpg';
+            await service.delete(key);
+
+            expect(DeleteObjectCommand).toHaveBeenCalledWith({
+                Bucket: 'vetsaas-files',
+                Key: key,
+            });
+            expect(sendMock).toHaveBeenCalled();
+        });
+
+        it('should throw error if delete fails', async () => {
+             const key = 'tenant-1/photos/test.jpg';
+             const error = new Error('Delete failed');
+             sendMock.mockRejectedValueOnce(error);
+
+             await expect(service.delete(key)).rejects.toThrow(error);
         });
     });
 
