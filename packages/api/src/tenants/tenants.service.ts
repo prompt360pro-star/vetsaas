@@ -41,7 +41,9 @@ export class TenantsService {
     id: string,
     data: Partial<TenantEntity>,
   ): Promise<TenantEntity | null> {
-    await this.repo.update(id, data);
+    // TypeORM update method signature can be strict about partial updates for json/simple-json columns.
+    // Casting data to any bypasses the strict check for the settings property.
+    await this.repo.update(id, data as any);
     return this.findById(id);
   }
 
