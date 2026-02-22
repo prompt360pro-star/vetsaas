@@ -5,12 +5,25 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { BadRequestException } from '@nestjs/common';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { StorageService } from './storage.service';
+
+jest.mock('@aws-sdk/client-s3', () => {
+    return {
+        S3Client: jest.fn().mockImplementation(() => {
+            return {};
+        }),
+        GetObjectCommand: jest.fn(),
+    };
+});
+
+jest.mock('@aws-sdk/s3-request-presigner');
 
 describe('StorageService', () => {
     let service: StorageService;
 
     beforeEach(async () => {
+        jest.clearAllMocks();
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 StorageService,
@@ -127,10 +140,11 @@ describe('StorageService', () => {
 
     describe('getPresignedDownloadUrl', () => {
         it('should return download URL', async () => {
+            (getSignedUrl as jest.Mock).mockResolvedValue('https://mock-s3-url.com/download');
             const url = await service.getPresignedDownloadUrl('tenant-1/photos/test.jpg');
 
-            expect(url).toContain('tenant-1/photos/test.jpg');
-            expect(url).toContain('download=true');
+            expect(url).toBe('https://mock-s3-url.com/download');
+            expect(getSignedUrl).toHaveBeenCalled();
         });
     });
 

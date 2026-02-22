@@ -4,6 +4,8 @@
 
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import * as crypto from 'crypto';
 
 export interface UploadResult {
@@ -38,11 +40,22 @@ export class StorageService {
     private readonly bucket: string;
     private readonly endpoint: string;
     private readonly region: string;
+    private readonly s3: S3Client;
 
     constructor(private configService: ConfigService) {
         this.bucket = this.configService.get<string>('S3_BUCKET', 'vetsaas-files');
         this.endpoint = this.configService.get<string>('S3_ENDPOINT', 'http://localhost:9000');
         this.region = this.configService.get<string>('S3_REGION', 'us-east-1');
+
+        this.s3 = new S3Client({
+            endpoint: this.endpoint,
+            region: this.region,
+            forcePathStyle: true,
+            credentials: {
+                accessKeyId: this.configService.get<string>('S3_ACCESS_KEY', 'minioadmin'),
+                secretAccessKey: this.configService.get<string>('S3_SECRET_KEY', 'minioadmin'),
+            },
+        });
     }
 
     /**
@@ -130,8 +143,13 @@ export class StorageService {
      * Get a pre-signed download URL for a stored file.
      */
     async getPresignedDownloadUrl(key: string, expiresInSeconds = 3600): Promise<string> {
-        // TODO: Replace with actual S3 pre-signed GET URL
-        return `${this.endpoint}/${this.bucket}/${key}?download=true&expires=${expiresInSeconds}`;
+        const command = new GetObjectCommand({
+            Bucket: this.bucket,
+            Key: key,
+            ResponseContentDisposition: 'attachment',
+        });
+
+        return getSignedUrl(this.s3, command, { expiresIn: expiresInSeconds });
     }
 
     /**
