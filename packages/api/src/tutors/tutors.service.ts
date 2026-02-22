@@ -21,7 +21,8 @@ export class TutorsService {
 
         const where: any = { tenantId };
         if (query.search) {
-            where.firstName = ILike(`%${query.search}%`);
+            // Use prefix search for better performance and potential index usage
+            where.firstName = ILike(`${query.search}%`);
         }
 
         const [data, total] = await this.repo.findAndCount({
