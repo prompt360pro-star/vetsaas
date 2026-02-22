@@ -60,6 +60,7 @@ export function CommandPalette() {
     const [activeIndex, setActiveIndex] = useState(0);
     const inputRef = useRef<HTMLInputElement>(null);
     const listRef = useRef<HTMLDivElement>(null);
+    const itemsRef = useRef<Map<string, HTMLButtonElement>>(new Map());
     const router = useRouter();
     const { isDark, toggle: toggleTheme } = useTheme();
 
@@ -139,9 +140,12 @@ export function CommandPalette() {
 
     // Scroll active item into view
     useEffect(() => {
-        const el = listRef.current?.querySelector('[data-active="true"]');
-        el?.scrollIntoView({ block: 'nearest' });
-    }, [activeIndex]);
+        const activeCmd = flatFiltered[activeIndex];
+        if (activeCmd) {
+            const el = itemsRef.current.get(activeCmd.id);
+            el?.scrollIntoView({ block: 'nearest' });
+        }
+    }, [activeIndex, flatFiltered]);
 
     const handleKeyDown = useCallback(
         (e: React.KeyboardEvent) => {
@@ -221,6 +225,10 @@ export function CommandPalette() {
                                                 return (
                                                     <button
                                                         key={cmd.id}
+                                                        ref={(el) => {
+                                                            if (el) itemsRef.current.set(cmd.id, el);
+                                                            else itemsRef.current.delete(cmd.id);
+                                                        }}
                                                         data-active={isActive}
                                                         onClick={() => cmd.action()}
                                                         onMouseEnter={() => setActiveIndex(idx)}
