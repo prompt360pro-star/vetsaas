@@ -25,7 +25,7 @@ export class TenantsService {
                 allowTeleconsult: false,
                 ...(data.settings || {}),
             },
-        });
+        } as TenantEntity);
         return this.repo.save(tenant);
     }
 
@@ -38,7 +38,8 @@ export class TenantsService {
     }
 
     async update(id: string, data: Partial<TenantEntity>): Promise<TenantEntity | null> {
-        await this.repo.update(id, data);
+        // Cast data to any to bypass strict type checking for deep partial updates
+        await this.repo.update(id, data as any);
         return this.findById(id);
     }
 
