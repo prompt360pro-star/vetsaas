@@ -23,7 +23,8 @@ import { formatKwanza } from '@vetsaas/shared';
 import InvoiceModal from '@/components/payments/InvoiceModal';
 import type { InvoiceFormData } from '@/components/payments/InvoiceModal';
 import '@/components/payments/InvoiceModal.css';
-import { exportApi } from '@/lib/services';
+import { exportApi, paymentsApi } from '@/lib/services';
+import { toast } from '@/components/ui/Toast';
 
 type PaymentStatus = 'COMPLETED' | 'PENDING' | 'FAILED';
 
@@ -61,9 +62,51 @@ export default function PaymentsPage() {
     const [statusFilter, setStatusFilter] = useState('');
     const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
 
-    const handleCreateInvoice = (data: InvoiceFormData) => {
-        // TODO: POST to /invoices API + optional POST to /payments
-        console.log('[CREATE INVOICE]', data);
+    const handleCreateInvoice = async (data: InvoiceFormData) => {
+        try {
+            // 1. Prepare Invoice Payload
+            const invoicePayload = {
+                tutorId: data.tutorId === 'manual-entry' || !data.tutorId ? crypto.randomUUID() : data.tutorId,
+                tutorName: data.tutorName,
+                items: data.items,
+                dueDate: data.dueDate,
+                notes: data.notes,
+                taxRate: data.taxRate ?? 14,
+            };
+
+            // 2. Create Invoice
+            const invoice = await paymentsApi.createInvoice(invoicePayload);
+            toast(`Fatura ${invoice.invoiceNumber} criada!`, 'success');
+
+            // 3. Create Payment (if method selected)
+            if (data.paymentMethod) {
+                try {
+                    const payment = await paymentsApi.createPayment({
+                        invoiceId: invoice.id,
+                        amount: invoice.total,
+                        method: data.paymentMethod,
+                        tutorName: data.tutorName,
+                        description: `Pagamento da Fatura ${invoice.invoiceNumber}`,
+                    });
+                    toast('Pagamento registado!', 'success');
+
+                    // 4. Mark as Paid (if CASH/completed)
+                    if (payment.status === 'COMPLETED') {
+                        await paymentsApi.markInvoiceAsPaid(invoice.id, payment.id);
+                        toast('Fatura marcada como paga!', 'success');
+                    }
+                } catch (paymentError) {
+                    console.error('[CREATE PAYMENT] Error:', paymentError);
+                    toast('Fatura criada, mas erro ao registar pagamento.', 'warning');
+                }
+            }
+
+            setIsInvoiceModalOpen(false);
+
+        } catch (error) {
+            console.error('[CREATE INVOICE] Error:', error);
+            toast('Erro ao criar fatura. Tente novamente.', 'error');
+        }
     };
 
     const filtered = mockPayments.filter((p) => {
