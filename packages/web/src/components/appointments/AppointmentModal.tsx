@@ -4,10 +4,11 @@
 // Appointment Creation Modal
 // ============================================================================
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Plus, Stethoscope, Video, Scissors, AlertCircle, Syringe } from 'lucide-react';
-import { Input, Button } from '@/components/ui';
+import { X, Calendar, Plus } from 'lucide-react';
+import { Button, Select } from '@/components/ui';
+import { api } from '@/lib/api-client';
 
 interface AppointmentModalProps {
     isOpen: boolean;
@@ -20,9 +21,9 @@ export interface AppointmentFormData {
     time: string;
     endTime: string;
     type: string;
-    animal: string;
-    tutor: string;
-    vet: string;
+    animalId: string;
+    tutorId: string;
+    veterinarianId: string;
     notes: string;
 }
 
@@ -51,16 +52,60 @@ export default function AppointmentModal({ isOpen, onClose, onSubmit }: Appointm
     const [time, setTime] = useState('09:00');
     const [endTime, setEndTime] = useState('09:30');
     const [type, setType] = useState('CONSULTATION');
-    const [animal, setAnimal] = useState('');
-    const [tutor, setTutor] = useState('');
-    const [vet, setVet] = useState('');
     const [notes, setNotes] = useState('');
 
+    // ID states
+    const [animalId, setAnimalId] = useState('');
+    const [tutorId, setTutorId] = useState('');
+    const [veterinarianId, setVeterinarianId] = useState('');
+
+    // Options for Selects
+    const [animals, setAnimals] = useState<{ value: string; label: string }[]>([]);
+    const [tutors, setTutors] = useState<{ value: string; label: string }[]>([]);
+    const [veterinarians, setVeterinarians] = useState<{ value: string; label: string }[]>([]);
+
+    useEffect(() => {
+        if (isOpen) {
+            const fetchData = async () => {
+                try {
+                    const [animalsRes, tutorsRes, vetsRes] = await Promise.all([
+                        api.get<{ data: any[] }>('/animals'),
+                        api.get<{ data: any[] }>('/tutors'),
+                        api.get<{ data: any[] }>('/users', { role: 'VETERINARIAN' }),
+                    ]);
+
+                    setAnimals(animalsRes.data.map((a: any) => ({ value: a.id, label: a.name })));
+                    setTutors(tutorsRes.data.map((t: any) => ({ value: t.id, label: `${t.firstName} ${t.lastName}` })));
+                    setVeterinarians(vetsRes.data.map((v: any) => ({ value: v.id, label: `Dr. ${v.firstName} ${v.lastName}` })));
+                } catch (error) {
+                    console.error('Failed to fetch data', error);
+                }
+            };
+            fetchData();
+        }
+    }, [isOpen]);
+
     const handleSubmit = () => {
-        if (!date || !time || !animal) return;
-        onSubmit({ date, time, endTime, type, animal, tutor, vet, notes });
-        setDate(''); setTime('09:00'); setEndTime('09:30');
-        setAnimal(''); setTutor(''); setVet(''); setNotes('');
+        if (!date || !time || !animalId || !tutorId || !veterinarianId) return;
+        onSubmit({
+            date,
+            time,
+            endTime,
+            type,
+            animalId,
+            tutorId,
+            veterinarianId,
+            notes
+        });
+
+        // Reset form
+        setDate('');
+        setTime('09:00');
+        setEndTime('09:30');
+        setAnimalId('');
+        setTutorId('');
+        setVeterinarianId('');
+        setNotes('');
         onClose();
     };
 
@@ -141,19 +186,40 @@ export default function AppointmentModal({ isOpen, onClose, onSubmit }: Appointm
                             {/* Animal + Tutor */}
                             <div className="modal-row-2col">
                                 <div className="modal-field">
-                                    <label className="modal-label" htmlFor="appt-animal">Animal</label>
-                                    <Input id="appt-animal" placeholder="Nome do paciente" value={animal} onChange={(e) => setAnimal(e.target.value)} />
+                                    <Select
+                                        label="Animal"
+                                        id="appt-animal"
+                                        placeholder="Selecione o paciente"
+                                        value={animalId}
+                                        onChange={(e) => setAnimalId(e.target.value)}
+                                        options={animals}
+                                        required
+                                    />
                                 </div>
                                 <div className="modal-field">
-                                    <label className="modal-label" htmlFor="appt-tutor">Tutor</label>
-                                    <Input id="appt-tutor" placeholder="Nome do tutor" value={tutor} onChange={(e) => setTutor(e.target.value)} />
+                                    <Select
+                                        label="Tutor"
+                                        id="appt-tutor"
+                                        placeholder="Selecione o tutor"
+                                        value={tutorId}
+                                        onChange={(e) => setTutorId(e.target.value)}
+                                        options={tutors}
+                                        required
+                                    />
                                 </div>
                             </div>
 
                             {/* Vet */}
                             <div className="modal-field">
-                                <label className="modal-label" htmlFor="appt-vet">Veterinário</label>
-                                <Input id="appt-vet" placeholder="Dr./Dra." value={vet} onChange={(e) => setVet(e.target.value)} />
+                                <Select
+                                    label="Veterinário"
+                                    id="appt-vet"
+                                    placeholder="Selecione o veterinário"
+                                    value={veterinarianId}
+                                    onChange={(e) => setVeterinarianId(e.target.value)}
+                                    options={veterinarians}
+                                    required
+                                />
                             </div>
 
                             {/* Notes */}
@@ -166,7 +232,7 @@ export default function AppointmentModal({ isOpen, onClose, onSubmit }: Appointm
                         {/* Footer */}
                         <div className="appointment-modal-footer">
                             <Button variant="ghost" onClick={onClose}>Cancelar</Button>
-                            <Button variant="primary" onClick={handleSubmit} disabled={!date || !time || !animal}>
+                            <Button variant="primary" onClick={handleSubmit} disabled={!date || !time || !animalId || !tutorId || !veterinarianId}>
                                 <Plus size={16} />
                                 Agendar Consulta
                             </Button>
