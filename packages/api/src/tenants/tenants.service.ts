@@ -38,7 +38,8 @@ export class TenantsService {
     }
 
     async update(id: string, data: Partial<TenantEntity>): Promise<TenantEntity | null> {
-        await this.repo.update(id, data);
+        // Cast data to any to bypass strict partial entity check for JSON columns
+        await this.repo.update(id, data as any);
         return this.findById(id);
     }
 

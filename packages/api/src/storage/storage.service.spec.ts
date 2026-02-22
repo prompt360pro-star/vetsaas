@@ -6,11 +6,19 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { BadRequestException } from '@nestjs/common';
 import { StorageService } from './storage.service';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+
+jest.mock('@aws-sdk/client-s3');
+jest.mock('@aws-sdk/s3-request-presigner');
 
 describe('StorageService', () => {
     let service: StorageService;
 
     beforeEach(async () => {
+        jest.clearAllMocks();
+        (getSignedUrl as jest.Mock).mockResolvedValue('http://mocked-signed-url.com');
+
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 StorageService,
@@ -28,6 +36,7 @@ describe('StorageService', () => {
 
     it('should be defined', () => {
         expect(service).toBeDefined();
+        expect(S3Client).toHaveBeenCalledTimes(1);
     });
 
     describe('upload', () => {
@@ -42,6 +51,7 @@ describe('StorageService', () => {
             );
 
             expect(result.key).toContain('tenant-1/photos/');
+            // Use custom matcher defined at the bottom
             expect(result.key).toEndWith('.jpg');
             expect(result.size).toBe(buffer.length);
             expect(result.mimeType).toBe('image/jpeg');
@@ -113,9 +123,16 @@ describe('StorageService', () => {
                 'image/jpeg',
             );
 
-            expect(result.uploadUrl).toContain('tenant-1/photos/');
+            expect(result.uploadUrl).toBe('http://mocked-signed-url.com');
             expect(result.key).toContain('tenant-1/photos/');
             expect(result.expiresIn).toBe(3600);
+
+            expect(PutObjectCommand).toHaveBeenCalledWith(expect.objectContaining({
+                Bucket: 'vetsaas-files',
+                Key: expect.stringContaining('tenant-1/photos/'),
+                ContentType: 'image/jpeg',
+            }));
+            expect(getSignedUrl).toHaveBeenCalledTimes(1);
         });
 
         it('should reject unsupported MIME type in pre-signed URL', async () => {
