@@ -98,7 +98,12 @@ export class AuthService {
             const user = await this.usersRepo.findOne({
                 where: { id: payload.sub },
             });
-            if (!user || !user.isActive || user.refreshToken !== refreshToken) {
+            if (
+                !user ||
+                !user.isActive ||
+                !user.refreshToken ||
+                !(await bcrypt.compare(refreshToken, user.refreshToken))
+            ) {
                 throw new UnauthorizedException('Invalid refresh token');
             }
             return this.generateTokens(user);
@@ -181,7 +186,7 @@ export class AuthService {
         });
 
         // Store refresh token hash
-        user.refreshToken = refreshToken;
+        user.refreshToken = await bcrypt.hash(refreshToken, 12);
         await this.usersRepo.save(user);
 
         return {

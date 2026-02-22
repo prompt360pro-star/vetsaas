@@ -37,6 +37,7 @@ describe('AuthService', () => {
     };
 
     beforeEach(async () => {
+        jest.clearAllMocks();
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 AuthService,
@@ -125,6 +126,13 @@ describe('AuthService', () => {
             expect(result).toHaveProperty('accessToken');
             expect(result).toHaveProperty('refreshToken');
             expect(jwtService.sign).toHaveBeenCalled();
+
+            // Verify refresh token was hashed
+            expect(bcrypt.hash).toHaveBeenCalledWith('mock-jwt-token', 12);
+
+            // Verify save was called with the user having the hashed token
+            const savedUser = userRepo.save.mock.calls[0][0];
+            expect(savedUser.refreshToken).toBeDefined();
         });
 
         it('should reject invalid password', async () => {
@@ -142,6 +150,42 @@ describe('AuthService', () => {
             await expect(
                 service.login('nobody@clinica.ao', 'Anything'),
             ).rejects.toThrow(UnauthorizedException);
+        });
+    });
+
+    describe('refreshTokens', () => {
+        it('should return new tokens for valid refresh token', async () => {
+            const mockRefreshToken = 'mock-jwt-token';
+            // We expect bcrypt.compare to be called with (token, storedHash)
+            (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+
+            // Mock payload verification
+            jwtService.verify.mockReturnValue({ sub: mockUser.id });
+
+            // Mock finding user with stored hashed token
+            const userWithToken = { ...mockUser, refreshToken: '$2a$12$hashedRefreshToken' };
+            userRepo.findOne.mockResolvedValue(userWithToken);
+            userRepo.save.mockResolvedValue(userWithToken);
+
+            const result = await service.refreshTokens(mockRefreshToken);
+
+            expect(result).toHaveProperty('accessToken');
+            expect(result).toHaveProperty('refreshToken');
+            expect(bcrypt.compare).toHaveBeenCalledWith(mockRefreshToken, '$2a$12$hashedRefreshToken');
+        });
+
+        it('should reject invalid refresh token', async () => {
+            const mockRefreshToken = 'mock-jwt-token';
+            (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+
+            // Mock payload verification
+            jwtService.verify.mockReturnValue({ sub: mockUser.id });
+
+            // Mock finding user with stored hashed token
+            const userWithToken = { ...mockUser, refreshToken: '$2a$12$hashedRefreshToken' };
+            userRepo.findOne.mockResolvedValue(userWithToken);
+
+            await expect(service.refreshTokens(mockRefreshToken)).rejects.toThrow(UnauthorizedException);
         });
     });
 });
