@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 import { TenantEntity } from './tenant.entity';
 
 @Injectable()
@@ -38,7 +39,7 @@ export class TenantsService {
     }
 
     async update(id: string, data: Partial<TenantEntity>): Promise<TenantEntity | null> {
-        await this.repo.update(id, data);
+        await this.repo.update(id, data as QueryDeepPartialEntity<TenantEntity>);
         return this.findById(id);
     }
 
