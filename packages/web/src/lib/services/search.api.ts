@@ -1,18 +1,5 @@
 import { api } from '@/lib/api-client';
-
-export interface SearchResult {
-    type: 'animal' | 'tutor' | 'record';
-    id: string;
-    title: string;
-    subtitle: string;
-    icon: string;
-}
-
-export interface SearchResponse {
-    query: string;
-    total: number;
-    results: SearchResult[];
-}
+import { SearchResult, SearchResponse } from '@vetsaas/shared';
 
 export const searchApi = {
     async globalSearch(query: string): Promise<SearchResponse> {
