@@ -12,7 +12,7 @@ export class TenantsService {
 
     async create(data: Partial<TenantEntity>): Promise<TenantEntity> {
         const tenant = this.repo.create({
-            ...data,
+            ...(data as any),
             settings: {
                 currency: 'AOA',
                 timezone: 'Africa/Luanda',
@@ -25,8 +25,9 @@ export class TenantsService {
                 allowTeleconsult: false,
                 ...(data.settings || {}),
             },
-        });
-        return this.repo.save(tenant);
+        } as any);
+        const saved = await this.repo.save(tenant);
+        return Array.isArray(saved) ? saved[0] : saved;
     }
 
     async findById(id: string): Promise<TenantEntity | null> {
@@ -38,7 +39,7 @@ export class TenantsService {
     }
 
     async update(id: string, data: Partial<TenantEntity>): Promise<TenantEntity | null> {
-        await this.repo.update(id, data);
+        await this.repo.update(id, data as any);
         return this.findById(id);
     }
 
