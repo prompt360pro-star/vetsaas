@@ -61,6 +61,7 @@ export function Slider({
         handleInteract(e.touches[0].clientX);
     };
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         if (!isDragging) return;
 
@@ -79,6 +80,7 @@ export function Slider({
             document.removeEventListener('mouseup', onEnd);
             document.removeEventListener('touchend', onEnd);
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isDragging]);
 
     return (
