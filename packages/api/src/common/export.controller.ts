@@ -7,6 +7,7 @@ import {
     Res,
 } from '@nestjs/common';
 import type { Response } from 'express';
+import { Readable } from 'stream';
 import { AuthGuard } from '@nestjs/passport';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
@@ -31,12 +32,12 @@ export class ExportController {
         @Query('startDate') startDate?: string,
         @Query('endDate') endDate?: string,
     ) {
-        const csv = await this.exportService.exportPayments(
+        const stream = await this.exportService.exportPayments(
             req.user.tenantId,
             startDate ? new Date(startDate) : undefined,
             endDate ? new Date(endDate) : undefined,
         );
-        this.sendCsv(res, csv, 'pagamentos');
+        this.streamCsv(res, stream, 'pagamentos');
     }
 
     @Get('audit')
@@ -58,5 +59,14 @@ export class ExportController {
         res.setHeader('Content-Disposition', `attachment; filename="${name}_${date}.csv"`);
         // BOM for Excel UTF-8 compatibility
         res.send('\uFEFF' + csv);
+    }
+
+    private streamCsv(res: Response, stream: Readable, name: string) {
+        const date = new Date().toISOString().split('T')[0];
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="${name}_${date}.csv"`);
+        // BOM for Excel UTF-8 compatibility
+        res.write('\uFEFF');
+        stream.pipe(res);
     }
 }

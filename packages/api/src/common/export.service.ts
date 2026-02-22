@@ -5,6 +5,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
+import { Readable } from 'stream';
 import { AnimalEntity } from '../animals/animal.entity';
 import { PaymentEntity } from '../payments/payment.entity';
 import { AuditLogEntity } from './audit-log.entity';
@@ -49,31 +50,54 @@ export class ExportService {
     /**
      * Export payments as CSV with optional date range.
      */
-    async exportPayments(tenantId: string, startDate?: Date, endDate?: Date): Promise<string> {
+    async exportPayments(tenantId: string, startDate?: Date, endDate?: Date): Promise<Readable> {
         const where: Record<string, unknown> = { tenantId };
         if (startDate && endDate) {
             where.createdAt = Between(startDate, endDate);
         }
 
-        const payments = await this.paymentsRepo.find({
-            where,
-            order: { createdAt: 'DESC' },
-        });
+        const self = this;
+        async function* generate() {
+            const header = 'Data,Valor,Moeda,Método,Estado,Referência,Descrição';
+            yield header + '\n';
 
-        const header = 'Data,Valor,Moeda,Método,Estado,Referência,Descrição';
-        const rows = payments.map((p) =>
-            [
-                this.fmtDate(p.createdAt),
-                p.amount.toString(),
-                this.esc(p.currency),
-                this.esc(p.method),
-                this.esc(p.status),
-                this.esc(p.referenceCode || ''),
-                this.esc(p.description || ''),
-            ].join(','),
-        );
+            const BATCH_SIZE = 1000;
+            let skip = 0;
+            let hasMore = true;
 
-        return [header, ...rows].join('\n');
+            while (hasMore) {
+                const payments = await self.paymentsRepo.find({
+                    where,
+                    order: { createdAt: 'DESC' },
+                    take: BATCH_SIZE,
+                    skip,
+                });
+
+                if (payments.length === 0) {
+                    hasMore = false;
+                    break;
+                }
+
+                for (const p of payments) {
+                    yield [
+                        self.fmtDate(p.createdAt),
+                        p.amount.toString(),
+                        self.esc(p.currency),
+                        self.esc(p.method),
+                        self.esc(p.status),
+                        self.esc(p.referenceCode || ''),
+                        self.esc(p.description || ''),
+                    ].join(',') + '\n';
+                }
+
+                skip += payments.length;
+                if (payments.length < BATCH_SIZE) {
+                    hasMore = false;
+                }
+            }
+        }
+
+        return Readable.from(generate());
     }
 
     /**

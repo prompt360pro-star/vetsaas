@@ -71,15 +71,25 @@ describe('ExportService', () => {
 
     describe('exportPayments', () => {
         it('should generate payment CSV', async () => {
-            mockPaymentsRepo.find.mockResolvedValue([
-                {
-                    createdAt: new Date('2025-02-10'),
-                    amount: 15000, currency: 'AOA', method: 'CASH',
-                    status: 'COMPLETED', referenceCode: 'PAY-001',
-                    description: 'Consulta',
-                },
-            ]);
-            const csv = await service.exportPayments(tenantId);
+            mockPaymentsRepo.find
+                .mockResolvedValueOnce([
+                    {
+                        createdAt: new Date('2025-02-10'),
+                        amount: 15000, currency: 'AOA', method: 'CASH',
+                        status: 'COMPLETED', referenceCode: 'PAY-001',
+                        description: 'Consulta',
+                    },
+                ])
+                .mockResolvedValueOnce([]);
+
+            const stream = await service.exportPayments(tenantId);
+
+            const chunks = [];
+            for await (const chunk of stream) {
+                chunks.push(chunk);
+            }
+            const csv = chunks.join('');
+
             expect(csv).toContain('15000');
             expect(csv).toContain('CASH');
         });
