@@ -7,10 +7,12 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { NotFoundException } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { PaymentEntity } from './payment.entity';
+import { MulticaixaGpoService } from './multicaixa-gpo.service';
 
 describe('PaymentsService', () => {
     let service: PaymentsService;
     let repo: any;
+    let gpoService: any;
 
     const tenantId = 'tenant-uuid-1';
     const userId = 'user-uuid-1';
@@ -52,11 +54,18 @@ describe('PaymentsService', () => {
                         }),
                     },
                 },
+                {
+                    provide: MulticaixaGpoService,
+                    useValue: {
+                        generateReference: jest.fn().mockResolvedValue('00000123456789'),
+                    },
+                },
             ],
         }).compile();
 
         service = module.get<PaymentsService>(PaymentsService);
         repo = module.get(getRepositoryToken(PaymentEntity));
+        gpoService = module.get<MulticaixaGpoService>(MulticaixaGpoService);
     });
 
     it('should be defined', () => {
@@ -112,9 +121,10 @@ describe('PaymentsService', () => {
                 method: 'MULTICAIXA_REFERENCE',
             });
 
+            expect(gpoService.generateReference).toHaveBeenCalledWith(25000);
             expect(repo.create).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    referenceCode: expect.any(String),
+                    referenceCode: '00000123456789',
                 }),
             );
         });

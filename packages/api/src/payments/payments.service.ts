@@ -6,6 +6,7 @@ import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
 import { PaymentEntity } from './payment.entity';
+import { MulticaixaGpoService } from './multicaixa-gpo.service';
 import type { PaginatedResponse, PaginationQuery, PaymentStatus } from '@vetsaas/shared';
 
 export interface CreatePaymentInput {
@@ -34,6 +35,7 @@ export class PaymentsService {
     constructor(
         @InjectRepository(PaymentEntity)
         private readonly repo: Repository<PaymentEntity>,
+        private readonly multicaixaGpoService: MulticaixaGpoService,
     ) { }
 
     async create(
@@ -41,7 +43,7 @@ export class PaymentsService {
         userId: string,
         input: CreatePaymentInput,
     ): Promise<PaymentEntity> {
-        const referenceCode = this.generateReference(input.method);
+        const referenceCode = await this.generateReference(input.method, input.amount);
 
         const payment = this.repo.create({
             tenantId,
@@ -155,13 +157,9 @@ export class PaymentsService {
 
     // ── Helpers ─────────────────────────────────────────
 
-    private generateReference(method: string): string | undefined {
+    private async generateReference(method: string, amount: number): Promise<string | undefined> {
         if (method === 'MULTICAIXA_REFERENCE' || method === 'MULTICAIXA_EXPRESS') {
-            // Multicaixa reference: entity + reference number
-            // TODO: Integrate with actual Multicaixa GPO API
-            const entity = '00000'; // Stub entity code
-            const ref = String(Math.floor(Math.random() * 999999999)).padStart(9, '0');
-            return `${entity}${ref}`;
+            return this.multicaixaGpoService.generateReference(amount);
         }
         if (method === 'UNITEL_MONEY') {
             return `UM${Date.now()}`;

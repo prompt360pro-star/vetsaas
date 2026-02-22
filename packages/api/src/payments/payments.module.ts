@@ -10,13 +10,14 @@ import { PaymentsService } from './payments.service';
 import { InvoicesService } from './invoices.service';
 import { PaymentsController } from './payments.controller';
 import { InvoicesController } from './invoices.controller';
+import { MulticaixaGpoService } from './multicaixa-gpo.service';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([PaymentEntity, InvoiceEntity]),
     ],
     controllers: [PaymentsController, InvoicesController],
-    providers: [PaymentsService, InvoicesService],
-    exports: [PaymentsService, InvoicesService],
+    providers: [PaymentsService, InvoicesService, MulticaixaGpoService],
+    exports: [PaymentsService, InvoicesService, MulticaixaGpoService],
 })
 export class PaymentsModule { }
