@@ -23,7 +23,7 @@ export class TenantsService {
         workingDays: [1, 2, 3, 4, 5],
         allowOnlineBooking: false,
         allowTeleconsult: false,
-        ...(data.settings || {}),
+        ...((data.settings as Record<string, unknown>) || {}),
       },
     });
     return this.repo.save(tenant);
@@ -41,7 +41,8 @@ export class TenantsService {
     id: string,
     data: Partial<TenantEntity>,
   ): Promise<TenantEntity | null> {
-    await this.repo.update(id, data);
+    // Cast data to any to bypass the deep partial type check for the settings JSON column
+    await this.repo.update(id, data as any);
     return this.findById(id);
   }
 
