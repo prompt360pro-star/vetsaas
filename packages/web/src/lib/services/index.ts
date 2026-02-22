@@ -4,5 +4,7 @@ export { templatesApi } from './templates.api';
 export { auditApi } from './audit.api';
 export { exportApi } from './export.api';
 export { searchApi } from './search.api';
+export { paymentsApi } from './payments.api';
 export type { AuditFilters } from './audit.api';
 export type { SearchResult, SearchResponse } from './search.api';
+export type { CreateInvoiceInput, CreatePaymentInput } from './payments.api';
