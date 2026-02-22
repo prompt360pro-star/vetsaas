@@ -60,15 +60,15 @@ describe('InventoryService', () => {
                 sku: 'VAC-001',
                 category: 'Medication',
                 quantity: 50,
-                unit: 'vials',
                 minQuantity: 10,
+                unit: 'vials',
                 costPrice: 500,
                 sellingPrice: 1500,
                 supplier: 'MedVet Angola',
-                expiryDate: '2025-12-31',
+                expiryDate: '2025-12-31' as unknown as Date,
             };
 
-            const result = await service.createItem('tenant-1', dto);
+            const result = await service.create('tenant-1', 'user-1', dto);
 
             expect(result).toHaveProperty('id', 'uuid-1');
             expect(itemRepo.save).toHaveBeenCalled();
@@ -86,45 +86,52 @@ describe('InventoryService', () => {
         it('should increase stock', async () => {
             jest.spyOn(itemRepo, 'findOne').mockResolvedValue({
                 id: 'uuid-1',
-                quantity: 10,
+                stock: 10,
                 tenantId: 'tenant-1',
             } as any);
 
-            await service.adjustStock('tenant-1', 'uuid-1', 5, 'Restock', 'PO-123');
+            await service.adjustStock('tenant-1', 'user-1', 'uuid-1', { quantityChange: 5, reason: 'Restock', reference: 'PO-123' });
 
-            expect(itemRepo.save).toHaveBeenCalledWith(expect.objectContaining({ quantity: 15 }));
+            expect(itemRepo.save).toHaveBeenCalledWith(expect.objectContaining({ stock: 15 }));
             expect(movementRepo.save).toHaveBeenCalledWith(expect.objectContaining({ type: 'IN', quantity: 5 }));
         });
 
         it('should decrease stock', async () => {
             jest.spyOn(itemRepo, 'findOne').mockResolvedValue({
                 id: 'uuid-1',
-                quantity: 10,
+                stock: 10,
                 tenantId: 'tenant-1',
             } as any);
 
-            await service.adjustStock('tenant-1', 'uuid-1', -3, 'Usage');
+            await service.adjustStock('tenant-1', 'user-1', 'uuid-1', { quantityChange: -3, reason: 'Usage' });
 
-            expect(itemRepo.save).toHaveBeenCalledWith(expect.objectContaining({ quantity: 7 }));
+            expect(itemRepo.save).toHaveBeenCalledWith(expect.objectContaining({ stock: 7 }));
             expect(movementRepo.save).toHaveBeenCalledWith(expect.objectContaining({ type: 'OUT', quantity: 3 }));
         });
 
         it('should prevent negative stock', async () => {
             jest.spyOn(itemRepo, 'findOne').mockResolvedValue({
                 id: 'uuid-1',
-                quantity: 2,
+                stock: 2,
                 tenantId: 'tenant-1',
             } as any);
 
-            await expect(service.adjustStock('tenant-1', 'uuid-1', -5, 'Usage')).rejects.toThrow();
+            await expect(service.adjustStock('tenant-1', 'user-1', 'uuid-1', { quantityChange: -5, reason: 'Usage' })).rejects.toThrow();
         });
     });
 
     describe('checkLowStock', () => {
         it('should return items below min quantity', async () => {
-            jest.spyOn(itemRepo, 'find').mockResolvedValue([
-                { name: 'Item A', quantity: 5, minQuantity: 10 } as any,
-            ]);
+            // Mock QueryBuilder for this specific call since it uses createQueryBuilder
+            const mockQueryBuilder = {
+                where: jest.fn().mockReturnThis(),
+                andWhere: jest.fn().mockReturnThis(),
+                getMany: jest.fn().mockResolvedValue([
+                    { name: 'Item A', stock: 5, minStock: 10 }
+                ]),
+            };
+
+            jest.spyOn(itemRepo, 'createQueryBuilder').mockReturnValue(mockQueryBuilder as any);
 
             const result = await service.getLowStockAlerts('tenant-1');
             expect(result).toHaveLength(1);
@@ -134,20 +141,21 @@ describe('InventoryService', () => {
 
     describe('getExpiringSoon', () => {
         it('should return items expiring within 30 days', async () => {
-            // Mock TypeORM advanced find operators would be complex here,
-            // so we'll just check if the repository method is called correctly.
-            // In a real integration test, we'd use a real DB.
-            const today = new Date();
             const future = new Date();
-            future.setDate(today.getDate() + 30);
+            future.setDate(future.getDate() + 15);
 
-            // Mocking the raw query or find options
-            jest.spyOn(itemRepo, 'find').mockResolvedValue([
-                { name: 'Item B', expiryDate: future } as any,
-            ]);
+            const mockQueryBuilder = {
+                where: jest.fn().mockReturnThis(),
+                andWhere: jest.fn().mockReturnThis(),
+                getMany: jest.fn().mockResolvedValue([
+                    { name: 'Item B', expiryDate: future }
+                ]),
+            };
+
+            jest.spyOn(itemRepo, 'createQueryBuilder').mockReturnValue(mockQueryBuilder as any);
 
             const result = await service.getExpiringSoon('tenant-1', 30);
-            expect(itemRepo.find).toHaveBeenCalled();
+            expect(itemRepo.createQueryBuilder).toHaveBeenCalled();
             expect(result).toHaveLength(1);
         });
     });
@@ -155,8 +163,8 @@ describe('InventoryService', () => {
     describe('valuation', () => {
         it('should calculate total inventory value', async () => {
             jest.spyOn(itemRepo, 'find').mockResolvedValue([
-                { quantity: 10, costPrice: 100 } as any,
-                { quantity: 5, costPrice: 200 } as any,
+                { stock: 10, cost: 100 } as any,
+                { stock: 5, cost: 200 } as any,
             ]);
 
             const result = await service.getInventoryValuation('tenant-1');
@@ -174,10 +182,15 @@ describe('InventoryService', () => {
             });
 
             await expect(
-                service.createItem('tenant-1', {
+                service.create('tenant-1', 'user-1', {
                     name: 'Test',
                     sku: 'EXISTING',
+                    category: 'Test',
                     quantity: 1,
+                    minQuantity: 1,
+                    unit: 'each',
+                    costPrice: 10,
+                    sellingPrice: 20
                 } as any),
             ).rejects.toThrow();
         });

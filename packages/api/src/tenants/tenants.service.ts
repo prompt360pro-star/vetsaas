@@ -38,8 +38,16 @@ export class TenantsService {
     }
 
     async update(id: string, data: Partial<TenantEntity>): Promise<TenantEntity | null> {
-        await this.repo.update(id, data);
-        return this.findById(id);
+        // TypeORM's update method expects QueryDeepPartialEntity, which can be tricky with complex objects like 'settings'.
+        // To be safe and type-correct, we can use the object spread if settings is being updated, or just pass data if it compiles.
+        // The error suggests that 'settings' type in Partial<TenantEntity> doesn't perfectly match what TypeORM expects for an update.
+
+        // A robust way is to fetch, merge, and save.
+        const tenant = await this.findById(id);
+        if (!tenant) return null;
+
+        const updated = this.repo.merge(tenant, data);
+        return this.repo.save(updated);
     }
 
     generateSlug(name: string): string {
