@@ -13,7 +13,7 @@ import { SPECIES, DOG_BREEDS, CAT_BREEDS } from '@vetsaas/shared';
 interface AnimalModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit: (data: AnimalFormData) => void;
+    onSubmit: (data: AnimalFormData) => Promise<void> | void;
 }
 
 export interface AnimalFormData {
@@ -49,6 +49,7 @@ export default function AnimalModal({ isOpen, onClose, onSubmit }: AnimalModalPr
     const [microchipId, setMicrochipId] = useState('');
     const [dateOfBirth, setDateOfBirth] = useState('');
     const [isNeutered, setIsNeutered] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Dynamic breed list based on species
     const breeds = useMemo(() => {
@@ -57,12 +58,19 @@ export default function AnimalModal({ isOpen, onClose, onSubmit }: AnimalModalPr
         return [];
     }, [species]);
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (!name || !species) return;
-        onSubmit({ name, species, breed, sex, weight, weightUnit, microchipId, dateOfBirth, isNeutered });
-        setName(''); setBreed(''); setWeight(0); setMicrochipId(''); setDateOfBirth('');
-        setIsNeutered(false);
-        onClose();
+        setIsSubmitting(true);
+        try {
+            await onSubmit({ name, species, breed, sex, weight, weightUnit, microchipId, dateOfBirth, isNeutered });
+            setName(''); setBreed(''); setWeight(0); setMicrochipId(''); setDateOfBirth('');
+            setIsNeutered(false);
+            onClose();
+        } catch (error) {
+            // Keep modal open on error
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     if (!isOpen) return null;
@@ -187,8 +195,13 @@ export default function AnimalModal({ isOpen, onClose, onSubmit }: AnimalModalPr
 
                         {/* Footer */}
                         <div className="animal-modal-footer">
-                            <Button variant="ghost" onClick={onClose}>Cancelar</Button>
-                            <Button variant="primary" onClick={handleSubmit} disabled={!name || !species}>
+                            <Button variant="ghost" onClick={onClose} disabled={isSubmitting}>Cancelar</Button>
+                            <Button
+                                variant="primary"
+                                onClick={handleSubmit}
+                                disabled={!name || !species || isSubmitting}
+                                isLoading={isSubmitting}
+                            >
                                 <Plus size={16} />
                                 Registar Animal
                             </Button>

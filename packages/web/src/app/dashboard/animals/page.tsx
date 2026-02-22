@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Dog,
@@ -18,56 +18,38 @@ import {
     Download,
 } from 'lucide-react';
 import { Button, Input, Select } from '@/components/ui';
+import { toast } from '@/components/ui/Toast';
 import { SPECIES, DOG_BREEDS, CAT_BREEDS } from '@vetsaas/shared';
+import type { CreateAnimalDto, AnimalSex } from '@vetsaas/shared';
 import AnimalModal from '@/components/animals/AnimalModal';
 import type { AnimalFormData } from '@/components/animals/AnimalModal';
 import '@/components/tutors/TutorModal.css'; // shared modal styles
-import { exportApi } from '@/lib/services';
-
-// Mock data for scaffold
-const mockAnimals = [
-    {
-        id: '1', name: 'Rex', species: 'CANINE', breed: 'Pastor Alemão', sex: 'MALE',
-        weight: 32, weightUnit: 'kg', microchipId: '900118000123456', isNeutered: true,
-        dateOfBirth: '2020-03-15', tutorName: 'João Silva', tutorPhone: '+244 923 456 789',
-        photoUrl: null, isDeceased: false, vaccinesUpToDate: true,
-    },
-    {
-        id: '2', name: 'Mimi', species: 'FELINE', breed: 'Persa', sex: 'FEMALE',
-        weight: 4.2, weightUnit: 'kg', microchipId: '900118000654321', isNeutered: true,
-        dateOfBirth: '2019-07-22', tutorName: 'Ana Santos', tutorPhone: '+244 912 345 678',
-        photoUrl: null, isDeceased: false, vaccinesUpToDate: false,
-    },
-    {
-        id: '3', name: 'Thor', species: 'CANINE', breed: 'Rottweiler', sex: 'MALE',
-        weight: 45, weightUnit: 'kg', microchipId: null, isNeutered: false,
-        dateOfBirth: '2021-11-08', tutorName: 'Pedro Lopes', tutorPhone: '+244 933 678 901',
-        photoUrl: null, isDeceased: false, vaccinesUpToDate: true,
-    },
-    {
-        id: '4', name: 'Luna', species: 'FELINE', breed: 'SRD', sex: 'FEMALE',
-        weight: 3.8, weightUnit: 'kg', microchipId: null, isNeutered: false,
-        dateOfBirth: '2022-01-30', tutorName: 'Maria Fernandes', tutorPhone: '+244 944 321 654',
-        photoUrl: null, isDeceased: false, vaccinesUpToDate: true,
-    },
-    {
-        id: '5', name: 'Bolt', species: 'CANINE', breed: 'Labrador Retriever', sex: 'MALE',
-        weight: 28, weightUnit: 'kg', microchipId: '900118000789012', isNeutered: true,
-        dateOfBirth: '2018-05-12', tutorName: 'Carlos Neto', tutorPhone: '+244 955 432 765',
-        photoUrl: null, isDeceased: false, vaccinesUpToDate: false,
-    },
-    {
-        id: '6', name: 'Princesa', species: 'CANINE', breed: 'Poodle', sex: 'FEMALE',
-        weight: 6.5, weightUnit: 'kg', microchipId: null, isNeutered: true,
-        dateOfBirth: '2021-09-03', tutorName: 'Luísa Mendes', tutorPhone: '+244 966 543 876',
-        photoUrl: null, isDeceased: false, vaccinesUpToDate: true,
-    },
-];
+import { exportApi, animalsApi } from '@/lib/services';
+import type { Animal } from '@/lib/services/animals.api';
 
 const speciesEmoji: Record<string, string> = {
     CANINE: '🐕', FELINE: '🐈', EQUINE: '🐴', BOVINE: '🐄', AVIAN: '🐦',
     REPTILE: '🦎', EXOTIC: '🦜', OTHER: '🐾',
 };
+
+// Interface for display - matches mockAnimals structure
+interface AnimalDisplay {
+    id: string;
+    name: string;
+    species: string;
+    breed: string | null;
+    sex: string;
+    weight: number | null;
+    weightUnit: string;
+    microchipId: string | null;
+    isNeutered: boolean;
+    dateOfBirth: string | null;
+    tutorName: string;
+    tutorPhone: string;
+    photoUrl: string | null;
+    isDeceased: boolean;
+    vaccinesUpToDate: boolean;
+}
 
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -84,17 +66,74 @@ export default function AnimalsPage() {
     const [speciesFilter, setSpeciesFilter] = useState('');
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [selectedAnimal, setSelectedAnimal] = useState<string | null>(null);
+    const [animals, setAnimals] = useState<AnimalDisplay[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const handleCreateAnimal = (data: AnimalFormData) => {
-        // TODO: POST to /animals API
-        console.log('[CREATE ANIMAL]', data);
+    const fetchAnimals = async () => {
+        try {
+            setIsLoading(true);
+            const response = await animalsApi.getAll();
+            if (response.success && response.data) {
+                const mappedAnimals: AnimalDisplay[] = response.data.data.map((a: Animal) => ({
+                    id: a.id,
+                    name: a.name,
+                    species: a.species,
+                    breed: a.breed || null,
+                    sex: a.sex,
+                    weight: a.weight || null,
+                    weightUnit: a.weightUnit,
+                    microchipId: a.microchipId || null,
+                    isNeutered: a.isNeutered,
+                    dateOfBirth: a.dateOfBirth ? new Date(a.dateOfBirth).toISOString().split('T')[0] : null,
+                    tutorName: 'N/A', // TODO: Fetch from relationship
+                    tutorPhone: 'N/A',
+                    photoUrl: a.photoUrl || null,
+                    isDeceased: a.isDeceased,
+                    vaccinesUpToDate: false, // TODO: Logic for vaccines
+                }));
+                setAnimals(mappedAnimals);
+            }
+        } catch (error) {
+            console.error('Failed to fetch animals', error);
+            toast('Erro ao carregar lista de animais', 'error');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    const filtered = mockAnimals.filter((a) => {
+    useEffect(() => {
+        fetchAnimals();
+    }, []);
+
+    const handleCreateAnimal = async (data: AnimalFormData) => {
+        try {
+            const payload: CreateAnimalDto = {
+                name: data.name,
+                species: data.species,
+                breed: data.breed || undefined,
+                sex: data.sex as AnimalSex,
+                weight: data.weight || undefined,
+                weightUnit: data.weightUnit as 'kg' | 'g',
+                microchipId: data.microchipId || undefined,
+                dateOfBirth: data.dateOfBirth || undefined,
+                isNeutered: data.isNeutered,
+            };
+
+            await animalsApi.create(payload);
+            toast('Animal criado com sucesso!', 'success');
+            fetchAnimals();
+        } catch (error) {
+            console.error(error);
+            toast('Erro ao criar animal.', 'error');
+            throw error;
+        }
+    };
+
+    const filtered = animals.filter((a) => {
         const matchesSearch =
             a.name.toLowerCase().includes(search.toLowerCase()) ||
             a.tutorName.toLowerCase().includes(search.toLowerCase()) ||
-            a.breed.toLowerCase().includes(search.toLowerCase()) ||
+            (a.breed && a.breed.toLowerCase().includes(search.toLowerCase())) ||
             (a.microchipId && a.microchipId.includes(search));
         const matchesSpecies = !speciesFilter || a.species === speciesFilter;
         return matchesSearch && matchesSpecies;
@@ -279,13 +318,19 @@ export default function AnimalsPage() {
 
                 {filtered.length === 0 && (
                     <div className="text-center py-16">
-                        <Dog className="w-12 h-12 text-surface-300 dark:text-surface-600 mx-auto mb-4" />
-                        <p className="text-surface-500 dark:text-surface-400 font-medium">
-                            Nenhum paciente encontrado
-                        </p>
-                        <p className="text-sm text-surface-400 mt-1">
-                            Tente ajustar os filtros ou adicione um novo paciente.
-                        </p>
+                        {isLoading ? (
+                            <p className="text-surface-500 dark:text-surface-400 font-medium">Carregando...</p>
+                        ) : (
+                            <>
+                                <Dog className="w-12 h-12 text-surface-300 dark:text-surface-600 mx-auto mb-4" />
+                                <p className="text-surface-500 dark:text-surface-400 font-medium">
+                                    Nenhum paciente encontrado
+                                </p>
+                                <p className="text-sm text-surface-400 mt-1">
+                                    Tente ajustar os filtros ou adicione um novo paciente.
+                                </p>
+                            </>
+                        )}
                     </div>
                 )}
             </div>
