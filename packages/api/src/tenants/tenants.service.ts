@@ -41,8 +41,11 @@ export class TenantsService {
     id: string,
     data: Partial<TenantEntity>,
   ): Promise<TenantEntity | null> {
-    await this.repo.update(id, data);
-    return this.findById(id);
+    const tenant = await this.findById(id);
+    if (!tenant) return null;
+
+    Object.assign(tenant, data);
+    return this.repo.save(tenant);
   }
 
   generateSlug(name: string): string {

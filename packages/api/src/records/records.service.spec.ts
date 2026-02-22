@@ -65,7 +65,7 @@ describe("RecordsService", () => {
 
     it("should handle default pagination", async () => {
       const query: PaginationQuery = {};
-      const records = [];
+      const records: ClinicalRecordEntity[] = [];
       const total = 0;
       mockRepo.findAndCount.mockResolvedValue([records, total]);
 
