@@ -1,16 +1,20 @@
-import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
-import { NotificationsService } from './notifications.service';
-import { RegisterDeviceDto } from './notifications.dto';
+import { Controller, Post, Body, UseGuards, Request } from "@nestjs/common";
+import { AuthGuard } from "@nestjs/passport";
+import { NotificationsService } from "./notifications.service";
+import { RegisterDeviceDto } from "./notifications.dto";
 
-@Controller('notifications')
+@Controller("notifications")
 export class NotificationsController {
-    constructor(private readonly notificationsService: NotificationsService) {}
+  constructor(private readonly notificationsService: NotificationsService) {}
 
-    @Post('device')
-    @UseGuards(AuthGuard('jwt'))
-    async registerDevice(@Request() req, @Body() dto: RegisterDeviceDto) {
-        await this.notificationsService.registerDevice(req.user.sub, dto.token, dto.platform);
-        return { success: true };
-    }
+  @Post("device")
+  @UseGuards(AuthGuard("jwt"))
+  async registerDevice(@Request() req, @Body() dto: RegisterDeviceDto) {
+    await this.notificationsService.registerDevice(
+      req.user.sub,
+      dto.token,
+      dto.platform,
+    );
+    return { success: true };
+  }
 }

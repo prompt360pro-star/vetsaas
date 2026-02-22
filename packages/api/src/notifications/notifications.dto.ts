@@ -1,12 +1,12 @@
-import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
-import { DevicePlatform } from './device-token.entity';
+import { IsEnum, IsNotEmpty, IsString } from "class-validator";
+import { DevicePlatform } from "./device-token.entity";
 
 export class RegisterDeviceDto {
-    @IsString()
-    @IsNotEmpty()
-    token: string;
+  @IsString()
+  @IsNotEmpty()
+  token: string;
 
-    @IsEnum(DevicePlatform)
-    @IsNotEmpty()
-    platform: DevicePlatform;
+  @IsEnum(DevicePlatform)
+  @IsNotEmpty()
+  platform: DevicePlatform;
 }
