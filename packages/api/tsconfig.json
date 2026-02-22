@@ -16,7 +16,8 @@
             "@/*": [
                 "./src/*"
             ]
-        }
+        },
+        "strictPropertyInitialization": false
     },
     "include": [
         "src"
