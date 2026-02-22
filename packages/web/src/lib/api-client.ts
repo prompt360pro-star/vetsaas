@@ -8,11 +8,21 @@ interface RequestOptions extends RequestInit {
     params?: Record<string, string>;
 }
 
-class ApiClient {
+export class ApiClient {
     private accessToken: string | null = null;
+    private baseUrl: string;
+
+    constructor(config?: { baseUrl?: string; accessToken?: string | null }) {
+        this.baseUrl = config?.baseUrl || API_BASE;
+        this.accessToken = config?.accessToken || null;
+    }
 
     setToken(token: string | null) {
         this.accessToken = token;
+    }
+
+    withToken(token: string): ApiClient {
+        return new ApiClient({ baseUrl: this.baseUrl, accessToken: token });
     }
 
     private async request<T>(
@@ -21,7 +31,7 @@ class ApiClient {
     ): Promise<T> {
         const { params, ...fetchOptions } = options;
 
-        let url = `${API_BASE}${endpoint}`;
+        let url = `${this.baseUrl}${endpoint}`;
         if (params) {
             const searchParams = new URLSearchParams(params);
             url += `?${searchParams.toString()}`;
