@@ -144,4 +144,61 @@ describe('AuthService', () => {
             ).rejects.toThrow(UnauthorizedException);
         });
     });
+
+    describe('refreshTokens', () => {
+        const validRefreshToken = 'valid-refresh-token';
+        const payload = { sub: 'user-uuid-1', email: 'vet@clinica.ao' };
+
+        it('should return new tokens for valid refresh token', async () => {
+            jwtService.verify.mockReturnValue(payload);
+            const user = { ...mockUser, refreshToken: validRefreshToken };
+            userRepo.findOne.mockResolvedValue(user);
+            userRepo.save.mockResolvedValue(user);
+
+            const result = await service.refreshTokens(validRefreshToken);
+
+            expect(result).toHaveProperty('accessToken');
+            expect(result).toHaveProperty('refreshToken');
+            expect(userRepo.save).toHaveBeenCalled();
+        });
+
+        it('should reject invalid refresh token signature', async () => {
+            jwtService.verify.mockImplementation(() => {
+                throw new Error('Invalid signature');
+            });
+
+            await expect(
+                service.refreshTokens('invalid-token'),
+            ).rejects.toThrow(UnauthorizedException);
+        });
+
+        it('should reject if user not found', async () => {
+            jwtService.verify.mockReturnValue(payload);
+            userRepo.findOne.mockResolvedValue(null);
+
+            await expect(
+                service.refreshTokens(validRefreshToken),
+            ).rejects.toThrow(UnauthorizedException);
+        });
+
+        it('should reject if user is inactive', async () => {
+            jwtService.verify.mockReturnValue(payload);
+            const user = { ...mockUser, isActive: false, refreshToken: validRefreshToken };
+            userRepo.findOne.mockResolvedValue(user);
+
+            await expect(
+                service.refreshTokens(validRefreshToken),
+            ).rejects.toThrow(UnauthorizedException);
+        });
+
+        it('should reject if refresh token mismatch', async () => {
+            jwtService.verify.mockReturnValue(payload);
+            const user = { ...mockUser, refreshToken: 'old-refresh-token' };
+            userRepo.findOne.mockResolvedValue(user);
+
+            await expect(
+                service.refreshTokens(validRefreshToken),
+            ).rejects.toThrow(UnauthorizedException);
+        });
+    });
 });
