@@ -12,6 +12,7 @@
         "incremental": true,
         "declaration": false,
         "declarationMap": false,
+        "strictPropertyInitialization": false,
         "paths": {
             "@/*": [
                 "./src/*"
