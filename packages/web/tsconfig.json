@@ -37,6 +37,10 @@
   "exclude": [
     "node_modules",
     ".next",
-    "out"
+    "out",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "**/*.test.ts",
+    "**/*.test.tsx"
   ]
 }
