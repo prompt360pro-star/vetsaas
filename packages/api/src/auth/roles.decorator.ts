@@ -1,7 +1,7 @@
-import { SetMetadata } from '@nestjs/common';
-import type { UserRole } from '@vetsaas/shared';
+import { SetMetadata } from "@nestjs/common";
+import type { UserRole } from "@vetsaas/shared";
 
-export const ROLES_KEY = 'roles';
+export const ROLES_KEY = "roles";
 
 /**
  * Decorator to restrict endpoint access to specific roles.
