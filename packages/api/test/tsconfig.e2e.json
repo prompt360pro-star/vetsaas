@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "rootDir": "../",
+    "outDir": "../dist",
+    "target": "ES2021",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "paths": {
+        "@/*": [
+            "./src/*"
+        ]
+    }
+  },
+  "include": ["**/*.ts", "../src/**/*.ts"]
+}
