@@ -3,7 +3,7 @@
  *
  * Usage: pnpm --filter @vetsaas/api seed
  */
-import { DataSource } from 'typeorm';
+import { DataSource, In } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { v4 as uuid } from 'uuid';
 import { TenantEntity } from '../tenants/tenant.entity';
@@ -86,14 +86,26 @@ async function seed() {
         { firstName: 'Luísa', lastName: 'Tavares', email: 'luisa.tavares@email.ao', phone: '+244 931 999 000', address: 'Cacuaco, Luanda' },
     ];
 
+    const emails = tutorData.map(t => t.email);
+    const existingTutors = await tutorRepo.find({
+        where: { email: In(emails), tenantId: tenant.id },
+    });
+    const existingTutorsMap = new Map(existingTutors.map(t => [t.email, t]));
+
+    const tutorsToSave: TutorEntity[] = [];
     const tutors: TutorEntity[] = [];
+
     for (const t of tutorData) {
-        let tutor = await tutorRepo.findOne({ where: { email: t.email, tenantId: tenant.id } });
+        let tutor = existingTutorsMap.get(t.email);
         if (!tutor) {
             tutor = tutorRepo.create({ id: uuid(), tenantId: tenant.id, ...t });
-            tutor = await tutorRepo.save(tutor);
+            tutorsToSave.push(tutor);
         }
         tutors.push(tutor);
+    }
+
+    if (tutorsToSave.length > 0) {
+        await tutorRepo.save(tutorsToSave);
     }
     console.log(`  ✅ ${tutors.length} tutors ready`);
 

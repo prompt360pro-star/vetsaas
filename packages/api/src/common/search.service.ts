@@ -34,7 +34,7 @@ export class SearchService {
         private readonly recordsRepo: Repository<ClinicalRecordEntity>,
     ) { }
 
-    async search(tenantId: string, query: string, limit: number = 20): Promise<SearchResponse> {
+    async search(tenantId: string, query: string, limit = 20): Promise<SearchResponse> {
         if (!query || query.trim().length < 2) {
             return { query, total: 0, results: [] };
         }

@@ -79,7 +79,7 @@ export class ExportService {
     /**
      * Export audit logs as CSV.
      */
-    async exportAudit(tenantId: string, limit: number = 500): Promise<string> {
+    async exportAudit(tenantId: string, limit = 500): Promise<string> {
         const logs = await this.auditRepo.find({
             where: { tenantId },
             order: { createdAt: 'DESC' },
