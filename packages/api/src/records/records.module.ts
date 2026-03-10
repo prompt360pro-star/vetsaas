@@ -16,4 +16,3 @@ import { ClinicalAlertsController } from './clinical-alerts.controller';
     exports: [RecordsService, TemplatesService, ClinicalAlertsService],
 })
 export class RecordsModule { }
-
