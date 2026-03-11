@@ -1,0 +1,3 @@
+## 2024-05-18 - Form component accessibility via stable IDs
+**Learning:** React component libraries (Input, Textarea, Select) often lack a resilient way to associate labels (`htmlFor`) and helper text (`aria-describedby`) with the input element (`id`) if an explicit `id` prop is not passed. Generating IDs inside rendering via string manipulation can lead to hydration mismatches.
+**Action:** Use React`s `useId()` hook to generate unique and stable fallback IDs in primitive components. This guarantees elements are properly associated for screen readers via `id`, `htmlFor`, and `aria-describedby` robustly across both SSR and CSR, without requiring the parent to always pass a manual ID.
