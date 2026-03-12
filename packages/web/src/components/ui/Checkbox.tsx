@@ -40,6 +40,7 @@ export function Checkbox({
                 <motion.div
                     className={`
                         w-5 h-5 rounded-md border transition-colors flex items-center justify-center
+                        peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-primary-500 peer-focus-visible:ring-offset-2 dark:peer-focus-visible:ring-offset-surface-900
                         ${checked || indeterminate
                             ? 'bg-primary-500 border-primary-500 text-white'
                             : 'bg-white dark:bg-surface-800 border-surface-300 dark:border-surface-600 group-hover:border-primary-400 dark:group-hover:border-primary-500'
