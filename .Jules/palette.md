@@ -1,0 +1,3 @@
+## 2025-03-15 - Form Component Accessibility Learnings
+**Learning:** For screen readers handling forms, it is critical to prioritize validation error messages over simple hint text. Supplying both or providing hint text when an error exists can lead to screen reader confusion or verbosity, causing users to miss the critical validation state.
+**Action:** In customized `Input`, `Textarea`, and `Select` components, ensure `aria-describedby` dynamically switches to only reference the error message element when `error` is present, excluding hint text from the aria description to keep validation feedback concise and clear.
