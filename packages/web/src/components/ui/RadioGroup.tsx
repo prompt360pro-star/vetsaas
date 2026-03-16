@@ -50,12 +50,12 @@ export function RadioGroup({
                             checked={isSelected}
                             disabled={isDisabled}
                             onChange={() => !isDisabled && onChange(option.value)}
-                            className="sr-only"
+                            className="peer sr-only"
                         />
 
                         {/* Custom Radio Circle */}
                         <div className={`
-                            relative w-5 h-5 mt-0.5 rounded-full border-2 transition-colors flex items-center justify-center flex-shrink-0
+                            relative w-5 h-5 mt-0.5 rounded-full border-2 transition-colors flex items-center justify-center flex-shrink-0 peer-focus-visible:ring-2 peer-focus-visible:ring-primary-500 peer-focus-visible:ring-offset-2 dark:peer-focus-visible:ring-offset-surface-900
                             ${isSelected
                                 ? 'border-primary-500'
                                 : 'border-surface-300 dark:border-surface-600 group-hover:border-primary-400 dark:group-hover:border-primary-500'
