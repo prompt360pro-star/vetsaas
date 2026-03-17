@@ -53,8 +53,11 @@ export function Accordion({
                         `}
                     >
                         <button
+                            id={`accordion-button-${item.id}`}
+                            aria-expanded={isOpen}
+                            aria-controls={`accordion-content-${item.id}`}
                             onClick={() => toggle(item.id)}
-                            className="w-full flex items-center justify-between px-5 py-4 text-left focus:outline-none"
+                            className="w-full flex items-center justify-between px-5 py-4 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-surface-900 rounded-xl"
                         >
                             <div className="flex items-center gap-3">
                                 {item.icon && (
@@ -78,6 +81,9 @@ export function Accordion({
                         <AnimatePresence initial={false}>
                             {isOpen && (
                                 <motion.div
+                                    id={`accordion-content-${item.id}`}
+                                    role="region"
+                                    aria-labelledby={`accordion-button-${item.id}`}
                                     initial={{ height: 0, opacity: 0 }}
                                     animate={{ height: 'auto', opacity: 1 }}
                                     exit={{ height: 0, opacity: 0 }}
