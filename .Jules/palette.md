@@ -1,0 +1,3 @@
+## 2025-03-17 - Accordion Component Screen Reader Support & Focus Visibility
+**Learning:** The existing generic `Accordion` component lacked explicit ARIA mapping (`aria-expanded`, `aria-controls`, `role="region"`) to inform screen readers of the relationship between the toggle button and the expandable content. It also lacked a visible focus indicator (`focus:outline-none` was masking it), making keyboard navigation untraceable.
+**Action:** Always add `focus-visible:ring-2 focus-visible:ring-primary-500` utility classes alongside ARIA attributes mapping toggle buttons to their content region IDs when creating generic components like Accordions or dropdowns.
