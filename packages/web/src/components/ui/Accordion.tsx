@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 
@@ -25,6 +25,7 @@ export function Accordion({
     className = '',
 }: AccordionProps) {
     const [openIds, setOpenIds] = useState<string[]>(defaultOpen);
+    const accordionId = useId();
 
     const toggle = (id: string) => {
         if (allowMultiple) {
@@ -53,8 +54,11 @@ export function Accordion({
                         `}
                     >
                         <button
+                            id={`accordion-button-${accordionId}-${item.id}`}
+                            aria-expanded={isOpen}
+                            aria-controls={`accordion-panel-${accordionId}-${item.id}`}
                             onClick={() => toggle(item.id)}
-                            className="w-full flex items-center justify-between px-5 py-4 text-left focus:outline-none"
+                            className="w-full flex items-center justify-between px-5 py-4 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-surface-900"
                         >
                             <div className="flex items-center gap-3">
                                 {item.icon && (
@@ -78,6 +82,9 @@ export function Accordion({
                         <AnimatePresence initial={false}>
                             {isOpen && (
                                 <motion.div
+                                    id={`accordion-panel-${accordionId}-${item.id}`}
+                                    role="region"
+                                    aria-labelledby={`accordion-button-${accordionId}-${item.id}`}
                                     initial={{ height: 0, opacity: 0 }}
                                     animate={{ height: 'auto', opacity: 1 }}
                                     exit={{ height: 0, opacity: 0 }}
