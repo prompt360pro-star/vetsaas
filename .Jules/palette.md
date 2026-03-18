@@ -1,0 +1,3 @@
+## 2024-03-18 - Accordion Disclosure Accessibility Pattern
+**Learning:** Disclosure components like `Accordion` require explicit ARIA wiring (`aria-expanded`, `aria-controls`, `role="region"`, `aria-labelledby`) to ensure screen readers associate the trigger button with the hidden/visible content, and custom focus indicators (`focus-visible:ring-2`) are necessary for keyboard users when `focus:outline-none` removes default browser outlines.
+**Action:** Always implement explicit ARIA wiring and keyboard focus indicators for custom interactive UI components that hide/reveal content, ensuring they act as standard accessible disclosure widgets.
