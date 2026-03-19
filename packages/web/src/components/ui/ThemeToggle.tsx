@@ -25,7 +25,7 @@ export function ThemeToggle() {
                         exit={{ rotate: 90, opacity: 0, scale: 0.5 }}
                         transition={{ duration: 0.2 }}
                     >
-                        <Moon className="w-4 h-4 text-indigo-400" />
+                        <Moon className="w-4 h-4 text-indigo-400" aria-hidden="true" />
                     </motion.span>
                 ) : (
                     <motion.span
@@ -35,7 +35,7 @@ export function ThemeToggle() {
                         exit={{ rotate: -90, opacity: 0, scale: 0.5 }}
                         transition={{ duration: 0.2 }}
                     >
-                        <Sun className="w-4 h-4 text-amber-500" />
+                        <Sun className="w-4 h-4 text-amber-500" aria-hidden="true" />
                     </motion.span>
                 )}
             </AnimatePresence>

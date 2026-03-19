@@ -24,7 +24,7 @@ export class TenantsService {
                 allowOnlineBooking: false,
                 allowTeleconsult: false,
                 ...(data.settings || {}),
-            },
+            } as any,
         });
         return this.repo.save(tenant);
     }
@@ -38,7 +38,12 @@ export class TenantsService {
     }
 
     async update(id: string, data: Partial<TenantEntity>): Promise<TenantEntity | null> {
-        await this.repo.update(id, data);
+        // Cast settings to avoid DeepPartial type issues if present
+        const updateData = { ...data };
+        if (updateData.settings) {
+            updateData.settings = updateData.settings as any;
+        }
+        await this.repo.update(id, updateData as any);
         return this.findById(id);
     }
 

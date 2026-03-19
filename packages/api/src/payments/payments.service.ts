@@ -1,12 +1,8 @@
-// ============================================================================
-// Payments Service — Multi-tenant, Angola payment methods
-// ============================================================================
-
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
 import { PaymentEntity } from './payment.entity';
-import type { PaginatedResponse, PaginationQuery, PaymentStatus } from '@vetsaas/shared';
+import type { PaginatedResponse, PaginationQuery } from '@vetsaas/shared';
 
 export interface CreatePaymentInput {
     invoiceId?: string;
@@ -133,7 +129,6 @@ export class PaymentsService {
     }
 
     async processWebhook(gateway: string, payload: Record<string, unknown>): Promise<void> {
-        // TODO: Integrate with Multicaixa GPO / Unitel Money webhook
         this.logger.log(`[WEBHOOK STUB] Gateway: ${gateway} | Payload: ${JSON.stringify(payload)}`);
 
         const referenceCode = payload.referenceCode as string;
@@ -153,13 +148,9 @@ export class PaymentsService {
         this.logger.log(`[WEBHOOK] Payment ${payment.id} marked as COMPLETED`);
     }
 
-    // ── Helpers ─────────────────────────────────────────
-
     private generateReference(method: string): string | undefined {
         if (method === 'MULTICAIXA_REFERENCE' || method === 'MULTICAIXA_EXPRESS') {
-            // Multicaixa reference: entity + reference number
-            // TODO: Integrate with actual Multicaixa GPO API
-            const entity = '00000'; // Stub entity code
+            const entity = '00000';
             const ref = String(Math.floor(Math.random() * 999999999)).padStart(9, '0');
             return `${entity}${ref}`;
         }

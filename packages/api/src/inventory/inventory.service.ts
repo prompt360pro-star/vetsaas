@@ -1,7 +1,3 @@
-// ============================================================================
-// Inventory Service — Stock management with movement tracking
-// ============================================================================
-
 import {
     Injectable,
     NotFoundException,
@@ -9,7 +5,7 @@ import {
     Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan, MoreThan, Raw } from 'typeorm';
+import { Repository, LessThan } from 'typeorm';
 import { InventoryItemEntity } from './inventory-item.entity';
 import { StockMovementEntity } from './stock-movement.entity';
 
@@ -46,7 +42,6 @@ export class InventoryService {
         private readonly movementRepo: Repository<StockMovementEntity>,
     ) { }
 
-    // ── Create Item ────────────────────────────────────────────────────
     async create(tenantId: string, userId: string, input: CreateItemInput) {
         if (!input.name || !input.unit || !input.price) {
             throw new BadRequestException('Nome, unidade e preço são obrigatórios');
@@ -72,7 +67,6 @@ export class InventoryService {
 
         const saved = await this.itemRepo.save(item);
 
-        // If initial stock is set, record a movement
         if ((saved as InventoryItemEntity).stock > 0) {
             await this.recordMovement(tenantId, userId, (saved as InventoryItemEntity).id, {
                 type: 'IN',
@@ -87,16 +81,12 @@ export class InventoryService {
         return saved;
     }
 
-    // ── Find All ───────────────────────────────────────────────────────
     async findAll(
         tenantId: string,
         query: { page?: number; limit?: number; category?: string; search?: string; lowStock?: boolean },
     ) {
         const page = query.page || 1;
         const limit = Math.min(query.limit || 20, 100);
-
-        const where: any = { tenantId, isActive: true };
-        if (query.category) where.category = query.category;
 
         const qb = this.itemRepo.createQueryBuilder('item')
             .where('item.tenantId = :tenantId', { tenantId })
@@ -125,7 +115,6 @@ export class InventoryService {
         return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
     }
 
-    // ── Find By ID ─────────────────────────────────────────────────────
     async findById(tenantId: string, id: string) {
         const item = await this.itemRepo.findOne({
             where: { id, tenantId },
@@ -134,7 +123,6 @@ export class InventoryService {
         return item;
     }
 
-    // ── Update ─────────────────────────────────────────────────────────
     async update(tenantId: string, id: string, input: Partial<CreateItemInput>) {
         const item = await this.findById(tenantId, id);
 
@@ -154,7 +142,6 @@ export class InventoryService {
         return this.itemRepo.save(item);
     }
 
-    // ── Adjust Stock ───────────────────────────────────────────────────
     async adjustStock(tenantId: string, userId: string, itemId: string, input: StockAdjustInput) {
         const item = await this.findById(tenantId, itemId);
         const previousStock = item.stock;
@@ -173,7 +160,7 @@ export class InventoryService {
                 }
                 break;
             case 'ADJUSTMENT':
-                newStock = input.quantity; // Direct set
+                newStock = input.quantity;
                 break;
             default:
                 throw new BadRequestException('Tipo de movimento inválido');
@@ -197,7 +184,6 @@ export class InventoryService {
         return { item, previousStock, newStock, movement: input.type };
     }
 
-    // ── Get Movements ──────────────────────────────────────────────────
     async getMovements(tenantId: string, itemId: string, limit = 20) {
         return this.movementRepo.find({
             where: { tenantId, itemId },
@@ -206,7 +192,6 @@ export class InventoryService {
         });
     }
 
-    // ── Low Stock Alerts ───────────────────────────────────────────────
     async getLowStockAlerts(tenantId: string) {
         const items = await this.itemRepo
             .createQueryBuilder('item')
@@ -219,7 +204,6 @@ export class InventoryService {
         return { count: items.length, items };
     }
 
-    // ── Expiring Soon ──────────────────────────────────────────────────
     async getExpiringSoon(tenantId: string, daysAhead = 30) {
         const futureDate = new Date();
         futureDate.setDate(futureDate.getDate() + daysAhead);
@@ -236,7 +220,6 @@ export class InventoryService {
         return { count: items.length, items, daysAhead };
     }
 
-    // ── Private: Record Movement ───────────────────────────────────────
     private async recordMovement(
         tenantId: string,
         userId: string,

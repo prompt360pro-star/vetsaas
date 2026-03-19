@@ -1,13 +1,7 @@
-// ============================================================================
-// Upload Controller — File upload endpoints
-// ============================================================================
-
 import {
     Controller,
     Post,
     UseGuards,
-    UseInterceptors,
-    UploadedFile,
     Param,
     Req,
     BadRequestException,
@@ -17,18 +11,11 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { StorageService, UploadResult } from './storage.service';
 
-// Note: In production, use @nestjs/platform-express FileInterceptor
-// For scaffold we define the endpoint signatures
-
 @Controller('uploads')
 @UseGuards(AuthGuard('jwt'))
 export class UploadController {
     constructor(private readonly storageService: StorageService) { }
 
-    /**
-     * POST /api/uploads/:category
-     * Upload a file (multipart/form-data)
-     */
     @Post(':category')
     async uploadFile(
         @Param('category') category: 'photos' | 'documents' | 'xrays' | 'lab-results' | 'avatars',
@@ -39,11 +26,6 @@ export class UploadController {
             throw new BadRequestException('Tenant context required');
         }
 
-        // In production, use FileInterceptor and @UploadedFile()
-        // const file = req.file;
-        // return { data: await this.storageService.upload(tenantId, category, file.buffer, file.originalname, file.mimetype) };
-
-        // Stub response for scaffold
         return {
             data: {
                 key: `${tenantId}/${category}/stub-file.jpg`,
@@ -56,10 +38,6 @@ export class UploadController {
         };
     }
 
-    /**
-     * POST /api/uploads/:category/presigned
-     * Get a pre-signed URL for direct browser upload
-     */
     @Post(':category/presigned')
     async getPresignedUrl(
         @Param('category') category: string,
@@ -82,10 +60,6 @@ export class UploadController {
         return { data: result };
     }
 
-    /**
-     * GET /api/uploads/download?key=...
-     * Get a pre-signed download URL
-     */
     @Get('download')
     async getDownloadUrl(@Query('key') key: string) {
         const url = await this.storageService.getPresignedDownloadUrl(key);

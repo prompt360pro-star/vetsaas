@@ -54,11 +54,14 @@ export function Accordion({
                     >
                         <button
                             onClick={() => toggle(item.id)}
-                            className="w-full flex items-center justify-between px-5 py-4 text-left focus:outline-none"
+                            aria-expanded={isOpen}
+                            aria-controls={`content-${item.id}`}
+                            id={`trigger-${item.id}`}
+                            className="w-full flex items-center justify-between px-5 py-4 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
                         >
                             <div className="flex items-center gap-3">
                                 {item.icon && (
-                                    <span className={`transition-colors ${isOpen ? 'text-primary-500' : 'text-surface-400'}`}>
+                                    <span className={`transition-colors ${isOpen ? 'text-primary-500' : 'text-surface-400'}`} aria-hidden="true">
                                         {item.icon}
                                     </span>
                                 )}
@@ -71,13 +74,16 @@ export function Accordion({
                                 transition={{ duration: 0.2 }}
                                 className={`flex-shrink-0 ${isOpen ? 'text-primary-500' : 'text-surface-400'}`}
                             >
-                                <ChevronDown className="w-5 h-5" />
+                                <ChevronDown className="w-5 h-5" aria-hidden="true" />
                             </motion.div>
                         </button>
 
                         <AnimatePresence initial={false}>
                             {isOpen && (
                                 <motion.div
+                                    id={`content-${item.id}`}
+                                    role="region"
+                                    aria-labelledby={`trigger-${item.id}`}
                                     initial={{ height: 0, opacity: 0 }}
                                     animate={{ height: 'auto', opacity: 1 }}
                                     exit={{ height: 0, opacity: 0 }}
