@@ -15,41 +15,41 @@ import {
 export class StockMovementEntity {
 
     @PrimaryGeneratedColumn('uuid')
-    id!:  string;
+    id!: string;
 
 
     @Column('uuid')
-    tenantId!:  string;
+    tenantId!: string;
 
 
     @Column('uuid')
-    itemId!:  string;
+    itemId!: string;
 
 
-    @Column({ length!:  20 })
-    type!:  string; // IN | OUT | ADJUSTMENT
+    @Column({ length: 20 })
+    type!: string; // IN | OUT | ADJUSTMENT
 
 
-    @Column({ type!:  'int' })
-    quantity!:  number;
+    @Column({ type: 'int' })
+    quantity!: number;
 
 
-    @Column({ type!:  'int' })
-    previousStock!:  number;
+    @Column({ type: 'int' })
+    previousStock!: number;
 
 
-    @Column({ type!:  'int' })
-    newStock!:  number;
+    @Column({ type: 'int' })
+    newStock!: number;
 
 
-    @Column({ type!:  'text', nullable!:  true })
-    reason!:  string;
+    @Column({ type: 'text', nullable: true })
+    reason!: string;
 
 
     @Column('uuid')
-    performedBy!:  string;
+    performedBy!: string;
 
 
     @CreateDateColumn()
-    createdAt!:  Date;
+    createdAt!: Date;
 }

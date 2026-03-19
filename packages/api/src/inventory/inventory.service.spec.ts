@@ -82,7 +82,7 @@ describe('InventoryService', () => {
             itemRepo.create.mockReturnValue(saved);
             itemRepo.save.mockResolvedValue(saved);
 
-            const result = await service.create(tenantId, userId, {
+            await service.create(tenantId, userId, {
                 name: 'Amoxicilina 500mg',
                 category: 'ANTIBIOTIC',
                 minStock: 10,
@@ -158,7 +158,7 @@ describe('InventoryService', () => {
             itemRepo.findOne.mockResolvedValue(item);
             itemRepo.save.mockResolvedValue({ ...item, stock: 30 });
 
-            const result = await service.adjustStock(tenantId, userId, 'item-uuid-1', {
+            await service.adjustStock(tenantId, userId, 'item-uuid-1', {
                 quantity: 10,
                 type: 'IN',
                 reason: 'Reposição mensal',
