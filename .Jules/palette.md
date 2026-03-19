@@ -1,0 +1,3 @@
+## 2024-12-19 - Missing ARIA Labels for Forms
+**Learning:** Found that basic components in the design system like `Input` and `Textarea` lacked `htmlFor` on labels and `aria-describedby` associations for error messages and hints. This is critical for screen reader accessibility to ensure users understand context and validation states of inputs.
+**Action:** Used `React.useId()` to dynamically generate IDs for inputs when not provided to ensure robust accessibility logic for `htmlFor` and `aria-describedby` when errors or hints are present. This should be a standard pattern for all custom form controls.
