@@ -41,14 +41,14 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
                 ref={ref as any}
                 whileHover={{ scale: disabled || isLoading ? 1 : 1.01 }}
                 whileTap={{ scale: disabled || isLoading ? 1 : 0.98 }}
-                className={`inline-flex items-center justify-center font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
+                className={`inline-flex items-center justify-center font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-surface-900 ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
                 disabled={disabled || isLoading}
                 {...(props as any)}
             >
                 {isLoading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
                 ) : icon ? (
-                    <span className="flex-shrink-0">{icon}</span>
+                    <span className="flex-shrink-0" aria-hidden="true">{icon}</span>
                 ) : null}
                 {children}
             </motion.button>

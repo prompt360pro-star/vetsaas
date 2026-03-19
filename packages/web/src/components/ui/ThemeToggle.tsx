@@ -14,7 +14,7 @@ export function ThemeToggle() {
             className="relative w-9 h-9 flex items-center justify-center rounded-xl
                        bg-surface-100 dark:bg-surface-800
                        hover:bg-surface-200 dark:hover:bg-surface-700
-                       transition-colors duration-200"
+                       transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-surface-900"
         >
             <AnimatePresence mode="wait" initial={false}>
                 {isDark ? (
@@ -25,7 +25,7 @@ export function ThemeToggle() {
                         exit={{ rotate: 90, opacity: 0, scale: 0.5 }}
                         transition={{ duration: 0.2 }}
                     >
-                        <Moon className="w-4 h-4 text-indigo-400" />
+                        <Moon className="w-4 h-4 text-indigo-400" aria-hidden="true" />
                     </motion.span>
                 ) : (
                     <motion.span
@@ -35,7 +35,7 @@ export function ThemeToggle() {
                         exit={{ rotate: -90, opacity: 0, scale: 0.5 }}
                         transition={{ duration: 0.2 }}
                     >
-                        <Sun className="w-4 h-4 text-amber-500" />
+                        <Sun className="w-4 h-4 text-amber-500" aria-hidden="true" />
                     </motion.span>
                 )}
             </AnimatePresence>
