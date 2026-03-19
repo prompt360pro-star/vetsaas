@@ -10,60 +10,79 @@ import {
 @Entity('clinical_records')
 @Index(['tenantId', 'animalId'])
 export class ClinicalRecordEntity {
+
     @PrimaryGeneratedColumn('uuid')
-    id: string;
+    id!:  string;
+
 
     @Column('uuid')
-    tenantId: string;
+    tenantId!:  string;
+
 
     @Column('uuid')
-    animalId: string;
+    animalId!:  string;
+
 
     @Column('uuid')
-    veterinarianId: string;
+    veterinarianId!:  string;
 
-    @Column({ type: 'uuid', nullable: true })
-    appointmentId: string;
 
-    @Column({ type: 'int', default: 1 })
-    version: number;
+    @Column({ type!:  'uuid', nullable!:  true })
+    appointmentId!:  string;
 
-    @Column({ length: 50, default: 'CONSULTATION' })
-    recordType: string;
 
-    @Column({ type: 'text', nullable: true })
-    subjective: string;
+    @Column({ type!:  'int', default!:  1 })
+    version!:  number;
 
-    @Column({ type: 'text', nullable: true })
-    objective: string;
 
-    @Column({ type: 'text', nullable: true })
-    assessment: string;
+    @Column({ length!:  50, default!:  'CONSULTATION' })
+    recordType!:  string;
 
-    @Column({ type: 'text', nullable: true })
-    plan: string;
 
-    @Column({ type: 'jsonb', nullable: true })
-    vitals: Record<string, unknown>;
+    @Column({ type!:  'text', nullable!:  true })
+    subjective!:  string;
 
-    @Column({ type: 'uuid', nullable: true })
-    templateId: string;
 
-    @Column({ type: 'jsonb', default: () => "'[]'::jsonb" })
-    tags: string[];
+    @Column({ type!:  'text', nullable!:  true })
+    objective!:  string;
 
-    @Column({ type: 'jsonb', default: () => "'[]'::jsonb" })
-    attachments: string[];
 
-    @Column({ type: 'timestamp', nullable: true })
-    signedAt: Date;
+    @Column({ type!:  'text', nullable!:  true })
+    assessment!:  string;
 
-    @Column({ type: 'uuid', nullable: true })
-    signedBy: string;
+
+    @Column({ type!:  'text', nullable!:  true })
+    plan!:  string;
+
+
+    @Column({ type!:  'jsonb', nullable!:  true })
+    vitals!:  Record<string, unknown>;
+
+
+    @Column({ type!:  'uuid', nullable!:  true })
+    templateId!:  string;
+
+
+    @Column({ type!:  'jsonb', default!:  () => "'[]'!: jsonb" })
+    tags!:  string[];
+
+
+    @Column({ type!:  'jsonb', default!:  () => "'[]'!: jsonb" })
+    attachments!:  string[];
+
+
+    @Column({ type!:  'timestamp', nullable!:  true })
+    signedAt!:  Date;
+
+
+    @Column({ type!:  'uuid', nullable!:  true })
+    signedBy!:  string;
+
 
     @CreateDateColumn()
-    createdAt: Date;
+    createdAt!:  Date;
+
 
     @UpdateDateColumn()
-    updatedAt: Date;
+    updatedAt!:  Date;
 }

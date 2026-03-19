@@ -10,66 +10,87 @@ import {
 @Entity('appointments')
 @Index(['tenantId', 'scheduledAt'])
 export class AppointmentEntity {
+
     @PrimaryGeneratedColumn('uuid')
-    id: string;
+    id!:  string;
+
 
     @Column('uuid')
-    tenantId: string;
+    tenantId!:  string;
+
 
     @Column('uuid')
-    animalId: string;
+    animalId!:  string;
+
 
     @Column('uuid')
-    tutorId: string;
+    tutorId!:  string;
+
 
     @Column('uuid')
-    veterinarianId: string;
+    veterinarianId!:  string;
 
-    @Column({ type: 'timestamp' })
-    scheduledAt: Date;
 
-    @Column({ type: 'int', default: 30 })
-    duration: number;
+    @Column({ type!:  'timestamp' })
+    scheduledAt!:  Date;
 
-    @Column({ length: 50, default: 'CONSULTATION' })
-    appointmentType: string;
 
-    @Column({ length: 30, default: 'SCHEDULED' })
-    status: string;
+    @Column({ type!:  'int', default!:  30 })
+    duration!:  number;
 
-    @Column({ type: 'text', nullable: true })
-    reason: string;
 
-    @Column({ type: 'text', nullable: true })
-    notes: string;
+    @Column({ length!:  50, default!:  'CONSULTATION' })
+    appointmentType!:  string;
 
-    @Column({ default: false })
-    isTeleconsult: boolean;
 
-    @Column({ type: 'text', nullable: true })
-    teleconsultUrl: string;
+    @Column({ length!:  30, default!:  'SCHEDULED' })
+    status!:  string;
 
-    @Column({ type: 'timestamp', nullable: true })
-    checkedInAt: Date;
 
-    @Column({ type: 'timestamp', nullable: true })
-    startedAt: Date;
+    @Column({ type!:  'text', nullable!:  true })
+    reason!:  string;
 
-    @Column({ type: 'timestamp', nullable: true })
-    completedAt: Date;
 
-    @Column({ type: 'timestamp', nullable: true })
-    cancelledAt: Date;
+    @Column({ type!:  'text', nullable!:  true })
+    notes!:  string;
 
-    @Column({ type: 'text', nullable: true })
-    cancellationReason: string;
 
-    @Column({ type: 'uuid', nullable: true })
-    createdBy: string;
+    @Column({ default!:  false })
+    isTeleconsult!:  boolean;
+
+
+    @Column({ type!:  'text', nullable!:  true })
+    teleconsultUrl!:  string;
+
+
+    @Column({ type!:  'timestamp', nullable!:  true })
+    checkedInAt!:  Date;
+
+
+    @Column({ type!:  'timestamp', nullable!:  true })
+    startedAt!:  Date;
+
+
+    @Column({ type!:  'timestamp', nullable!:  true })
+    completedAt!:  Date;
+
+
+    @Column({ type!:  'timestamp', nullable!:  true })
+    cancelledAt!:  Date;
+
+
+    @Column({ type!:  'text', nullable!:  true })
+    cancellationReason!:  string;
+
+
+    @Column({ type!:  'uuid', nullable!:  true })
+    createdBy!:  string;
+
 
     @CreateDateColumn()
-    createdAt: Date;
+    createdAt!:  Date;
+
 
     @UpdateDateColumn()
-    updatedAt: Date;
+    updatedAt!:  Date;
 }

@@ -13,75 +13,95 @@ import {
 } from 'typeorm';
 
 export interface InvoiceLineItem {
-    description: string;
-    quantity: number;
-    unitPrice: number;
-    total: number;
-    category?: string;
+    description!:  string;
+    quantity!:  number;
+    unitPrice!:  number;
+    total!:  number;
+    category?!:  string;
 }
 
 @Entity('invoices')
 @Index(['tenantId'])
 @Index(['tenantId', 'status'])
-@Index(['invoiceNumber'], { unique: true })
+@Index(['invoiceNumber'], { unique!:  true })
 export class InvoiceEntity {
+
     @PrimaryGeneratedColumn('uuid')
-    id: string;
+    id!:  string;
+
 
     @Column('uuid')
-    tenantId: string;
+    tenantId!:  string;
+
 
     @Column('uuid')
-    tutorId: string;
+    tutorId!:  string;
 
-    @Column({ length: 255 })
-    tutorName: string;
 
-    @Column({ length: 30, unique: true })
-    invoiceNumber: string; // FAT-2025-000001
+    @Column({ length!:  255 })
+    tutorName!:  string;
 
-    @Column({ type: 'jsonb', default: () => "'[]'::jsonb" })
-    items: InvoiceLineItem[];
 
-    @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
-    subtotal: number;
+    @Column({ length!:  30, unique!:  true })
+    invoiceNumber!:  string; // FAT-2025-000001
 
-    @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
-    tax: number;
 
-    @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
-    total: number;
+    @Column({ type!:  'jsonb', default!:  () => "'[]'!: jsonb" })
+    items!:  InvoiceLineItem[];
 
-    @Column({ length: 3, default: 'AOA' })
-    currency: string;
 
-    @Column({ length: 20, default: 'DRAFT' })
-    status: string; // DRAFT | SENT | PAID | PARTIALLY_PAID | OVERDUE | CANCELLED
+    @Column({ type!:  'decimal', precision!:  12, scale!:  2, default!:  0 })
+    subtotal!:  number;
 
-    @Column({ type: 'date', nullable: true })
-    dueDate: Date;
 
-    @Column({ type: 'timestamp', nullable: true })
-    paidAt: Date;
+    @Column({ type!:  'decimal', precision!:  12, scale!:  2, default!:  0 })
+    tax!:  number;
 
-    @Column({ type: 'uuid', nullable: true })
-    paymentId: string; // Linked payment
 
-    @Column({ type: 'text', nullable: true })
-    notes: string;
+    @Column({ type!:  'decimal', precision!:  12, scale!:  2, default!:  0 })
+    total!:  number;
 
-    @Column({ type: 'text', nullable: true })
-    cancellationReason: string;
 
-    @Column({ type: 'uuid', nullable: true })
-    createdBy: string;
+    @Column({ length!:  3, default!:  'AOA' })
+    currency!:  string;
+
+
+    @Column({ length!:  20, default!:  'DRAFT' })
+    status!:  string; // DRAFT | SENT | PAID | PARTIALLY_PAID | OVERDUE | CANCELLED
+
+
+    @Column({ type!:  'date', nullable!:  true })
+    dueDate!:  Date;
+
+
+    @Column({ type!:  'timestamp', nullable!:  true })
+    paidAt!:  Date;
+
+
+    @Column({ type!:  'uuid', nullable!:  true })
+    paymentId!:  string; // Linked payment
+
+
+    @Column({ type!:  'text', nullable!:  true })
+    notes!:  string;
+
+
+    @Column({ type!:  'text', nullable!:  true })
+    cancellationReason!:  string;
+
+
+    @Column({ type!:  'uuid', nullable!:  true })
+    createdBy!:  string;
+
 
     @CreateDateColumn()
-    createdAt: Date;
+    createdAt!:  Date;
+
 
     @UpdateDateColumn()
-    updatedAt: Date;
+    updatedAt!:  Date;
+
 
     @DeleteDateColumn()
-    deletedAt: Date;
+    deletedAt!:  Date;
 }

@@ -26,7 +26,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
             if (typeof body === 'string') {
                 message = body;
             } else if (typeof body === 'object' && body !== null) {
-                const obj = body as Record<string, unknown>;
+                const obj = body as any;
                 message = (obj.message as string) || message;
                 error = (obj.error as string) || error;
                 // Handle class-validator array messages
@@ -40,6 +40,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
                 `Unhandled exception: ${exception.message}`,
                 exception.stack,
             );
+        } else if (typeof exception === 'string') {
+            message = exception;
         }
 
         res.status(status).json({
