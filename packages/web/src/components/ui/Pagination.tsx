@@ -30,10 +30,10 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
             <button
                 onClick={() => onPageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="w-9 h-9 rounded-lg flex items-center justify-center text-surface-500 hover:bg-surface-100 dark:hover:bg-surface-800 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                className="w-9 h-9 rounded-lg flex items-center justify-center text-surface-500 hover:bg-surface-100 dark:hover:bg-surface-800 disabled:opacity-30 disabled:pointer-events-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-surface-900"
                 aria-label="Página anterior"
             >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="w-4 h-4" aria-hidden="true" />
             </button>
 
             {pages.map((p, i) =>
@@ -45,11 +45,12 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
                     <button
                         key={p}
                         onClick={() => onPageChange(p)}
-                        className={`w-9 h-9 rounded-lg text-sm font-medium transition-all ${p === currentPage
+                        className={`w-9 h-9 rounded-lg text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-surface-900 ${p === currentPage
                                 ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/25'
                                 : 'text-surface-600 dark:text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-800'
                             }`}
                         aria-current={p === currentPage ? 'page' : undefined}
+                        aria-label={`Página ${p}`}
                     >
                         {p}
                     </button>
@@ -59,10 +60,10 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
             <button
                 onClick={() => onPageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className="w-9 h-9 rounded-lg flex items-center justify-center text-surface-500 hover:bg-surface-100 dark:hover:bg-surface-800 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                className="w-9 h-9 rounded-lg flex items-center justify-center text-surface-500 hover:bg-surface-100 dark:hover:bg-surface-800 disabled:opacity-30 disabled:pointer-events-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-surface-900"
                 aria-label="Página seguinte"
             >
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-4 h-4" aria-hidden="true" />
             </button>
         </nav>
     );
