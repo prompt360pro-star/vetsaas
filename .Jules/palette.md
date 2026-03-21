@@ -1,0 +1,3 @@
+## 2024-03-21 - Custom Accordion Missing Proper ARIA and Focus Styles
+**Learning:** Custom interactive components like `Accordion` in `packages/web/src/components/ui/` often lack complete ARIA structures (`aria-expanded`, `aria-controls`, `role="region"`) and proper keyboard focus indicators (`focus-visible`) out-of-the-box, making them inaccessible to screen readers and keyboard users.
+**Action:** Always verify custom disclosure widgets include `aria-expanded` and `aria-controls` on the trigger, `role="region"` and `aria-labelledby` on the content wrapper, and appropriate `focus-visible` classes on interactive elements to ensure clear keyboard navigation and screen reader context. Also ensure decorative icons inside such components have `aria-hidden="true"`.
