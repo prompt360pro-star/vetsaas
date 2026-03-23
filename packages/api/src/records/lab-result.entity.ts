@@ -16,50 +16,50 @@ import {
 @Index(['tenantId', 'recordId'])
 export class LabResultEntity {
     @PrimaryGeneratedColumn('uuid')
-    id: string;
+    id!: string;
 
     @Column('uuid')
-    tenantId: string;
+    tenantId!: string;
 
     @Column('uuid')
-    animalId: string;
+    animalId!: string;
 
     @Column({ type: 'uuid', nullable: true })
-    recordId: string; // Linked clinical record
+    recordId!: string;
 
     @Column({ length: 255 })
-    testName: string;
+    testName!: string;
 
     @Column({ length: 50 })
-    testType: string; // BLOOD, URINE, IMAGING, BIOPSY, PARASITOLOGY, OTHER
+    testType!: string;
 
     @Column({ type: 'text', nullable: true })
-    result: string;
+    result!: string;
 
     @Column({ length: 100, nullable: true })
-    normalRange: string; // e.g. "4.0-10.0"
+    normalRange!: string;
 
     @Column({ length: 30, nullable: true })
-    unit: string; // e.g. "mg/dL"
+    unit!: string;
 
     @Column({ length: 20, default: 'PENDING' })
-    status: string; // PENDING | IN_PROGRESS | COMPLETED | CANCELLED
+    status!: string;
 
     @Column({ type: 'text', nullable: true })
-    notes: string;
+    notes!: string;
 
     @Column({ type: 'jsonb', default: () => "'[]'::jsonb" })
-    attachmentUrls: string[];
+    attachmentUrls!: string[];
 
     @Column({ type: 'uuid', nullable: true })
-    orderedBy: string; // Vet who ordered
+    orderedBy!: string;
 
     @Column({ type: 'timestamp', nullable: true })
-    performedAt: Date;
+    performedAt!: Date;
 
     @CreateDateColumn()
-    createdAt: Date;
+    createdAt!: Date;
 
     @UpdateDateColumn()
-    updatedAt: Date;
+    updatedAt!: Date;
 }

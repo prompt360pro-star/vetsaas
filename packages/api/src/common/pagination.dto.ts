@@ -21,7 +21,7 @@ export class PaginationQueryDto {
 }
 
 export class PaginatedResponseDto<T> {
-    data: T[];
+    data!: T[];
     meta: {
         page: number;
         limit: number;
