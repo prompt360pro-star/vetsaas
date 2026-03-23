@@ -1,0 +1,3 @@
+## 2024-03-23 - Accordion Focus Visibility
+**Learning:** Custom disclosure widgets like the `Accordion` component lack native focus visibility for keyboard users and often omit crucial ARIA attributes like `aria-expanded` and `aria-controls` needed for screen readers to understand the relationship between triggers and content.
+**Action:** When implementing custom disclosures, always add `id`s to triggers and content areas to link them with `aria-controls` and `aria-labelledby`, track state with `aria-expanded`, and add explicit `focus-visible` utility classes (e.g., `focus-visible:ring-2 focus-visible:ring-primary-500 rounded-lg`) to the interactive trigger. Add `aria-hidden="true"` to decorative icons inside the trigger to prevent redundant screen reader announcements.
