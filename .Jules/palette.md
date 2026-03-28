@@ -1,0 +1,3 @@
+## 2024-03-28 - NextJS Form Component Accessibility
+**Learning:** In NextJS custom form components (`Input`, `Select`, `Textarea`), using React's `useId()` is the best way to robustly link `<label htmlFor>` with `<input id>`, while dynamically generated `aria-describedby` attributes can prioritize validation errors over helper text for screen readers without cluttering announcements.
+**Action:** Always pair `useId()` with custom fallback IDs and use conditional `aria-describedby` rendering when designing or fixing reusable form controls.
