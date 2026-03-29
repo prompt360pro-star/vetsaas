@@ -1,0 +1,3 @@
+## 2024-03-29 - Form Component Accessibility via useId
+**Learning:** In React form components (Input, Select, Textarea) lacking explicit IDs passed by the user, dynamically generating them is essential for `htmlFor` on `<label>` elements to ensure screen readers announce input labels properly. Furthermore, `aria-describedby` must conditionally prioritize an error message over general hint text to ensure validation feedback is announced first to AT users. Using React's `useId()` creates accessible IDs stably on the server and client.
+**Action:** Use `useId` to provide fallback `id`s for forms components and dynamically manage `aria-describedby` string linking for validation messages across reusable component suites in Next.js apps.
