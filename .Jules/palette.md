@@ -1,0 +1,3 @@
+## 2024-05-18 - Form Control Accessibility Enhancement
+**Learning:** In React form components (`Input`, `Textarea`, `Select`), using `useId()` generates unique, stable IDs required to securely link `<label>` elements via `htmlFor`. Furthermore, when managing multiple descriptive texts (like hint/help text and error messages), correctly setting `aria-describedby` ensures screen readers read them accurately. When both are present, prioritizing the error message or appending it prevents overwhelming the user and prioritizes critical feedback.
+**Action:** Consistently use `useId()` for custom input components, ensure `htmlFor` matches the input's `id`, and dynamically set `aria-describedby` depending on the presence of validation errors or hint texts.
