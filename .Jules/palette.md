@@ -1,0 +1,3 @@
+## 2025-04-02 - Accessible Form Controls (Input, Textarea, Select)
+**Learning:** React's `useId()` should be used to generate unique IDs for form components to ensure `htmlFor` on `<label>` elements matches their corresponding input `id`. Also, when using `aria-describedby` to link hints or error messages to an input, it's better to prioritize error announcements over hints so screen readers immediately convey validation feedback to the user when an error occurs.
+**Action:** Always link `<label>` and inputs with unique IDs and correctly toggle `aria-describedby` depending on the field's error state to improve form accessibility.
