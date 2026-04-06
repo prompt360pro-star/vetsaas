@@ -1,0 +1,3 @@
+## 2024-11-20 - Prioritize Error Messaging for Screen Readers in Form Controls
+**Learning:** When form controls (like Input, Textarea, Select) have both an error message and a hint, rendering both IDs into `aria-describedby` can be overly verbose or confusing for screen readers. It's better to dynamically switch `aria-describedby` to point exclusively to the error message when an error is present, as it conveys the most critical validation information.
+**Action:** When creating or modifying form components, use conditional logic to set `aria-describedby` to the error element's ID if an error exists, and fall back to the hint element's ID only when the field is valid.
