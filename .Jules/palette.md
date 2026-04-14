@@ -1,0 +1,3 @@
+## 2026-04-14 - [Form Accessibility Improvements]
+**Learning:** In Next.js/React applications, custom form components (Input, Textarea, Select) often miss unique ID mappings for `<label htmlFor={id}>` and `aria-describedby`, causing screen reader issues. Relying solely on manually passed `id` props is brittle.
+**Action:** Use React's `useId()` hook as a fallback to programmatically generate guaranteed unique IDs for linking form controls with their labels and descriptive text (errors, hints). Additionally, explicitly hide purely visual elements like required asterisks (`*`) using `aria-hidden="true"`.
