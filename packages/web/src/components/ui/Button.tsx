@@ -46,9 +46,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
                 {...(props as any)}
             >
                 {isLoading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
                 ) : icon ? (
-                    <span className="flex-shrink-0">{icon}</span>
+                    <span className="flex-shrink-0" aria-hidden="true">{icon}</span>
                 ) : null}
                 {children}
             </motion.button>

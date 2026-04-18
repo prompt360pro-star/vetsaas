@@ -1,0 +1,3 @@
+## 2026-04-18 - Form Component Accessibility Learnings
+**Learning:** React 18's `useId()` hook is critical for building accessible shared form components (Input, Textarea, Select). Without it, dynamically mapping `<label htmlFor>` to `<input id>` across multiple component instances on the same page is error-prone. Additionally, explicitly adding `aria-hidden="true"` to visually decorative elements like 'required' asterisks and icons cleans up the screen reader experience.
+**Action:** Always utilize `useId()` as a fallback for the `id` prop in reusable form components to ensure robust `htmlFor` binding. Consistently hide decorative icons and visual-only 'required' indicators from screen readers.
