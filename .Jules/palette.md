@@ -1,0 +1,3 @@
+## 2026-04-20 - Form accessibility and screen reader improvements
+**Learning:** Discovered that input components like `Input.tsx`, `Textarea.tsx`, and `Select.tsx` lacked explicit linkage to their respective error and hint messages for screen readers, and visual-only decorative elements lacked `aria-hidden`. Using `useId()` in React allows the dynamic generation of unique IDs to bind inputs, labels, and accessible descriptions (via `aria-describedby`) when they are conditionally rendered.
+**Action:** Use `useId()` alongside `aria-describedby` to explicitly map input elements to their hint and error messages, providing crucial context for screen reader users without cluttering visual design.
