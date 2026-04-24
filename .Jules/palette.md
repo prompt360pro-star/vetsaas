@@ -1,0 +1,3 @@
+## 2026-04-24 - Accessible Forms with React useId
+**Learning:** Next.js UI components need dynamic `useId()` to reliably link `<label htmlFor={id}>` with `<input id={id}>`, and to map error/hint messages via `aria-describedby`. Relying solely on manually provided IDs is brittle and hurts a11y. Setting `aria-hidden="true"` on purely decorative or redundant visual cues (like the required asterisk and icons inside inputs) reduces unnecessary screen reader noise.
+**Action:** Always prefer fallback generated IDs using `useId()` in form components (like `Input`, `Textarea`, `Select`) and map state messages dynamically. Hide visually decorative items from the accessibility tree.
