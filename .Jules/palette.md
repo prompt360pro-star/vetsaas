@@ -1,0 +1,3 @@
+## 2024-05-14 - Accessible Form Controls with useId
+**Learning:** In reusable form components (Input, Textarea, Select), dynamically generating IDs using React's `useId()` (with a fallback to props) ensures robust programmatic association (`htmlFor` to `id`) when components are reused multiple times on the same page. Furthermore, when binding `aria-describedby`, error messages must take precedence over general hint text to ensure screen readers prioritize validation feedback, and decorative elements like required asterisks (`*`) need `aria-hidden="true"` to prevent redundant reading.
+**Action:** Always implement `useId` and explicit `aria-describedby` mapping in foundational form components, ensuring error states override hint text for assistive technologies.
