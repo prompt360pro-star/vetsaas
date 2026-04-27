@@ -1,0 +1,3 @@
+## 2024-04-27 - [Dynamic Fallback IDs for Accessible Form Elements]
+**Learning:** When building accessible form components (`Input`, `Textarea`, `Select`) in React, explicitly linking `<label>` elements via `htmlFor` and error/hint texts via `aria-describedby` requires robust ID generation if consumers omit the `id` prop. Additionally, decorative icons and required asterisks (`*`) need `aria-hidden="true"` to prevent redundant screen reader announcements.
+**Action:** Use React `useId()` to generate deterministic fallback IDs. Prefer consumer-provided `id`s if passed, and construct derivative IDs (e.g., `${id}-error`) for `aria-describedby` logic.
