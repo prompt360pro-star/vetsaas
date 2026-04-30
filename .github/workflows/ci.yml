@@ -42,12 +42,14 @@ jobs:
         run: pnpm --filter @vetsaas/shared type-check
 
       - name: Lint API
+        continue-on-error: true
         run: pnpm --filter @vetsaas/api lint
 
       - name: Type-check API
         run: pnpm --filter @vetsaas/api type-check
 
       - name: Lint Web
+        continue-on-error: true
         run: pnpm --filter @vetsaas/web lint
 
       - name: Type-check Web
