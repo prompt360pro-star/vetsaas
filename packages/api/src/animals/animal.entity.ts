@@ -12,77 +12,77 @@ import {
 @Index(['tenantId'])
 export class AnimalEntity {
     @PrimaryGeneratedColumn('uuid')
-    id: string;
+    id!: string;
 
     @Column('uuid')
-    tenantId: string;
+    tenantId!: string;
 
     @Column({ length: 255 })
-    name: string;
+    name!: string;
 
     @Column({ length: 50 })
-    species: string;
+    species!: string;
 
     @Column({ length: 100, nullable: true })
-    breed: string;
+    breed!: string;
 
     @Column({ length: 100, nullable: true })
-    color: string;
+    color!: string;
 
     @Column({ length: 20, default: 'UNKNOWN' })
-    sex: string;
+    sex!: string;
 
     @Column({ type: 'date', nullable: true })
-    dateOfBirth: Date;
+    dateOfBirth!: Date;
 
     @Column({ length: 50, nullable: true })
-    estimatedAge: string;
+    estimatedAge!: string;
 
     @Column({ type: 'decimal', precision: 8, scale: 2, nullable: true })
-    weight: number;
+    weight!: number;
 
     @Column({ length: 5, default: 'kg' })
-    weightUnit: string;
+    weightUnit!: string;
 
     @Column({ length: 50, nullable: true, unique: true })
-    microchipId: string;
+    microchipId!: string;
 
     @Column({ length: 100, nullable: true })
-    pedigreeNumber: string;
+    pedigreeNumber!: string;
 
     @Column({ type: 'text', nullable: true })
-    photoUrl: string;
+    photoUrl!: string;
 
     @Column({ type: 'jsonb', default: () => "'[]'::jsonb" })
-    photos: string[];
+    photos!: string[];
 
     @Column({ default: false })
-    isNeutered: boolean;
+    isNeutered!: boolean;
 
     @Column({ default: false })
-    isDeceased: boolean;
+    isDeceased!: boolean;
 
     @Column({ type: 'date', nullable: true })
-    deceasedDate: Date;
+    deceasedDate!: Date;
 
     @Column({ length: 20, nullable: true })
-    bloodType: string;
+    bloodType!: string;
 
     @Column({ type: 'text', nullable: true })
-    notes: string;
+    notes!: string;
 
     @Column({ type: 'jsonb', default: () => "'[]'::jsonb" })
-    tutorIds: string[];
+    tutorIds!: string[];
 
     @Column({ type: 'uuid', nullable: true })
-    createdBy: string;
+    createdBy!: string;
 
     @CreateDateColumn()
-    createdAt: Date;
+    createdAt!: Date;
 
     @UpdateDateColumn()
-    updatedAt: Date;
+    updatedAt!: Date;
 
     @DeleteDateColumn()
-    deletedAt: Date;
+    deletedAt!: Date;
 }

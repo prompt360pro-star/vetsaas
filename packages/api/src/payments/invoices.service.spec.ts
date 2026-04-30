@@ -22,8 +22,8 @@ describe('InvoicesService', () => {
         tutorName: 'João Silva',
         invoiceNumber: 'FAT-2025-000001',
         items: [
-            { description: 'Consulta geral', quantity: 1, unitPrice: 10000, total: 10000 },
-            { description: 'Vacina antirrábica', quantity: 1, unitPrice: 5000, total: 5000 },
+            { description: 'Consulta geral', quantity: 1, unitPrice: 10000, total: 10000, category: 'CONSULTATION' },
+            { description: 'Vacina antirrábica', quantity: 1, unitPrice: 5000, total: 5000, category: 'VACCINE' },
         ],
         subtotal: 15000,
         tax: 2100, // 14% IVA
@@ -69,8 +69,8 @@ describe('InvoicesService', () => {
                 tutorId: 'tutor-uuid-1',
                 tutorName: 'João Silva',
                 items: [
-                    { description: 'Consulta geral', quantity: 1, unitPrice: 10000, total: 0 },
-                    { description: 'Vacina antirrábica', quantity: 1, unitPrice: 5000, total: 0 },
+                    { description: 'Consulta geral', quantity: 1, unitPrice: 10000, total: 0, category: 'CONSULTATION' },
+                    { description: 'Vacina antirrábica', quantity: 1, unitPrice: 5000, total: 0, category: 'VACCINE' },
                 ],
             });
 
@@ -106,7 +106,7 @@ describe('InvoicesService', () => {
                 tutorId: 'tutor-uuid-1',
                 tutorName: 'Ana Santos',
                 items: [
-                    { description: 'Cirurgia', quantity: 1, unitPrice: 100000, total: 0 },
+                    { description: 'Cirurgia', quantity: 1, unitPrice: 100000, total: 0, category: 'SURGERY' },
                 ],
                 taxRate: 0, // Tax exempt
             });
