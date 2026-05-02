@@ -1,0 +1,3 @@
+## 2024-05-24 - Form Component Accessibility Learnings
+**Learning:** React form components without explicit `id` props cause `<label>` elements to be unassociated with their inputs. Additionally, decorative required asterisks `*` are read aloud by screen readers, creating noise. Relying purely on visual layout for error/hint text means screen readers miss validation context.
+**Action:** Always use React's `useId()` to generate fallback unique IDs (prioritizing explicitly provided `id` props) for linking `<label>` via `htmlFor`. Apply `aria-hidden="true"` to visual-only required asterisks. Programmatically link validation text or hint text to the input using `aria-describedby` (excluding hints when errors are present to prioritize validation feedback).
