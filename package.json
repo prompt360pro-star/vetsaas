@@ -12,8 +12,11 @@
     "clean": "pnpm -r clean"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "concurrently": "^9.1.0",
-    "typescript": "^5.7.0"
+    "eslint": "^10.3.0",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.59.1"
   },
   "engines": {
     "node": ">=20.0.0",
