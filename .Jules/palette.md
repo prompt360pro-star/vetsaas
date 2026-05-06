@@ -1,0 +1,3 @@
+## 2024-05-06 - Prioritizing Validation Feedback in Form Controls
+**Learning:** When form controls (`Input`, `Select`, `Textarea`) have both hint text and validation error messages, linking both via `aria-describedby` can overwhelm screen reader users or cause the more critical error message to be read last.
+**Action:** Programmatically exclude hint text from `aria-describedby` when an error is present (`ariaDescribedBy = error ? errorId : hintId;`), prioritizing the validation feedback. Additionally, visual-only required asterisks (`*`) and icons should be hidden from screen readers using `aria-hidden="true"` to ensure a cleaner accessible name computation.
