@@ -1,0 +1,3 @@
+## 2024-05-09 - Form Input Accessibility Pattern
+**Learning:** Found a systemic accessibility issue in the core form wrapper components (`Input`, `Select`, `Textarea`). They were missing programmatic linkages between `<label>` and the form control (missing `id` and `htmlFor`), and `aria-describedby` was not properly set for error/hint associations. Also, visual-only required asterisks (`*`) were missing `aria-hidden="true"`, causing screen readers to read them out unhelpfully.
+**Action:** Always ensure dynamic IDs (e.g., via `useId()`) are generated for form components to securely bind labels, and use `aria-describedby` to link auxiliary text (errors/hints). Hide visual decorators with `aria-hidden="true"`.
