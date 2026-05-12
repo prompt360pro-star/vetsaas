@@ -1,0 +1,3 @@
+## 2024-05-18 - Form component accessibility linking
+**Learning:** Reusable UX pattern found: UI form components (`Input`, `Textarea`, `Select`) must explicitly link their `<label>` and auxiliary text (errors, hints) to the primary interactive element using `useId()`, `htmlFor`, and `aria-describedby` to properly support screen readers and keyboard navigation. Visual decorators like required asterisks `*` or icons should receive `aria-hidden="true"` to prevent unnecessary readouts.
+**Action:** Always verify proper ID linking and `aria-describedby` usage when reviewing or creating form components in this design system.
