@@ -1,0 +1,3 @@
+## 2026-05-14 - Auto-generated fallback IDs in React 18 Forms
+**Learning:** Using React's `useId()` provides an exceptionally clean and reliable way to link `<label htmlFor="id">` and inputs natively when developers forget to explicitly pass `id` strings to form components (`Input`, `Select`, `Textarea`), significantly improving screen reader accessibility with virtually no consumer-side configuration cost. Additionally, programmatically prioritizing error IDs over hint IDs for `aria-describedby` prevents noisy, confusing screen reader feedback during form validation states.
+**Action:** Default to embedding `useId()` fallbacks internally in all custom React form primitives within the design system to ensure accessible labels and descriptions work out-of-the-box.
