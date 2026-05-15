@@ -9,6 +9,7 @@
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
         "composite": false,
+        "strictPropertyInitialization": false,
         "incremental": true,
         "declaration": false,
         "declarationMap": false,
