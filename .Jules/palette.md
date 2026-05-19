@@ -1,0 +1,3 @@
+## 2024-05-19 - Form Component Accessibility Pattern
+**Learning:** Consistently using `useId` to generate fallback IDs in base UI components (`Input`, `Textarea`, `Select`) ensures accessible labels (`htmlFor`) and helper text (`aria-describedby`) are always correctly linked for screen readers, while keeping the DOM clean by passing `undefined` when attributes are unnecessary. Decorative elements like `*` required asterisks should explicitly set `aria-hidden="true"`.
+**Action:** Apply this pattern to all new input components and custom form controls to maintain a baseline of accessibility without requiring developers to manually manage IDs.
