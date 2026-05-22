@@ -1,0 +1,3 @@
+## 2024-05-22 - Form Element Accessibility (useId and aria-hidden)
+**Learning:** React UI components (like `Input`, `Textarea`, `Select`) often lack proper `id` bindings if developers don't explicitly pass them. This breaks `<label htmlFor>` and `<input id>` associations for screen readers. Decorative elements (like `*` for required fields and icons) cause unnecessary noise for screen readers.
+**Action:** Use `useId()` to generate a fallback ID if `props.id` is not provided. Bind this to `htmlFor` and `id`, as well as `aria-describedby` associations. Add `aria-hidden="true"` to visual-only required asterisks and decorative icons.
