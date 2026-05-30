@@ -1,0 +1,3 @@
+## 2024-05-30 - Form Controls Accessibility Binding
+**Learning:** Found an accessibility pattern across common UI form components (Input, Textarea, Select) where labels were missing `htmlFor` bindings to their inputs, error/hint messages lacked `aria-describedby` associations, and the required asterisk lacked `aria-hidden="true"`.
+**Action:** Always generate a fallback `useId()` when creating form control components to ensure strict `id` / `htmlFor` / `aria-describedby` associations, and hide decorative visual indicators like `*` from screen readers to provide a clean accessible name computation.
