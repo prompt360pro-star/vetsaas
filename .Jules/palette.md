@@ -1,0 +1,3 @@
+## 2026-06-13 - Improve Form Field Accessibility
+**Learning:** In custom form components (Input, Select, Textarea), fallback IDs generated via `useId()` must be used to link `<label htmlFor>` and `<input id>` when consumers do not explicitly pass an `id` prop. Additionally, error and hint texts must be associated via `aria-describedby`, and purely decorative elements like icons and required asterisks should have `aria-hidden="true"` to prevent screen reader noise.
+**Action:** When creating or modifying custom form controls, always destructure `id`, provide a `useId()` fallback, and ensure proper ARIA linkage for labels and helper/error text. Hide visual-only artifacts from assistive technologies.
