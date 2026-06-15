@@ -1,0 +1,3 @@
+## 2024-05-18 - Form Accessibility
+**Learning:** Screen readers need fallback IDs to be dynamically generated for inputs if none are provided to link labels, hints, and errors. Otherwise, validation messages and hints remain silent or detached. Using `useId()` and generating unique suffix values (e.g. `-hint` or `-error`) in UI primitives guarantees full coverage without developer overhead.
+**Action:** When building or modifying UI input primitives, implement `useId()` to ensure robust labeling and descriptions (`htmlFor`, `aria-describedby`) out of the box. Ensure optional hints and errors construct multiple IDs safely in `aria-describedby`.
