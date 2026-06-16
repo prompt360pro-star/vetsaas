@@ -1,0 +1,3 @@
+## 2026-06-16 - Accessible Forms via useId
+**Learning:** Shared UI components (`Input`, `Textarea`, `Select`) often miss explicit IDs, causing disconnected labels and unassociated error/hint messages for screen readers. Using `useId()` with a fallback to `props.id` is a highly effective pattern for ensuring resilient `htmlFor` and `aria-describedby` bindings.
+**Action:** When creating reusable form inputs, generate a default ID with `useId()`, link the label and input, and conditionally build `aria-describedby` string fragments to explicitly connect helper text to the input without confusing screen readers.
