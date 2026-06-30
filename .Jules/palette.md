@@ -1,0 +1,3 @@
+## 2024-06-30 - Accessible Forms
+**Learning:** Utilizing React `useId` allows custom form inputs to auto-generate identifiers when one is omitted, making it easy to implicitly link `<label>` and mapped hint/error messages without imposing a strict `id` requirement onto the parent consumer. Hiding purely declarative element structures (like a required `*` span) via `aria-hidden` guarantees clean semantics.
+**Action:** When designing primitive form components, always include a robust `useId` fallback strategy and rigorously tag hint/error state logic with appropriate `aria-describedby` arrays and `htmlFor` properties.
