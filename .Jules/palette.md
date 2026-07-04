@@ -1,0 +1,3 @@
+## 2026-07-04 - [Accessibility] Linked inputs and hidden required indicators
+**Learning:** Found a missing link pattern across our form components (Input, Textarea, Select) where labels, errors, and hints weren't completely bound to input elements correctly. This means screen readers wouldn't announce errors when an input was focused. Also discovered that screen readers annoyingly read out decorative 'asterisks' (*) for required fields when `aria-hidden='true'` isn't specified.
+**Action:** Always map fallback IDs using `useId()` in reusable form components so inputs are correctly associated with `htmlFor`, and bind helper/error texts via `aria-describedby`. Don't forget to hide visual required indicators using `aria-hidden='true'`.
