@@ -1,0 +1,3 @@
+## 2026-07-19 - [Accessible Form Components using useId]
+**Learning:** Using React's `useId()` correctly generates unique IDs for form components, which is critical for making them accessible by ensuring labels point accurately to inputs (using `htmlFor` and `id`), and error messages and hints correctly point to inputs using `aria-describedby`.
+**Action:** When implementing custom components like `Input`, `Select`, or `Textarea`, ensure that they automatically associate labels with inputs and hints/errors using dynamically generated IDs from `useId()` as a fallback when an explicit ID is not provided. Always hide decorative text like `*` using `aria-hidden="true"`.
