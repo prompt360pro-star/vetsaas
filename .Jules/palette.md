@@ -1,0 +1,3 @@
+## 2026-07-21 - Form Accessibility linking
+**Learning:** Using `useId()` allows robust mapping of labels, hint texts, and error texts via `id`, `htmlFor`, and `aria-describedby` to form inputs, regardless of whether a unique id prop is explicitly passed by the consumer component, significantly enhancing screen reader accessibility. It is important to map visually purely-decorative elements like asterisks/icons to `aria-hidden='true'` and avoid putting mutually exclusive ids on `aria-describedby` (e.g. error/hint) if only one gets rendered.
+**Action:** When creating robust form primitives (Input, Textarea, Select), automatically generate fallback ids and link labels/descriptions to reduce developer friction while maintaining a11y.
