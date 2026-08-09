@@ -1,0 +1,3 @@
+## 2024-08-09 - Accessible Form Components with useId
+**Learning:** Reusable form components (Input, Select, Textarea) require dynamically generated IDs (via `useId()`) to reliably associate labels (`htmlFor`) and helper/error text (`aria-describedby`) when developers don't explicitly provide an `id` prop. Furthermore, visual required asterisks (`*`) cause redundant screen reader announcements if not hidden with `aria-hidden="true"`, as the native `required` attribute already communicates this state.
+**Action:** When building new form components, always default to `useId()` for accessible element linking, dynamically build `aria-describedby` arrays, and explicitly hide decorative visual cues like asterisks.
