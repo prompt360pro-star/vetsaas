@@ -1,0 +1,3 @@
+## 2024-08-30 - Add accessible form field associations
+**Learning:** React 18 `useId` is an excellent way to programmatically link labels, hints, and error messages to form inputs for screen readers without relying on developers explicitly passing unique IDs. By generating an ID and conditionally binding error and hint IDs via `aria-describedby`, screen readers can accurately announce associated text only when it is rendered.
+**Action:** Use `useId()` and conditional `aria-describedby` arrays (e.g. `[errorId, hintId].filter(Boolean).join(" ") || undefined`) in all design system form components to ensure robust accessibility by default.
