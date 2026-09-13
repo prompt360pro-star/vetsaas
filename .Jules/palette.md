@@ -1,0 +1,3 @@
+## 2026-09-13 - Automatic Form Control Accessibility
+**Learning:** Reusable input components (Input, Textarea, Select) often lack intrinsic bindings between labels, inputs, and auxiliary text (hints/errors). Using React's `useId()` ensures stable SSR IDs while respecting user-provided IDs. Providing `aria-describedby` attributes dynamically for hints and errors is essential for screen readers to announce form context correctly.
+**Action:** When building or maintaining generic form components in this UI library, consistently apply this pattern: fallback to `useId()`, link `<label htmlFor>` to `<input id>`, use `aria-describedby` to link error/hint messages to the input, and ensure visual-only elements (like '*' or icons) use `aria-hidden="true"`.
