@@ -1,0 +1,3 @@
+## 2026-10-01 - [Component ARIA associations]
+**Learning:** Fallback IDs must be generated in UI components (like Input, Textarea, Select) if `props.id` is not provided to correctly link `<label htmlFor>` to `<input id>` and `aria-describedby` to `<p id>`. Without an explicit ID, form errors/hints and labels will become detached from screen reader focus. Using `useId()` is perfect for this, but visual/decorative asterisks or icons inside labels or wrappers must be explicitly hidden with `aria-hidden="true"`.
+**Action:** Always generate a fallback ID with `useId()` for form components and filter out `undefined` when setting `aria-describedby` arrays. Use `aria-hidden="true"` for any purely visual decorative asterisks or icons that screen readers should not announce.
