@@ -1,0 +1,3 @@
+## 2024-10-24 - Accessibility prop spreading in reusable UI components
+**Learning:** When creating reusable UI components (like Input, Select, Textarea) that automatically handle accessibility IDs (like `aria-describedby` dynamically tied to error and hint props), spreading `...props` at the end of the element will unintentionally overwrite the dynamic values if a consumer provides custom accessibility props.
+**Action:** Always extract accessibility props like `aria-describedby` from the generic rest parameter (`props`), and merge them with dynamic values in the component code instead of relying on standard prop spreading order, or spread `...props` *before* the component specific accessibility handlers.
