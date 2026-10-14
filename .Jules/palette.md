@@ -1,0 +1,3 @@
+## 2026-10-14 - [Form Inputs Accessibility]
+**Learning:** In React UI components, generated IDs with `useId()` ensure proper bindings for screen readers (like `htmlFor`, `id`, and `aria-describedby`) even when developers don't explicitly provide an ID. Also, decorative elements like required asterisks should be hidden from assistive technology using `aria-hidden="true"`.
+**Action:** When creating or updating form elements, always implement fallback IDs using `useId()`, dynamically associate hints/errors using `aria-describedby` while ensuring no reference to nonexistent elements, and hide purely visual indicators with `aria-hidden`.
