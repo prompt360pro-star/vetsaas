@@ -1,0 +1,3 @@
+## 2026-10-15 - Dynamic ARIA Attributes with useId()
+**Learning:** When generating IDs for inputs using `useId()`, `aria-describedby` must handle optional values safely so React completely removes the attribute when no errors or hints exist. `join(' ') || undefined` perfectly resolves this. Spreading `...props` at the end of elements can overwrite these generated accessibility attributes if consumers pass custom values.
+**Action:** Always destructure accessibility props (like `id` and `aria-describedby`) from the rest parameters, merge them with internally generated dynamic IDs, and pass `undefined` for falsy conditional attributes.
