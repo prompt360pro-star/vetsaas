@@ -112,7 +112,7 @@ importers:
         specifier: ^8.71.2
         version: 8.71.2(eslint@8.57.1)(typescript@5.9.3)
       eslint:
-        specifier: ^8.57.1
+        specifier: ^8
         version: 8.57.1
       jest:
         specifier: ^29.7.0
