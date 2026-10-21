@@ -1,0 +1,3 @@
+## 2026-10-21 - [A11y/Forms] Dynamic IDs for Input/Textarea/Select Links
+**Learning:** React form inputs (Input, Textarea, Select) often lack a persistent `id` prop, breaking `<label htmlFor>` and error/hint `<p id>` associations if they aren't manually supplied by developers. Without IDs, `aria-describedby` falls flat.
+**Action:** Use `useId()` in standard components to guarantee every field automatically receives a unique internal ID for linking labels (`htmlFor`) and helper text (`aria-describedby`) unless one is explicitly passed as a prop. Hide visual required indicators (e.g. `*`) with `aria-hidden="true"`.
