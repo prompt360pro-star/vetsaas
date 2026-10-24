@@ -6,7 +6,7 @@
         "lib": [
             "ES2022"
         ],
-        "strict": true,
+        "strictPropertyInitialization": false,
         "esModuleInterop": true,
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
