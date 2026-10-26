@@ -53,6 +53,9 @@ export function Accordion({
                         `}
                     >
                         <button
+                            id={`accordion-button-${item.id}`}
+                            aria-expanded={isOpen}
+                            aria-controls={`accordion-content-${item.id}`}
                             onClick={() => toggle(item.id)}
                             className="w-full flex items-center justify-between px-5 py-4 text-left focus:outline-none"
                         >
@@ -83,7 +86,12 @@ export function Accordion({
                                     exit={{ height: 0, opacity: 0 }}
                                     transition={{ height: { duration: 0.3, ease: 'easeOut' }, opacity: { duration: 0.2, delay: 0.1 } }}
                                 >
-                                    <div className="px-5 pb-5 pt-0 text-sm text-surface-600 dark:text-surface-300 border-t border-dashed border-surface-200 dark:border-surface-700/50 mt-1 pt-4">
+                                    <div
+                                        id={`accordion-content-${item.id}`}
+                                        role="region"
+                                        aria-labelledby={`accordion-button-${item.id}`}
+                                        className="px-5 pb-5 pt-0 text-sm text-surface-600 dark:text-surface-300 border-t border-dashed border-surface-200 dark:border-surface-700/50 mt-1 pt-4"
+                                    >
                                         {item.content}
                                     </div>
                                 </motion.div>
