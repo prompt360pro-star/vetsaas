@@ -1,0 +1,3 @@
+## 2024-10-27 - Accordion ARIA accessibility
+**Learning:** For custom accordion components (`<button>` toggle, `<motion.div>` content panel), screen readers need explicitly declared structures. If standard `<details>`/`<summary>` aren't used, manual WAI-ARIA attributes (`aria-expanded`, `aria-controls`, `role="region"`, `aria-labelledby`) must be mapped to link the toggle with its corresponding content area. This is essential for interactive state communication to assistive technologies.
+**Action:** When implementing expandable custom panels (like Accordions, Dropdowns, or Collapsibles), ensure the trigger element has an `id`, `aria-expanded`, and `aria-controls`, and ensure the content element has a corresponding `id`, `role="region"`, and `aria-labelledby`.
