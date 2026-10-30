@@ -9,7 +9,7 @@ import {
     Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan, MoreThan, Raw } from 'typeorm';
+import { Repository, LessThan } from 'typeorm';
 import { InventoryItemEntity } from './inventory-item.entity';
 import { StockMovementEntity } from './stock-movement.entity';
 

@@ -166,7 +166,7 @@ describe('InvoicesService', () => {
             repo.findOne.mockResolvedValue({ ...mockInvoice });
             repo.save.mockResolvedValue({ ...mockInvoice, status: 'PAID' });
 
-            const result = await service.markAsPaid(tenantId, 'inv-uuid-1', 'pay-uuid-1');
+            await service.markAsPaid(tenantId, 'inv-uuid-1', 'pay-uuid-1');
 
             expect(repo.save).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -191,7 +191,7 @@ describe('InvoicesService', () => {
             repo.findOne.mockResolvedValue({ ...mockInvoice });
             repo.save.mockResolvedValue({ ...mockInvoice, status: 'CANCELLED' });
 
-            const result = await service.cancel(tenantId, 'inv-uuid-1', 'Erro de dados');
+            await service.cancel(tenantId, 'inv-uuid-1', 'Erro de dados');
 
             expect(repo.save).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -215,7 +215,7 @@ describe('InvoicesService', () => {
             repo.findOne.mockResolvedValue({ ...mockInvoice, status: 'DRAFT' });
             repo.save.mockResolvedValue({ ...mockInvoice, status: 'SENT' });
 
-            const result = await service.send(tenantId, 'inv-uuid-1');
+            await service.send(tenantId, 'inv-uuid-1');
 
             expect(repo.save).toHaveBeenCalledWith(
                 expect.objectContaining({ status: 'SENT' }),

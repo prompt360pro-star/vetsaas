@@ -10,7 +10,6 @@ import {
     Param,
     Query,
     Request,
-    UseGuards,
     HttpCode,
 } from '@nestjs/common';
 import { PaymentsService, CreatePaymentInput } from './payments.service';
