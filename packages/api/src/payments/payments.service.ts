@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // ============================================================================
 // Payments Service — Multi-tenant, Angola payment methods
 // ============================================================================
