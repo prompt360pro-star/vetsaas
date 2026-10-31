@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // ============================================================================
 // Invoices Service — Unit Tests
 // ============================================================================
@@ -102,7 +106,7 @@ describe('InvoicesService', () => {
             repo.create.mockReturnValue(mockInvoice);
             repo.save.mockResolvedValue(mockInvoice);
 
-            await service.create(tenantId, userId, {
+            const result = await service.create(tenantId, userId, {
                 tutorId: 'tutor-uuid-1',
                 tutorName: 'Ana Santos',
                 items: [
@@ -134,7 +138,7 @@ describe('InvoicesService', () => {
         it('should filter by status', async () => {
             repo.findAndCount.mockResolvedValue([[], 0]);
 
-            await service.findAll(tenantId, { page: 1, limit: 10, status: 'PAID' });
+            const result = await service.findAll(tenantId, { page: 1, limit: 10, status: 'PAID' });
 
             expect(repo.findAndCount).toHaveBeenCalledWith(
                 expect.objectContaining({

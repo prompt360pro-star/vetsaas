@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // ============================================================================
 // Inventory Service — Stock management with movement tracking
 // ============================================================================

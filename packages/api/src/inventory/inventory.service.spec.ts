@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // ============================================================================
 // Inventory Service — Unit Tests
 // ============================================================================
@@ -179,7 +183,7 @@ describe('InventoryService', () => {
             itemRepo.findOne.mockResolvedValue(item);
             itemRepo.save.mockResolvedValue({ ...item, stock: 15 });
 
-            await service.adjustStock(tenantId, userId, 'item-uuid-1', {
+            const result = await service.adjustStock(tenantId, userId, 'item-uuid-1', {
                 quantity: 5,
                 type: 'OUT',
                 reason: 'Uso em consulta',
@@ -205,7 +209,7 @@ describe('InventoryService', () => {
             itemRepo.findOne.mockResolvedValue(item);
             itemRepo.save.mockResolvedValue({ ...item, stock: 50 });
 
-            await service.adjustStock(tenantId, userId, 'item-uuid-1', {
+            const result = await service.adjustStock(tenantId, userId, 'item-uuid-1', {
                 quantity: 50,
                 type: 'ADJUSTMENT',
                 reason: 'Contagem física',
