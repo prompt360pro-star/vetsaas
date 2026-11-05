@@ -38,7 +38,8 @@ export class TenantsService {
     }
 
     async update(id: string, data: Partial<TenantEntity>): Promise<TenantEntity | null> {
-        await this.repo.update(id, data);
+        // Cast to avoid _QueryDeepPartialEntity incompatibility issues with complex JSON properties like settings
+        await this.repo.update(id, data as any);
         return this.findById(id);
     }
 
