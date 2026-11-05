@@ -12,53 +12,53 @@ import {
 @Index(['tenantId', 'email'], { unique: true })
 export class UserEntity {
     @PrimaryGeneratedColumn('uuid')
-    id: string;
+    id!: string;
 
     @Column('uuid')
-    tenantId: string;
+    tenantId!: string;
 
     @Column({ length: 255 })
-    email: string;
+    email!: string;
 
     @Column({ length: 255 })
-    passwordHash: string;
+    passwordHash!: string;
 
     @Column({ length: 100 })
-    firstName: string;
+    firstName!: string;
 
     @Column({ length: 100 })
-    lastName: string;
+    lastName!: string;
 
     @Column({ length: 50, default: 'VETERINARIAN' })
-    role: string;
+    role!: string;
 
     @Column({ length: 50, nullable: true })
-    phone: string;
+    phone!: string;
 
     @Column({ type: 'text', nullable: true })
-    avatarUrl: string;
+    avatarUrl!: string;
 
     @Column({ default: false })
-    mfaEnabled: boolean;
+    mfaEnabled!: boolean;
 
     @Column({ type: 'text', nullable: true })
-    mfaSecret: string;
+    mfaSecret!: string;
 
     @Column({ type: 'text', nullable: true })
-    refreshToken: string;
+    refreshToken!: string;
 
     @Column({ type: 'timestamp', nullable: true })
-    lastLoginAt: Date;
+    lastLoginAt!: Date;
 
     @Column({ default: true })
-    isActive: boolean;
+    isActive!: boolean;
 
     @CreateDateColumn()
-    createdAt: Date;
+    createdAt!: Date;
 
     @UpdateDateColumn()
-    updatedAt: Date;
+    updatedAt!: Date;
 
     @DeleteDateColumn()
-    deletedAt: Date;
+    deletedAt!: Date;
 }
