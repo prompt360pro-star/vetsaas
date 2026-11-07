@@ -10,50 +10,50 @@ import {
 @Entity('tenants')
 export class TenantEntity {
     @PrimaryGeneratedColumn('uuid')
-    id: string;
+    id!: string;
 
     @Column({ length: 255 })
-    name: string;
+    name!: string;
 
     @Column({ length: 100, unique: true })
-    slug: string;
+    slug!: string;
 
     @Column({ length: 255 })
-    email: string;
+    email!: string;
 
     @Column({ length: 50, nullable: true })
-    phone: string;
+    phone!: string;
 
     @Column({ type: 'text', nullable: true })
-    address: string;
+    address!: string;
 
     @Column({ length: 100, nullable: true })
-    city: string;
+    city!: string;
 
     @Column({ length: 100, nullable: true })
-    province: string;
+    province!: string;
 
     @Column({ length: 10, default: 'AO' })
-    country: string;
+    country!: string;
 
     @Column({ type: 'text', nullable: true })
-    logoUrl: string;
+    logoUrl!: string;
 
     @Column({ type: 'jsonb', default: () => "'{}'::jsonb" })
-    settings: Record<string, unknown>;
+    settings!: Record<string, unknown>;
 
     @Column({ length: 50, default: 'STARTER' })
-    plan: string;
+    plan!: string;
 
     @Column({ default: true })
-    isActive: boolean;
+    isActive!: boolean;
 
     @CreateDateColumn()
-    createdAt: Date;
+    createdAt!: Date;
 
     @UpdateDateColumn()
-    updatedAt: Date;
+    updatedAt!: Date;
 
     @DeleteDateColumn()
-    deletedAt: Date;
+    deletedAt!: Date;
 }
