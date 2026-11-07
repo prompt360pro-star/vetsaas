@@ -26,62 +26,62 @@ export interface InvoiceLineItem {
 @Index(['invoiceNumber'], { unique: true })
 export class InvoiceEntity {
     @PrimaryGeneratedColumn('uuid')
-    id: string;
+    id!: string;
 
     @Column('uuid')
-    tenantId: string;
+    tenantId!: string;
 
     @Column('uuid')
-    tutorId: string;
+    tutorId!: string;
 
     @Column({ length: 255 })
-    tutorName: string;
+    tutorName!: string;
 
     @Column({ length: 30, unique: true })
-    invoiceNumber: string; // FAT-2025-000001
+    invoiceNumber!: string; // FAT-2025-000001
 
     @Column({ type: 'jsonb', default: () => "'[]'::jsonb" })
-    items: InvoiceLineItem[];
+    items!: InvoiceLineItem[];
 
     @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
-    subtotal: number;
+    subtotal!: number;
 
     @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
-    tax: number;
+    tax!: number;
 
     @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
-    total: number;
+    total!: number;
 
     @Column({ length: 3, default: 'AOA' })
-    currency: string;
+    currency!: string;
 
     @Column({ length: 20, default: 'DRAFT' })
-    status: string; // DRAFT | SENT | PAID | PARTIALLY_PAID | OVERDUE | CANCELLED
+    status!: string; // DRAFT | SENT | PAID | PARTIALLY_PAID | OVERDUE | CANCELLED
 
     @Column({ type: 'date', nullable: true })
-    dueDate: Date;
+    dueDate!: Date;
 
     @Column({ type: 'timestamp', nullable: true })
-    paidAt: Date;
+    paidAt!: Date;
 
     @Column({ type: 'uuid', nullable: true })
-    paymentId: string; // Linked payment
+    paymentId!: string; // Linked payment
 
     @Column({ type: 'text', nullable: true })
-    notes: string;
+    notes!: string;
 
     @Column({ type: 'text', nullable: true })
-    cancellationReason: string;
+    cancellationReason!: string;
 
     @Column({ type: 'uuid', nullable: true })
-    createdBy: string;
+    createdBy!: string;
 
     @CreateDateColumn()
-    createdAt: Date;
+    createdAt!: Date;
 
     @UpdateDateColumn()
-    updatedAt: Date;
+    updatedAt!: Date;
 
     @DeleteDateColumn()
-    deletedAt: Date;
+    deletedAt!: Date;
 }
