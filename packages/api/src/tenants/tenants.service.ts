@@ -38,7 +38,7 @@ export class TenantsService {
     }
 
     async update(id: string, data: Partial<TenantEntity>): Promise<TenantEntity | null> {
-        await this.repo.update(id, data as import("typeorm/query-builder/QueryPartialEntity").QueryDeepPartialEntity<TenantEntity>);
+        await this.repo.update(id, data);
         return this.findById(id);
     }
 
